@@ -13,7 +13,7 @@ import {
   UploadOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Flex, Menu, Typography } from 'antd'
+import { Flex, Menu, Typography, Image, Space } from 'antd'
 import { DiscordIcon } from 'icons/DiscordIcon'
 import { GithubIcon } from 'icons/GithubIcon'
 import { CoffeeIcon } from 'icons/CoffeeIcon'
@@ -110,6 +110,13 @@ const MenuDrawer = () => {
           </Typography.Link>
         ),
         AppPages.CHANGELOG),
+      getItem(
+        (/* !!Change the icon to an internal image before release!! */
+          <Flex>
+            EHR Calculator
+          </Flex>
+        ),
+        AppPages.EHR),
     ]),
     getItem('Links', 'subLinks', <BarsOutlined />, [
       getItem(

@@ -35,6 +35,7 @@ export const AppPages = {
   CHANGELOG: 'CHANGELOG',
   SETTINGS: 'SETTINGS',
   RELIC_SCORER: 'RELIC_SCORER',
+  EHR: 'EHR',
 }
 
 export const PageToRoute = {
