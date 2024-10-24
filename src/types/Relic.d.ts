@@ -1,4 +1,4 @@
-import { MainStats, Parts, Sets, SubStats } from 'lib/constants'
+import { MainStats, Parts, Sets, StatsValues, SubStats } from 'lib/constants'
 import { GUID } from './Common'
 import { AugmentedStats } from 'lib/relicAugmenter'
 
@@ -48,6 +48,6 @@ type StatRolls = {
 }
 
 export type Stat = {
-  stat: string
+  stat: StatsValues
   value: number
 }

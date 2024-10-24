@@ -29,7 +29,7 @@ export const Stats = {
   SPD_P: 'SPD%',
   SPD: 'SPD',
   Wind_DMG: 'Wind DMG Boost',
-}
+} as const
 export type StatsKeys = keyof typeof Stats
 export type StatsValues = (typeof Stats)[StatsKeys]
 
@@ -371,7 +371,7 @@ export const Parts = {
   Feet: 'Feet',
   PlanarSphere: 'PlanarSphere',
   LinkRope: 'LinkRope',
-}
+} as const
 export type Parts = typeof Parts[keyof typeof Parts]
 
 export const PartsToReadable = {
@@ -381,7 +381,7 @@ export const PartsToReadable = {
   [Parts.Feet]: 'Feet',
   [Parts.PlanarSphere]: 'Sphere',
   [Parts.LinkRope]: 'Rope',
-}
+} as const
 export type PartsToReadable = typeof PartsToReadable[keyof typeof PartsToReadable]
 
 export const PartsMainStats = {
@@ -391,7 +391,7 @@ export const PartsMainStats = {
   [Parts.Feet]: [Stats.HP_P, Stats.ATK_P, Stats.DEF_P, Stats.SPD],
   [Parts.PlanarSphere]: [Stats.HP_P, Stats.ATK_P, Stats.DEF_P, Stats.Physical_DMG, Stats.Fire_DMG, Stats.Ice_DMG, Stats.Lightning_DMG, Stats.Wind_DMG, Stats.Quantum_DMG, Stats.Imaginary_DMG],
   [Parts.LinkRope]: [Stats.HP_P, Stats.ATK_P, Stats.DEF_P, Stats.BE, Stats.ERR],
-}
+} as const
 
 export const SetsRelics = {
   PasserbyOfWanderingCloud: 'Passerby of Wandering Cloud',
@@ -744,7 +744,6 @@ export const COMPUTE_ENGINE_GPU_EXPERIMENTAL = 'GPU Experimental'
 
 export const SACERDOS_RELIVED_ORDEAL_1_STACK = 'Sacerdos\' Relived Ordeal 1x'
 export const SACERDOS_RELIVED_ORDEAL_2_STACK = 'Sacerdos\' Relived Ordeal 2x'
-
 
 export const ConditionalType = {
   SET: 0,
