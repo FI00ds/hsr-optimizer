@@ -129,7 +129,7 @@ RelicSets:
   "101":
     Name: Transeúnte de la nube pasajera
     Description2pc: "<span>Curación realizada +<span style='whiteSpace: \"nowrap\"'>10%</span>.</span>"
-    Description4pc: "<span>Al entrar en combate, el equipo recupera inmediatamente 1\_pt. de habilidad básica.</span>"
+    Description4pc: <span>Al entrar en combate, el equipo recupera inmediatamente 1\_pt. de habilidad básica.</span>
   "102":
     Name: Pistolera de la espiga silvestre
     Description2pc: "<span>ATQ +<span style='whiteSpace: \"nowrap\"'>12%</span>.</span>"
@@ -233,7 +233,7 @@ RelicSets:
     Name: Salsotto inerte
     Description2pc: "<span>La Prob. CRIT del portador aumenta en un <span style='whiteSpace: \"nowrap\"'>8%</span>. Cuando su Prob. CRIT es igual o superior al <span style='whiteSpace: \"nowrap\"'>50%</span>, el daño que infligen su habilidad definitiva y sus ataques adicionales aumenta en un <span style='whiteSpace: \"nowrap\"'>15%</span>.</span>"
   "307":
-    Name: Talia, paraíso de los forajidos
+    Name: "Talia, paraíso de los forajidos"
     Description2pc: "<span>El efecto de Ruptura del portador aumenta en un <span style='whiteSpace: \"nowrap\"'>16%</span>. Cuando su VEL es igual o superior a <span style='whiteSpace: \"nowrap\"'>145</span>, el efecto especial de Ruptura aumenta en un <span style='whiteSpace: \"nowrap\"'>20%</span> adicional.</span>"
   "308":
     Name: Vonwacq el vivaz
@@ -245,7 +245,7 @@ RelicSets:
     Name: Quilla rota
     Description2pc: "<span>La RES a efecto del portador aumenta en un <span style='whiteSpace: \"nowrap\"'>10%</span>. Cuando su RES a efecto es igual o superior al <span style='whiteSpace: \"nowrap\"'>30%</span>, el Daño CRIT de todos los aliados aumenta en un <span style='whiteSpace: \"nowrap\"'>10%</span>.</span>"
   "311":
-    Name: Glamoth, frente del firmamento
+    Name: "Glamoth, frente del firmamento"
     Description2pc: "<span>El ATQ del portador aumenta en un <span style='whiteSpace: \"nowrap\"'>12%</span>. Cuando su VEL es igual o superior a <span style='whiteSpace: \"nowrap\"'>135</span>/<span style='whiteSpace: \"nowrap\"'>160</span>, el daño que inflige aumenta en un <span style='whiteSpace: \"nowrap\"'>12%</span>/<span style='whiteSpace: \"nowrap\"'>18%</span>.</span>"
   "312":
     Name: Colonipenal, la tierra de los sueños
@@ -384,11 +384,11 @@ Lightcones:
     Name: Tendencias del mercado universal
     SkillName: Nueva partida
   "21017":
-    Name: ¡Suscríbanse a mi canal!
-    SkillName: ¡No se vayan sin darme un like!
+    Name: '¡Suscríbanse a mi canal!'
+    SkillName: '¡No se vayan sin darme un like!'
   "21018":
-    Name: ¡A bailar!
-    SkillName: ¡No puedo detenerme!
+    Name: '¡A bailar!'
+    SkillName: '¡No puedo detenerme!'
   "21019":
     Name: Bajo el cielo azul
     SkillName: Olas de trigo al sol
@@ -411,8 +411,8 @@ Lightcones:
     Name: El pasado y el futuro
     SkillName: Cometas antiguas
   "21026":
-    Name: ¡Guau! ¡Hora de pasear!
-    SkillName: ¡Corre!
+    Name: '¡Guau! ¡Hora de pasear!'
+    SkillName: '¡Corre!'
   "21027":
     Name: La solemnidad del desayuno
     SkillName: A sus puestos
@@ -423,7 +423,7 @@ Lightcones:
     Name: Volveremos a encontrarnos
     SkillName: El discurso de las armas
   "21030":
-    Name: ¡Así soy yo!
+    Name: '¡Así soy yo!'
     SkillName: Nuevo capítulo
   "21031":
     Name: Regreso a la oscuridad
@@ -484,7 +484,7 @@ Lightcones:
     SkillName: Mano rápida
   "22001":
     Name: Ey, estoy aquí
-    SkillName: ¡No tengo miedo!
+    SkillName: '¡No tengo miedo!'
   "22002":
     Name: Para el viaje de mañana
     SkillName: Ataduras
