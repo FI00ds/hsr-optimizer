@@ -3,3 +3,4 @@ files:
     ignore:
       - /public/locales/en/gameData.yaml
     translation: /public/locales/%two_letters_code%/%original_file_name%
+  type: i18next_json
