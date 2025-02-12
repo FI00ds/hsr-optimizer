@@ -50,7 +50,7 @@ fn main(
     workgroup_id.x +
     workgroup_id.y * num_workgroups.x +
     workgroup_id.z * num_workgroups.x * num_workgroups.y;
-  let indexGlobal = i32(workgroup_index * WORKGROUP_SIZE + local_invocation_index);
+  let indexGlobal = i32(workgroup_index * u32(WORKGROUP_SIZE) + local_invocation_index);
 
   // Load params
   let lSize = i32(params.lSize);
@@ -71,7 +71,7 @@ fn main(
 
   let epsilon = 0.000001f;
 
-  var failures: f32 = 1;
+  var failures: f32 = 1.0;
 
   var emptyComputedStats = ComputedStats();
 
@@ -135,53 +135,53 @@ fn main(
 
     var sets = Sets();
 
-    sets.PasserbyOfWanderingCloud            = i32((1 >> (setH ^ 0)) + (1 >> (setG ^ 0)) + (1 >> (setB ^ 0)) + (1 >> (setF ^ 0)));
-    sets.MusketeerOfWildWheat                = i32((1 >> (setH ^ 1)) + (1 >> (setG ^ 1)) + (1 >> (setB ^ 1)) + (1 >> (setF ^ 1)));
-    sets.KnightOfPurityPalace                = i32((1 >> (setH ^ 2)) + (1 >> (setG ^ 2)) + (1 >> (setB ^ 2)) + (1 >> (setF ^ 2)));
-    sets.HunterOfGlacialForest               = i32((1 >> (setH ^ 3)) + (1 >> (setG ^ 3)) + (1 >> (setB ^ 3)) + (1 >> (setF ^ 3)));
-    sets.ChampionOfStreetwiseBoxing          = i32((1 >> (setH ^ 4)) + (1 >> (setG ^ 4)) + (1 >> (setB ^ 4)) + (1 >> (setF ^ 4)));
-    sets.GuardOfWutheringSnow                = i32((1 >> (setH ^ 5)) + (1 >> (setG ^ 5)) + (1 >> (setB ^ 5)) + (1 >> (setF ^ 5)));
-    sets.FiresmithOfLavaForging              = i32((1 >> (setH ^ 6)) + (1 >> (setG ^ 6)) + (1 >> (setB ^ 6)) + (1 >> (setF ^ 6)));
-    sets.GeniusOfBrilliantStars              = i32((1 >> (setH ^ 7)) + (1 >> (setG ^ 7)) + (1 >> (setB ^ 7)) + (1 >> (setF ^ 7)));
-    sets.BandOfSizzlingThunder               = i32((1 >> (setH ^ 8)) + (1 >> (setG ^ 8)) + (1 >> (setB ^ 8)) + (1 >> (setF ^ 8)));
-    sets.EagleOfTwilightLine                 = i32((1 >> (setH ^ 9)) + (1 >> (setG ^ 9)) + (1 >> (setB ^ 9)) + (1 >> (setF ^ 9)));
-    sets.ThiefOfShootingMeteor               = i32((1 >> (setH ^ 10)) + (1 >> (setG ^ 10)) + (1 >> (setB ^ 10)) + (1 >> (setF ^ 10)));
-    sets.WastelanderOfBanditryDesert         = i32((1 >> (setH ^ 11)) + (1 >> (setG ^ 11)) + (1 >> (setB ^ 11)) + (1 >> (setF ^ 11)));
-    sets.LongevousDisciple                   = i32((1 >> (setH ^ 12)) + (1 >> (setG ^ 12)) + (1 >> (setB ^ 12)) + (1 >> (setF ^ 12)));
-    sets.MessengerTraversingHackerspace      = i32((1 >> (setH ^ 13)) + (1 >> (setG ^ 13)) + (1 >> (setB ^ 13)) + (1 >> (setF ^ 13)));
-    sets.TheAshblazingGrandDuke              = i32((1 >> (setH ^ 14)) + (1 >> (setG ^ 14)) + (1 >> (setB ^ 14)) + (1 >> (setF ^ 14)));
-    sets.PrisonerInDeepConfinement           = i32((1 >> (setH ^ 15)) + (1 >> (setG ^ 15)) + (1 >> (setB ^ 15)) + (1 >> (setF ^ 15)));
-    sets.PioneerDiverOfDeadWaters            = i32((1 >> (setH ^ 16)) + (1 >> (setG ^ 16)) + (1 >> (setB ^ 16)) + (1 >> (setF ^ 16)));
-    sets.WatchmakerMasterOfDreamMachinations = i32((1 >> (setH ^ 17)) + (1 >> (setG ^ 17)) + (1 >> (setB ^ 17)) + (1 >> (setF ^ 17)));
-    sets.IronCavalryAgainstTheScourge        = i32((1 >> (setH ^ 18)) + (1 >> (setG ^ 18)) + (1 >> (setB ^ 18)) + (1 >> (setF ^ 18)));
-    sets.TheWindSoaringValorous              = i32((1 >> (setH ^ 19)) + (1 >> (setG ^ 19)) + (1 >> (setB ^ 19)) + (1 >> (setF ^ 19)));
-    sets.SacerdosRelivedOrdeal               = i32((1 >> (setH ^ 20)) + (1 >> (setG ^ 20)) + (1 >> (setB ^ 20)) + (1 >> (setF ^ 20)));
-    sets.ScholarLostInErudition              = i32((1 >> (setH ^ 21)) + (1 >> (setG ^ 21)) + (1 >> (setB ^ 21)) + (1 >> (setF ^ 21)));
-    sets.HeroOfTriumphantSong                = i32((1 >> (setH ^ 22)) + (1 >> (setG ^ 22)) + (1 >> (setB ^ 22)) + (1 >> (setF ^ 22)));
-    sets.PoetOfMourningCollapse              = i32((1 >> (setH ^ 23)) + (1 >> (setG ^ 23)) + (1 >> (setB ^ 23)) + (1 >> (setF ^ 23)));
+    sets.PasserbyOfWanderingCloud            = i32((u32(1) >> (setH ^ 0)) + (u32(1) >> (setG ^ 0)) + (u32(1) >> (setB ^ 0)) + (u32(1) >> (setF ^ 0)));
+    sets.MusketeerOfWildWheat                = i32((u32(1) >> (setH ^ 1)) + (u32(1) >> (setG ^ 1)) + (u32(1) >> (setB ^ 1)) + (u32(1) >> (setF ^ 1)));
+    sets.KnightOfPurityPalace                = i32((u32(1) >> (setH ^ 2)) + (u32(1) >> (setG ^ 2)) + (u32(1) >> (setB ^ 2)) + (u32(1) >> (setF ^ 2)));
+    sets.HunterOfGlacialForest               = i32((u32(1) >> (setH ^ 3)) + (u32(1) >> (setG ^ 3)) + (u32(1) >> (setB ^ 3)) + (u32(1) >> (setF ^ 3)));
+    sets.ChampionOfStreetwiseBoxing          = i32((u32(1) >> (setH ^ 4)) + (u32(1) >> (setG ^ 4)) + (u32(1) >> (setB ^ 4)) + (u32(1) >> (setF ^ 4)));
+    sets.GuardOfWutheringSnow                = i32((u32(1) >> (setH ^ 5)) + (u32(1) >> (setG ^ 5)) + (u32(1) >> (setB ^ 5)) + (u32(1) >> (setF ^ 5)));
+    sets.FiresmithOfLavaForging              = i32((u32(1) >> (setH ^ 6)) + (u32(1) >> (setG ^ 6)) + (u32(1) >> (setB ^ 6)) + (u32(1) >> (setF ^ 6)));
+    sets.GeniusOfBrilliantStars              = i32((u32(1) >> (setH ^ 7)) + (u32(1) >> (setG ^ 7)) + (u32(1) >> (setB ^ 7)) + (u32(1) >> (setF ^ 7)));
+    sets.BandOfSizzlingThunder               = i32((u32(1) >> (setH ^ 8)) + (u32(1) >> (setG ^ 8)) + (u32(1) >> (setB ^ 8)) + (u32(1) >> (setF ^ 8)));
+    sets.EagleOfTwilightLine                 = i32((u32(1) >> (setH ^ 9)) + (u32(1) >> (setG ^ 9)) + (u32(1) >> (setB ^ 9)) + (u32(1) >> (setF ^ 9)));
+    sets.ThiefOfShootingMeteor               = i32((u32(1) >> (setH ^ 10)) + (u32(1) >> (setG ^ 10)) + (u32(1) >> (setB ^ 10)) + (u32(1) >> (setF ^ 10)));
+    sets.WastelanderOfBanditryDesert         = i32((u32(1) >> (setH ^ 11)) + (u32(1) >> (setG ^ 11)) + (u32(1) >> (setB ^ 11)) + (u32(1) >> (setF ^ 11)));
+    sets.LongevousDisciple                   = i32((u32(1) >> (setH ^ 12)) + (u32(1) >> (setG ^ 12)) + (u32(1) >> (setB ^ 12)) + (u32(1) >> (setF ^ 12)));
+    sets.MessengerTraversingHackerspace      = i32((u32(1) >> (setH ^ 13)) + (u32(1) >> (setG ^ 13)) + (u32(1) >> (setB ^ 13)) + (u32(1) >> (setF ^ 13)));
+    sets.TheAshblazingGrandDuke              = i32((u32(1) >> (setH ^ 14)) + (u32(1) >> (setG ^ 14)) + (u32(1) >> (setB ^ 14)) + (u32(1) >> (setF ^ 14)));
+    sets.PrisonerInDeepConfinement           = i32((u32(1) >> (setH ^ 15)) + (u32(1) >> (setG ^ 15)) + (u32(1) >> (setB ^ 15)) + (u32(1) >> (setF ^ 15)));
+    sets.PioneerDiverOfDeadWaters            = i32((u32(1) >> (setH ^ 16)) + (u32(1) >> (setG ^ 16)) + (u32(1) >> (setB ^ 16)) + (u32(1) >> (setF ^ 16)));
+    sets.WatchmakerMasterOfDreamMachinations = i32((u32(1) >> (setH ^ 17)) + (u32(1) >> (setG ^ 17)) + (u32(1) >> (setB ^ 17)) + (u32(1) >> (setF ^ 17)));
+    sets.IronCavalryAgainstTheScourge        = i32((u32(1) >> (setH ^ 18)) + (u32(1) >> (setG ^ 18)) + (u32(1) >> (setB ^ 18)) + (u32(1) >> (setF ^ 18)));
+    sets.TheWindSoaringValorous              = i32((u32(1) >> (setH ^ 19)) + (u32(1) >> (setG ^ 19)) + (u32(1) >> (setB ^ 19)) + (u32(1) >> (setF ^ 19)));
+    sets.SacerdosRelivedOrdeal               = i32((u32(1) >> (setH ^ 20)) + (u32(1) >> (setG ^ 20)) + (u32(1) >> (setB ^ 20)) + (u32(1) >> (setF ^ 20)));
+    sets.ScholarLostInErudition              = i32((u32(1) >> (setH ^ 21)) + (u32(1) >> (setG ^ 21)) + (u32(1) >> (setB ^ 21)) + (u32(1) >> (setF ^ 21)));
+    sets.HeroOfTriumphantSong                = i32((u32(1) >> (setH ^ 22)) + (u32(1) >> (setG ^ 22)) + (u32(1) >> (setB ^ 22)) + (u32(1) >> (setF ^ 22)));
+    sets.PoetOfMourningCollapse              = i32((u32(1) >> (setH ^ 23)) + (u32(1) >> (setG ^ 23)) + (u32(1) >> (setB ^ 23)) + (u32(1) >> (setF ^ 23)));
 
     // Calculate ornament set counts
 
-    sets.SpaceSealingStation             = i32((1 >> (setP ^ 0)) + (1 >> (setL ^ 0)));
-    sets.FleetOfTheAgeless               = i32((1 >> (setP ^ 1)) + (1 >> (setL ^ 1)));
-    sets.PanCosmicCommercialEnterprise   = i32((1 >> (setP ^ 2)) + (1 >> (setL ^ 2)));
-    sets.BelobogOfTheArchitects          = i32((1 >> (setP ^ 3)) + (1 >> (setL ^ 3)));
-    sets.CelestialDifferentiator         = i32((1 >> (setP ^ 4)) + (1 >> (setL ^ 4)));
-    sets.InertSalsotto                   = i32((1 >> (setP ^ 5)) + (1 >> (setL ^ 5)));
-    sets.TaliaKingdomOfBanditry          = i32((1 >> (setP ^ 6)) + (1 >> (setL ^ 6)));
-    sets.SprightlyVonwacq                = i32((1 >> (setP ^ 7)) + (1 >> (setL ^ 7)));
-    sets.RutilantArena                   = i32((1 >> (setP ^ 8)) + (1 >> (setL ^ 8)));
-    sets.BrokenKeel                      = i32((1 >> (setP ^ 9)) + (1 >> (setL ^ 9)));
-    sets.FirmamentFrontlineGlamoth       = i32((1 >> (setP ^ 10)) + (1 >> (setL ^ 10)));
-    sets.PenaconyLandOfTheDreams         = i32((1 >> (setP ^ 11)) + (1 >> (setL ^ 11)));
-    sets.SigoniaTheUnclaimedDesolation   = i32((1 >> (setP ^ 12)) + (1 >> (setL ^ 12)));
-    sets.IzumoGenseiAndTakamaDivineRealm = i32((1 >> (setP ^ 13)) + (1 >> (setL ^ 13)));
-    sets.DuranDynastyOfRunningWolves     = i32((1 >> (setP ^ 14)) + (1 >> (setL ^ 14)));
-    sets.ForgeOfTheKalpagniLantern       = i32((1 >> (setP ^ 15)) + (1 >> (setL ^ 15)));
-    sets.LushakaTheSunkenSeas            = i32((1 >> (setP ^ 16)) + (1 >> (setL ^ 16)));
-    sets.TheWondrousBananAmusementPark   = i32((1 >> (setP ^ 17)) + (1 >> (setL ^ 17)));
-    sets.BoneCollectionsSereneDemesne    = i32((1 >> (setP ^ 18)) + (1 >> (setL ^ 18)));
-    sets.GiantTreeOfRaptBrooding         = i32((1 >> (setP ^ 19)) + (1 >> (setL ^ 19)));
+    sets.SpaceSealingStation             = i32((u32(1) >> (setP ^ 0)) + (u32(1) >> (setL ^ 0)));
+    sets.FleetOfTheAgeless               = i32((u32(1) >> (setP ^ 1)) + (u32(1) >> (setL ^ 1)));
+    sets.PanCosmicCommercialEnterprise   = i32((u32(1) >> (setP ^ 2)) + (u32(1) >> (setL ^ 2)));
+    sets.BelobogOfTheArchitects          = i32((u32(1) >> (setP ^ 3)) + (u32(1) >> (setL ^ 3)));
+    sets.CelestialDifferentiator         = i32((u32(1) >> (setP ^ 4)) + (u32(1) >> (setL ^ 4)));
+    sets.InertSalsotto                   = i32((u32(1) >> (setP ^ 5)) + (u32(1) >> (setL ^ 5)));
+    sets.TaliaKingdomOfBanditry          = i32((u32(1) >> (setP ^ 6)) + (u32(1) >> (setL ^ 6)));
+    sets.SprightlyVonwacq                = i32((u32(1) >> (setP ^ 7)) + (u32(1) >> (setL ^ 7)));
+    sets.RutilantArena                   = i32((u32(1) >> (setP ^ 8)) + (u32(1) >> (setL ^ 8)));
+    sets.BrokenKeel                      = i32((u32(1) >> (setP ^ 9)) + (u32(1) >> (setL ^ 9)));
+    sets.FirmamentFrontlineGlamoth       = i32((u32(1) >> (setP ^ 10)) + (u32(1) >> (setL ^ 10)));
+    sets.PenaconyLandOfTheDreams         = i32((u32(1) >> (setP ^ 11)) + (u32(1) >> (setL ^ 11)));
+    sets.SigoniaTheUnclaimedDesolation   = i32((u32(1) >> (setP ^ 12)) + (u32(1) >> (setL ^ 12)));
+    sets.IzumoGenseiAndTakamaDivineRealm = i32((u32(1) >> (setP ^ 13)) + (u32(1) >> (setL ^ 13)));
+    sets.DuranDynastyOfRunningWolves     = i32((u32(1) >> (setP ^ 14)) + (u32(1) >> (setL ^ 14)));
+    sets.ForgeOfTheKalpagniLantern       = i32((u32(1) >> (setP ^ 15)) + (u32(1) >> (setL ^ 15)));
+    sets.LushakaTheSunkenSeas            = i32((u32(1) >> (setP ^ 16)) + (u32(1) >> (setL ^ 16)));
+    sets.TheWondrousBananAmusementPark   = i32((u32(1) >> (setP ^ 17)) + (u32(1) >> (setL ^ 17)));
+    sets.BoneCollectionsSereneDemesne    = i32((u32(1) >> (setP ^ 18)) + (u32(1) >> (setL ^ 18)));
+    sets.GiantTreeOfRaptBrooding         = i32((u32(1) >> (setP ^ 19)) + (u32(1) >> (setL ^ 19)));
 
     var c: BasicStats = BasicStats();
 
@@ -407,7 +407,7 @@ fn main(
         x.CR += 0.12;
       }
       if (p4(sets.PoetOfMourningCollapse) >= 1) {
-        let crValue = select(0, 0.20, c.SPD < 110) + select(0, 0.12, c.SPD < 95);
+        let crValue = select(0.0, 0.20, c.SPD < 110) + select(0.0, 0.12, c.SPD < 95);
         x.CR += crValue;
         m.CR += crValue;
       }
@@ -550,7 +550,7 @@ fn main(
 
       if (p4(sets.IronCavalryAgainstTheScourge) >= 1 && x.BE >= 1.50) {
         buffAbilityDefShred(p_x, BREAK_DMG_TYPE, 0.10, 1);
-        buffAbilityDefShred(p_x, SUPER_BREAK_DMG_TYPE, select(0, 0.15, x.BE >= 2.50), 1);
+        buffAbilityDefShred(p_x, SUPER_BREAK_DMG_TYPE, select(0.0, 0.15, x.BE >= 2.50), 1);
       }
 
       // START ACTION CONDITIONALS
@@ -673,10 +673,10 @@ fn calculateDamage(
 
     if (x.HEAL_VALUE > 0) {
       (*p_x).HEAL_VALUE = x.HEAL_VALUE * (
-        1
+        1.0
         + x.OHB
-        + select(0, x.SKILL_OHB, x.HEAL_TYPE == SKILL_DMG_TYPE)
-        + select(0, x.ULT_OHB, x.HEAL_TYPE == ULT_DMG_TYPE)
+        + select(0.0, x.SKILL_OHB, x.HEAL_TYPE == f32(SKILL_DMG_TYPE))
+        + select(0.0, x.ULT_OHB, x.HEAL_TYPE == f32(ULT_DMG_TYPE))
       );
     }
 
@@ -849,7 +849,7 @@ fn calculateEhrMulti(
   p_x: ptr<function, ComputedStats>
 ) -> f32 {
   let x = *p_x;
-  let effectiveDotChance = min(1, x.DOT_CHANCE * (1 + x.EHR) * (1 - enemyEffectResistance + x.EFFECT_RES_PEN));
+  let effectiveDotChance = min(1.0, x.DOT_CHANCE * (1 + x.EHR) * (1 - enemyEffectResistance + x.EFFECT_RES_PEN));
   let dotEhrMulti = select(
     (effectiveDotChance),
     (1 + x.DOT_SPLIT * effectiveDotChance * (x.DOT_STACKS - 1)) / (1 + 0.05 * (x.DOT_STACKS - 1)),
@@ -888,9 +888,9 @@ fn calculateAbilityDmg(
 ) -> f32 {
   let x = *p_x;
 
-  var abilityCritDmgOutput: f32 = 0;
+  var abilityCritDmgOutput: f32 = 0.0;
   if (abilityDmg > 0) {
-    let abilityCr = min(1, x.CR + abilityCrBoost);
+    let abilityCr = min(1.0, x.CR + abilityCrBoost);
     let abilityCd = x.CD + abilityCdBoost;
     let abilityCritMulti = abilityCr * (1 + abilityCd) + (1 - abilityCr);
     let abilityVulnerabilityMulti = 1 + x.VULNERABILITY + abilityVulnerability;
@@ -910,14 +910,14 @@ fn calculateAbilityDmg(
 
   // === Break DMG ===
 
-  var abilityBreakDmgOutput: f32 = 0;
+  var abilityBreakDmgOutput: f32 = 0.0;
   if (abilityBreakDmgModifier > 0) {
     abilityBreakDmgOutput = abilityBreakDmgModifier * x.BREAK_DMG;
   }
 
   // === Super Break DMG ===
 
-  var abilitySuperBreakDmgOutput: f32 = 0;
+  var abilitySuperBreakDmgOutput: f32 = 0.0;
   if (baseSuperBreakModifier + abilitySuperBreakModifier > 0) {
     abilitySuperBreakDmgOutput = baseSuperBreakInstanceDmg
       * (baseSuperBreakModifier + abilitySuperBreakModifier)
@@ -927,9 +927,9 @@ fn calculateAbilityDmg(
 
   // === Additional DMG ===
 
-  var abilityAdditionalDmgOutput: f32 = 0;
+  var abilityAdditionalDmgOutput: f32 = 0.0;
   if (abilityAdditionalDmg > 0) {
-    let additionalDmgCr = select(min(1, x.CR), abilityAdditionalCrOverride, abilityAdditionalCrOverride > 0);
+    let additionalDmgCr = select(min(1.0, x.CR), abilityAdditionalCrOverride, abilityAdditionalCrOverride > 0);
     let additionalDmgCd = select(x.CD, abilityAdditionalCdOverride, abilityAdditionalCdOverride > 0);
     let abilityAdditionalCritMulti = additionalDmgCr * (1 + additionalDmgCd) + (1 - additionalDmgCr);
     abilityAdditionalDmgOutput = abilityAdditionalDmg
@@ -954,7 +954,7 @@ fn calculateAbilityDmg(
 
   // === Memo Joint DMG ===
 
-  var memoJointDmgOutput: f32 = 0;
+  var memoJointDmgOutput: f32 = 0.0;
   if (abilityMemoJointDamage > 0) {
     memoJointDmgOutput = abilityMemoJointDamage;
   }
@@ -1231,7 +1231,7 @@ fn getElementalResPen(
       return (*p_x).IMAGINARY_RES_PEN;
     }
     default: {
-      return 0;
+      return 0.0;
     }
   }
 }
@@ -1270,5 +1270,5 @@ fn calculateAshblazingSet(
     return ashblazingMulti - ashblazingAtk;
   }
 
-  return 0;
+  return 0.0;
 }

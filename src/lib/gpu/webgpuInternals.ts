@@ -180,7 +180,9 @@ export function generatePipeline(device: GPUDevice, wgsl: string) {
   // console.log(wgsl)
 
   return device.createComputePipeline({
+    label: 'compute pipeline',
     layout: device.createPipelineLayout({
+      label: 'compute layout',
       bindGroupLayouts: bindGroupLayouts,
     }),
     compute: {
@@ -193,6 +195,7 @@ export function generatePipeline(device: GPUDevice, wgsl: string) {
 export function generatePostComputePipeline(device: GPUDevice) {
   const bindGroupLayouts = [
     device.createBindGroupLayout({
+      label: 'post compute bindgroup layout',
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
       ],
@@ -203,7 +206,9 @@ export function generatePostComputePipeline(device: GPUDevice) {
   })
 
   return device.createComputePipeline({
+    label: 'post compute pipeline',
     layout: device.createPipelineLayout({
+      label: 'post compute layout',
       bindGroupLayouts: bindGroupLayouts,
     }),
     compute: {
@@ -216,11 +221,13 @@ export function generatePostComputePipeline(device: GPUDevice) {
 function generateLayouts(device: GPUDevice) {
   return [
     device.createBindGroupLayout({
+      label: `bind group layout 0 - ${device.label}`,
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
       ],
     }),
     device.createBindGroupLayout({
+      label: `bind group layout 1 - ${device.label}`,
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
@@ -228,6 +235,7 @@ function generateLayouts(device: GPUDevice) {
       ],
     }),
     device.createBindGroupLayout({
+      label: `bind group layout 2 - ${device.label}`,
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
       ],
@@ -243,6 +251,7 @@ export function createGpuBuffer(
   int = false,
 ) {
   const gpuBuffer = device.createBuffer({
+    label: 'gpuBuffer',
     mappedAtCreation: mapped,
     size: matrix.byteLength,
     usage: usage,

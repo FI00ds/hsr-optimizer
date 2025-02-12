@@ -36,6 +36,7 @@ export async function gpuOptimize(props: {
   }
 
   device.onuncapturederror = (event) => {
+    console.log(event)
     if (window.store.getState().optimizationInProgress) {
       window.store.getState().setOptimizationInProgress(false)
       webgpuCrashNotification()
@@ -62,7 +63,7 @@ export async function gpuOptimize(props: {
   }
 
   // console.log('Raw inputs', { context, request, relics, permutations })
-  // console.log('GPU execution context', gpuContext)
+  console.log('GPU execution context', gpuContext)
 
   for (let iteration = 0; iteration < gpuContext.iterations; iteration++) {
     const offset = iteration * gpuContext.BLOCK_SIZE * gpuContext.CYCLES_PER_INVOCATION
