@@ -1,4 +1,5 @@
 import { Flex } from 'antd'
+import { CanvasRelicPreview } from 'lib/canvasShowcase/canvasRelicPreview'
 import { ShowcaseSource } from 'lib/characterPreview/CharacterPreviewComponents'
 import { Constants } from 'lib/constants/constants'
 import { defaultGap } from 'lib/constants/constantsUi'
@@ -48,7 +49,19 @@ export function ShowcaseRelicsPanel(props: {
           scoringType={props.scoringType}
           showcaseTheme={showcaseColors}
         />
-        <RelicPreview
+        <CanvasRelicPreview
+          setEditModalOpen={setEditModalOpen}
+          setSelectedRelic={setSelectedRelic}
+          setAddModalOpen={setAddModalOpen}
+          relic={{ ...displayRelics.Head, part: Constants.Parts.Head }}
+          source={source}
+          characterId={characterId}
+          score={scoredRelics.find((x) => x.part == Constants.Parts.Head)}
+          scoringType={props.scoringType}
+          showcaseTheme={showcaseColors}
+        />
+        {
+          /*<RelicPreview
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
           setAddModalOpen={setAddModalOpen}
@@ -58,7 +71,8 @@ export function ShowcaseRelicsPanel(props: {
           score={scoredRelics.find((x) => x.part == Constants.Parts.Body)}
           scoringType={props.scoringType}
           showcaseTheme={showcaseColors}
-        />
+        />*/
+        }
         <RelicPreview
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
