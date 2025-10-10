@@ -9,7 +9,6 @@ import {
   theme,
   Typography,
 } from 'antd'
-import { G_DRIVE_CLIENT_ID } from 'lib/constants/constants'
 import {
   OpenCloseIDs,
   useOpenClose,
@@ -59,7 +58,7 @@ export function LayoutHeader() {
               }}
             >
               <img src={Assets.getLogo()} style={{ width: 30, height: 30, marginRight: 15 }}></img>
-              {G_DRIVE_CLIENT_ID.slice(0, 10)}
+              {/*G_DRIVE_CLIENT_ID.slice(0, 10)*/}
               <Typography
                 style={{ fontWeight: 600, fontSize: 22 }}
                 color='inherit'
