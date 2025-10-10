@@ -5,7 +5,7 @@ name: deploy to pages
 on:
   # Triggers the workflow on push events but only for the "gdrive-test" branch
   push:
-    branches: [ "gdrive-test" ]
+    branches: ['gdrive-test']
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -32,19 +32,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Replace GDrive API key
-        uses: jacobtomlinson/gha-find-replace@v3
-        with:
-          find: "'G_DRIVE_API_KEY'"
-          replace: ${{secrets.G_DRIVE_API_KEY}}
-          include: 'src/lib/constants/constants.ts'
-
-      - name: Replace GDrive Client ID
-        uses: jacobtomlinson/gha-find-replace@v3
-        with:
-          find: "'G_DRIVE_CLIENT_ID'"
-          replace: ${{secrets.G_DRIVE_CLIENT_ID}}
-          include: 'src/lib/constants/constants.ts'
+    #  - name: Replace GDrive API key
+    #    uses: jacobtomlinson/gha-find-replace@v3
+    #    with:
+    #      find: "'G_DRIVE_API_KEY'"
+    #      replace: ${{secrets.G_DRIVE_API_KEY}}
+    #      include: 'src/lib/constants/constants.ts'
+#
+    #  - name: Replace GDrive Client ID
+    #    uses: jacobtomlinson/gha-find-replace@v3
+    #    with:
+    #      find: "'G_DRIVE_CLIENT_ID'"
+    #      replace: ${{secrets.G_DRIVE_CLIENT_ID}}
+    #      include: 'src/lib/constants/constants.ts'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
