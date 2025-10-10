@@ -11,6 +11,9 @@ export const CURRENT_OPTIMIZER_VERSION = 'v3.7.1'
 // Represents the beta data content version, used for display but not for update notifications
 export const CURRENT_DATA_VERSION = '3.7v1'
 
+export const G_DRIVE_API_KEY = 'G_DRIVE_API_KEY'
+export const G_DRIVE_CLIENT_ID = 'G_DRIVE_CLIENT_ID'
+
 const generateMessage = (message?: string) => `${CURRENT_DATA_VERSION} - ${message}`
 export const CharacterAnnouncementMessages: Record<string, string> = {
   [CYRENE]: generateMessage(`Cyrene's Chrysos Heirs special effects are WIP`),

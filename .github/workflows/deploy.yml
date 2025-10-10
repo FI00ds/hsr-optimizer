@@ -9,7 +9,7 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-  
+
 permissions:
   contents: read
   pages: write
@@ -35,14 +35,14 @@ jobs:
       - name: Replace GDrive API key
         uses: jacobtomlinson/gha-find-replace@v3
         with:
-          find: "G_DRIVE_API_KEY"
+          find: "'G_DRIVE_API_KEY'"
           replace: ${{secrets.G_DRIVE_API_KEY}}
           include: 'src/lib/constants/constants.ts'
 
       - name: Replace GDrive Client ID
         uses: jacobtomlinson/gha-find-replace@v3
         with:
-          find: "G_DRIVE_CLIENT_ID"
+          find: "'G_DRIVE_CLIENT_ID'"
           replace: ${{secrets.G_DRIVE_CLIENT_ID}}
           include: 'src/lib/constants/constants.ts'
 
