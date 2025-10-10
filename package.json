@@ -2,7 +2,7 @@
   "name": "hsr-optimizer",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://fribbels.github.io/hsr-optimizer",
+  "homepage": "https://fi00ds.github.io/hsr-optimizer/",
   "type": "module",
   "packageManager": "npm@10.8.1",
   "engines": {
