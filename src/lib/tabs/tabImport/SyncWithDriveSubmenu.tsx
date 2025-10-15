@@ -6,7 +6,7 @@ const GOOGLE_AUTH_ENDPOINT = `https://accounts.google.com/o/oauth2/v2/auth?
 scope=https%3A//www.googleapis.com/auth/drive.appdata&
 response_type=token&
 client_id=${G_DRIVE_CLIENT_ID}&
-redirect_uri=https%3A//localhost%3A3000${BASE_PATH}/test.html
+redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/test.html
 `
 
 let handle: Window | null = null
