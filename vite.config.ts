@@ -21,10 +21,10 @@ export default defineConfig({
     },
     minify: 'terser',
     terserOptions: {
-      compress: {
+      /*compress: {
         drop_console: true,
         drop_debugger: true,
-      },
+      },*/
     },
     cssCodeSplit: true,
     sourcemap: false,
