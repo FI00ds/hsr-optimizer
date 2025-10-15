@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  hello world
+  <button
+    onclick="(function () {
+      console.log('test')
+      window.opener.Message.success('test')
+    })()"
+  >
+    test
+  </button>
+</body>
+</html>

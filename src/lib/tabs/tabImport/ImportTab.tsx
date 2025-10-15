@@ -14,6 +14,7 @@ import {
   ScannerWebsocket,
   useScannerState,
 } from 'lib/tabs/tabImport/ScannerWebsocketClient'
+import { SyncWithDriveSubmenu } from 'lib/tabs/tabImport/SyncWithDriveSubmenu'
 import { TsUtils } from 'lib/utils/TsUtils'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -138,6 +139,11 @@ export default function ImportTab() {
               label: t('Clear'),
               key: 'Clear',
               children: <ClearDataSubmenu />,
+            },
+            {
+              label: 'sync to drive',
+              key: 'sync',
+              children: <SyncWithDriveSubmenu />,
             },
           ]}
         />
