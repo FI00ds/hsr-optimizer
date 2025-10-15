@@ -1,7 +1,6 @@
 import { G_DRIVE_CLIENT_ID } from 'lib/constants/constants'
 import { Message } from 'lib/interactions/message'
 import { BASE_PATH } from 'lib/state/db'
-import { randomUUID } from 'node:crypto'
 
 let handle: Window | null = null
 
@@ -27,7 +26,7 @@ function loginClicked() {
   const popupLeftOffset = (window.innerWidth - popupWidth) / 2
   const popupTopOffset = (window.innerHeight - popupHeight) / 2
   const popupFeatures = `popup,innerWidth=${popupWidth},innerHeight=${popupHeight},left=${popupLeftOffset},top=${popupTopOffset}`
-  uuid = randomUUID()
+  uuid = new Crypto().randomUUID()
   handle = window.open(googleEndpoint(uuid), 'google login window', popupFeatures)
   if (!handle) return Message.error('login popup blocked, please enable popups in order to login')
   handle.focus()
