@@ -26,7 +26,7 @@ function loginClicked() {
   const popupLeftOffset = (window.innerWidth - popupWidth) / 2
   const popupTopOffset = (window.innerHeight - popupHeight) / 2
   const popupFeatures = `popup,innerWidth=${popupWidth},innerHeight=${popupHeight},left=${popupLeftOffset},top=${popupTopOffset}`
-  uuid = new Crypto().randomUUID()
+  uuid = crypto.randomUUID()
   handle = window.open(googleEndpoint(uuid), 'google login window', popupFeatures)
   if (!handle) return Message.error('login popup blocked, please enable popups in order to login')
   handle.focus()
