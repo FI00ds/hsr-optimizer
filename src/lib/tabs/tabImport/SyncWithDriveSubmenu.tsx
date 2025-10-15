@@ -36,7 +36,20 @@ function receiveToken(fragment: string) {
   // handle must be non null as receiveToken is called by the popup window
   handle!.close()
   handle = null
-  console.log(fragment.split('&').map((x) => x.split('=').join(': ')).join('\n'))
+  const info = fragment
+    .replace('#', '')
+    .split('&')
+    .map((x) => x.split('='))
+  let authDetails: Partial<AuthDetails> = {}
+  const stateTupple = info.find((x) => x[0] === 'state')
+  const isValidAuth = stateTupple && stateTupple[1] === uuid
+  if (isValidAuth) {
+    authDetails.access_token = info.find((x) => x[0] === 'access_token')?.[1]
+    authDetails.token_type = info.find((x) => x[0] === 'token_type')?.[1]
+    authDetails.scope = info.find((x) => x[0] === 'scope')?.[1]
+    authDetails.expires_in = Number(info.find((x) => x[0] === 'expires_in')?.[1])
+  }
+  console.log(authDetails)
 }
 
 window.receiveGoogleAuthInfo = receiveToken
@@ -49,4 +62,14 @@ client_id=${G_DRIVE_CLIENT_ID}&
 redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/test.html&
 state=${uuid}&
 `
+}
+
+interface AuthDetails {
+  access_token: string
+  // will always be 'Bearer'
+  token_type: string
+  // will be https://www.googleapis.com/auth/drive.appdata
+  scope: string
+  // lasts 1 hour
+  expires_in: number
 }
