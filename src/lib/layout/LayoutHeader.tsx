@@ -52,7 +52,7 @@ export function LayoutHeader() {
               left: '-20px',
             }}
           />
-          <a onClick={() => window.store.getState().setActiveKey(AppPages.HOME)}>
+          <a href={BASE_PATH}>
             <Flex
               align='center'
               style={{

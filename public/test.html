@@ -3,16 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
+  <script>
+    function sendAuthInfo() {
+      window.opener.receiveGoogleAuthInfo(window.location.hash)
+    }
+  </script>
 </head>
-<body>
-  hello world
-  <button
-    onclick="(function () {
-      console.log('test')
-      window.opener.Message.success('test')
-    })()"
-  >
-    test
-  </button>
+<body onload='sendAuthInfo()'>
 </body>
 </html>

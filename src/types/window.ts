@@ -17,6 +17,7 @@ import { RelicAugmenter } from 'lib/relics/relicAugmenter'
 import { RelicFilters } from 'lib/relics/relicFilters'
 import { RelicRollFixer } from 'lib/relics/relicRollFixer'
 import { RelicScorer } from 'lib/relics/relicScorerPotential'
+import { ScoredRelic } from 'lib/relics/scoreRelics'
 import { StatCalculator } from 'lib/relics/statCalculator'
 import { Assets } from 'lib/rendering/assets'
 import { Gradient } from 'lib/rendering/gradient'
@@ -26,7 +27,6 @@ import { DB } from 'lib/state/db'
 import { Metadata } from 'lib/state/metadata'
 import { SaveState } from 'lib/state/saveState'
 import { OptimizerTabController } from 'lib/tabs/tabOptimizer/optimizerTabController'
-import { ScoredRelic } from 'lib/relics/scoreRelics'
 import { ShowcaseTabForm } from 'lib/tabs/tabShowcase/showcaseTabController'
 import { Utils } from 'lib/utils/utils'
 import { WorkerPool } from 'lib/worker/workerPool'
@@ -78,6 +78,8 @@ declare global {
     setOptimizerBuild: (build?: Build) => void
 
     showcaseTabForm: FormInstance<ShowcaseTabForm>
+
+    receiveGoogleAuthInfo: (fragment: string) => void
 
     // TODO see OptimizerForm
     onOptimizerFormValuesChange: (changedValues: Form, allValues: Form, bypass?: boolean) => void
