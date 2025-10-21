@@ -59,9 +59,9 @@ function googleEndpoint(uuid: string) {
 scope=https%3A//www.googleapis.com/auth/drive.appdata&
 response_type=token&
 client_id=${G_DRIVE_CLIENT_ID}&
-redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/loginWithGoogle/index.html&
+redirect_uri=https%3A//fi00ds.github.io/hsr-optimizer/loginWithGoogle/index.html&
 state=${uuid}&
-&access_type=offline
+prompt=consent
 `
 }
 
