@@ -51,14 +51,15 @@ async function __receiveGoogleAuthInfo(fragment: string) {
     codeDetails.code = info.find((x) => x[0] === 'code')?.[1]
     codeDetails.scope = info.find((x) => x[0] === 'scope')?.[1]
   }
-  console.log('fragment: ', fragment, 'info: ', info, 'auth details: ', codeDetails)
+  console.log('auth details: ', codeDetails)
 
   // exchange access code for token and refresh token
   const data = await fetch(`https://oauth2.googleapis.com/token?
 client_secret=${G_DRIVE_CLIENT_SECRET}&
 client_id=${G_DRIVE_CLIENT_ID}&
 code=${codeDetails.code}&
-grant_type=authorization_code
+grant_type=authorization_code&
+redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/loginWithGoogle/index.html
 `)
     .then((res) => {
       if (res.ok) return res.json()
@@ -73,7 +74,7 @@ window.__receiveGoogleAuthInfo = __receiveGoogleAuthInfo
 
 function googleEndpoint(uuid: string) {
   return `https://accounts.google.com/o/oauth2/v2/auth?
-redirect_uri=https%3A//fi00ds.github.io/hsr-optimizer/loginWithGoogle/index.html&
+redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/loginWithGoogle/index.html&
 prompt=consent&
 response_type=code&
 client_id=${G_DRIVE_CLIENT_ID}&
