@@ -13,6 +13,7 @@ export const CURRENT_DATA_VERSION = '3.7v1'
 
 export const G_DRIVE_API_KEY = 'G_DRIVE_API_KEY'
 export const G_DRIVE_CLIENT_ID = 'G_DRIVE_CLIENT_ID'
+export const G_DRIVE_CLIENT_SECRET = 'G_DRIVE_CLIENT_SECRET'
 
 const generateMessage = (message?: string) => `${CURRENT_DATA_VERSION} - ${message}`
 export const CharacterAnnouncementMessages: Record<string, string> = {

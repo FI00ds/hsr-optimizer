@@ -1,4 +1,8 @@
-import { G_DRIVE_CLIENT_ID } from 'lib/constants/constants'
+import {
+  G_DRIVE_API_KEY,
+  G_DRIVE_CLIENT_ID,
+  G_DRIVE_CLIENT_SECRET,
+} from 'lib/constants/constants'
 import { Message } from 'lib/interactions/message'
 import { BASE_PATH } from 'lib/state/db'
 
@@ -32,7 +36,7 @@ function loginClicked() {
   handle.focus()
 }
 
-function __receiveGoogleAuthInfo(fragment: string) {
+async function __receiveGoogleAuthInfo(fragment: string) {
   // handle will always be non null as receiveGoogleAuthInfo is only called by the popup window
   handle!.close()
   handle = null
@@ -40,37 +44,47 @@ function __receiveGoogleAuthInfo(fragment: string) {
     .replace('#', '')
     .split('&')
     .map((x) => x.split('='))
-  let authDetails: Partial<AuthDetails> = {}
+  let codeDetails: Partial<CodeDetails> = {}
   const stateTuple = info.find((x) => x[0] === 'state')
-  const isValidAuth = stateTuple && stateTuple[1] === uuid
-  if (isValidAuth) {
-    authDetails.access_token = info.find((x) => x[0] === 'access_token')?.[1]
-    authDetails.token_type = info.find((x) => x[0] === 'token_type')?.[1]
-    authDetails.scope = info.find((x) => x[0] === 'scope')?.[1]
-    authDetails.expires_in = Number(info.find((x) => x[0] === 'expires_in')?.[1])
+  const isValidCode = stateTuple && stateTuple[1] === uuid
+  if (isValidCode) {
+    codeDetails.code = info.find((x) => x[0] === 'code')?.[1]
+    codeDetails.scope = info.find((x) => x[0] === 'scope')?.[1]
   }
-  console.log('info: ', info, 'auth details: ', authDetails)
+  console.log('info: ', info, 'auth details: ', codeDetails)
+
+  // exchange access code for token and refresh token
+  const data = await fetch(`https://oauth2.googleapis.com/token?
+      client_secret=${G_DRIVE_CLIENT_SECRET}&
+      client_id=${G_DRIVE_CLIENT_ID}&
+      code=${codeDetails.code}&
+      grant_type=authorization_code
+    `)
+    .then((res) => {
+      if (res.ok) return res.json()
+      // TODO: error handling
+    })
+    .then((json) => {
+      console.log('final json: ', json)
+    })
 }
 
 window.__receiveGoogleAuthInfo = __receiveGoogleAuthInfo
 
 function googleEndpoint(uuid: string) {
   return `https://accounts.google.com/o/oauth2/v2/auth?
-scope=https%3A//www.googleapis.com/auth/drive.appdata&
-response_type=token&
-client_id=${G_DRIVE_CLIENT_ID}&
 redirect_uri=https%3A//fi00ds.github.io/hsr-optimizer/loginWithGoogle/index.html&
-state=${uuid}&
-prompt=consent
+prompt=consent&
+response_type=code&
+client_id=${G_DRIVE_CLIENT_ID}&
+scope=https%3A//www.googleapis.com/auth/drive.appdata&
+access_type=offline&
+state=${uuid}
 `
 }
 
-interface AuthDetails {
-  access_token: string
-  // will always be 'Bearer'
-  token_type: string
+interface CodeDetails {
+  code: string
   // will be https://www.googleapis.com/auth/drive.appdata
   scope: string
-  // lasts 1 hour
-  expires_in: number
 }
