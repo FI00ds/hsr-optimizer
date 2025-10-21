@@ -41,7 +41,7 @@ async function __receiveGoogleAuthInfo(fragment: string) {
   handle!.close()
   handle = null
   const info = fragment
-    .replace('#', '')
+    .replace('?', '')
     .split('&')
     .map((x) => x.split('='))
   let codeDetails: Partial<CodeDetails> = {}
