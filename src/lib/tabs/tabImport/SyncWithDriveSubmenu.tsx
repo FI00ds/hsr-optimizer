@@ -51,7 +51,7 @@ async function __receiveGoogleAuthInfo(fragment: string) {
     codeDetails.code = info.find((x) => x[0] === 'code')?.[1]
     codeDetails.scope = info.find((x) => x[0] === 'scope')?.[1]
   }
-  console.log('fragment: ', fragment,'info: ', info, 'auth details: ', codeDetails)
+  console.log('fragment: ', fragment, 'info: ', info, 'auth details: ', codeDetails)
 
   // exchange access code for token and refresh token
   const data = await fetch(`https://oauth2.googleapis.com/token?
