@@ -79,7 +79,7 @@ declare global {
 
     showcaseTabForm: FormInstance<ShowcaseTabForm>
 
-    receiveGoogleAuthInfo: (fragment: string) => void
+    __receiveGoogleAuthInfo: (fragment: string) => void
 
     // TODO see OptimizerForm
     onOptimizerFormValuesChange: (changedValues: Form, allValues: Form, bypass?: boolean) => void

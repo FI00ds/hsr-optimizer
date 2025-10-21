@@ -32,8 +32,8 @@ function loginClicked() {
   handle.focus()
 }
 
-function receiveToken(fragment: string) {
-  // handle must be non null as receiveToken is called by the popup window
+function __receiveGoogleAuthInfo(fragment: string) {
+  // handle will always be non null as receiveGoogleAuthInfo is only called by the popup window
   handle!.close()
   handle = null
   const info = fragment
@@ -41,26 +41,27 @@ function receiveToken(fragment: string) {
     .split('&')
     .map((x) => x.split('='))
   let authDetails: Partial<AuthDetails> = {}
-  const stateTupple = info.find((x) => x[0] === 'state')
-  const isValidAuth = stateTupple && stateTupple[1] === uuid
+  const stateTuple = info.find((x) => x[0] === 'state')
+  const isValidAuth = stateTuple && stateTuple[1] === uuid
   if (isValidAuth) {
     authDetails.access_token = info.find((x) => x[0] === 'access_token')?.[1]
     authDetails.token_type = info.find((x) => x[0] === 'token_type')?.[1]
     authDetails.scope = info.find((x) => x[0] === 'scope')?.[1]
     authDetails.expires_in = Number(info.find((x) => x[0] === 'expires_in')?.[1])
   }
-  console.log(authDetails)
+  console.log('info: ', info, 'auth details: ', authDetails)
 }
 
-window.receiveGoogleAuthInfo = receiveToken
+window.__receiveGoogleAuthInfo = __receiveGoogleAuthInfo
 
 function googleEndpoint(uuid: string) {
   return `https://accounts.google.com/o/oauth2/v2/auth?
 scope=https%3A//www.googleapis.com/auth/drive.appdata&
 response_type=token&
 client_id=${G_DRIVE_CLIENT_ID}&
-redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/test.html&
+redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/loginWithGoogle/index.html&
 state=${uuid}&
+&access_type=offline
 `
 }
 
