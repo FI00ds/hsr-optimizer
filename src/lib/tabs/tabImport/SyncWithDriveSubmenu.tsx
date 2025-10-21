@@ -54,13 +54,18 @@ async function __receiveGoogleAuthInfo(fragment: string) {
   console.log('auth details: ', codeDetails)
 
   // exchange access code for token and refresh token
-  const data = await fetch(`https://oauth2.googleapis.com/token?
+  const data = await fetch(
+    `https://oauth2.googleapis.com/token?
 client_secret=${G_DRIVE_CLIENT_SECRET}&
 client_id=${G_DRIVE_CLIENT_ID}&
 code=${codeDetails.code}&
 grant_type=authorization_code&
 redirect_uri=https%3A//fi00ds.github.io${BASE_PATH}/loginWithGoogle/index.html
-`)
+`,
+    {
+      method: 'POST',
+    },
+  )
     .then((res) => {
       if (res.ok) return res.json()
       // TODO: error handling
