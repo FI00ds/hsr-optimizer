@@ -51,15 +51,15 @@ async function __receiveGoogleAuthInfo(fragment: string) {
     codeDetails.code = info.find((x) => x[0] === 'code')?.[1]
     codeDetails.scope = info.find((x) => x[0] === 'scope')?.[1]
   }
-  console.log('info: ', info, 'auth details: ', codeDetails)
+  console.log('fragment: ', fragment,'info: ', info, 'auth details: ', codeDetails)
 
   // exchange access code for token and refresh token
   const data = await fetch(`https://oauth2.googleapis.com/token?
-      client_secret=${G_DRIVE_CLIENT_SECRET}&
-      client_id=${G_DRIVE_CLIENT_ID}&
-      code=${codeDetails.code}&
-      grant_type=authorization_code
-    `)
+client_secret=${G_DRIVE_CLIENT_SECRET}&
+client_id=${G_DRIVE_CLIENT_ID}&
+code=${codeDetails.code}&
+grant_type=authorization_code
+`)
     .then((res) => {
       if (res.ok) return res.json()
       // TODO: error handling
