@@ -35,6 +35,7 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CharacterId } from 'types/character'
 import { ReactElement } from 'types/components'
 import { RelicSubstatMetadata } from 'types/relic'
 
@@ -102,12 +103,12 @@ export const EstimatedTbpRelicsDisplay = (props: {
   return (
     <Flex vertical align='center' style={{ width: '100%' }}>
       <Flex vertical gap={35} style={gridStyle}>
-        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Head} />
-        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Hands} />
-        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Body} />
-        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Feet} />
-        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.PlanarSphere} />
-        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.LinkRope} />
+        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Head} characterId={showcaseMetadata.characterId} />
+        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Hands} characterId={showcaseMetadata.characterId} />
+        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Body} characterId={showcaseMetadata.characterId} />
+        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.Feet} characterId={showcaseMetadata.characterId} />
+        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.PlanarSphere} characterId={showcaseMetadata.characterId} />
+        <RelicContainer ready={ready} relicAnalysis={enrichedRelics?.LinkRope} characterId={showcaseMetadata.characterId} />
       </Flex>
     </Flex>
   )
@@ -121,8 +122,8 @@ function LoadingSpinner() {
   )
 }
 
-export function RelicContainer(props: { ready: boolean, relicAnalysis?: RelicAnalysis, withoutPreview?: boolean }) {
-  const { ready, relicAnalysis, withoutPreview } = props
+export function RelicContainer(props: { ready: boolean, relicAnalysis?: RelicAnalysis, withoutPreview?: boolean, characterId?: CharacterId }) {
+  const { ready, relicAnalysis, withoutPreview, characterId } = props
 
   const cardStyle = {
     width: '100%',
@@ -159,7 +160,13 @@ export function RelicContainer(props: { ready: boolean, relicAnalysis?: RelicAna
       style={cardStyle}
       gap={10}
     >
-      <RelicPreview relic={relicAnalysis.relic} unhoverable={true} score={relicAnalysis.scoringResult} />
+      <RelicPreview
+        highlightDesiredStats
+        characterId={characterId}
+        relic={relicAnalysis.relic}
+        unhoverable={true}
+        score={relicAnalysis.scoringResult}
+      />
       <RelicAnalysisCard relicAnalysis={relicAnalysis} />
     </Flex>
   )

@@ -96,6 +96,7 @@ export const RecentRelicCard = React.memo((props: RelicCardProps): React.JSX.Ele
       className='recent-relic-card'
     >
       <RelicPreview
+        highlightDesiredStats
         relic={relic}
         characterId={scoringCharacter}
         score={score}
