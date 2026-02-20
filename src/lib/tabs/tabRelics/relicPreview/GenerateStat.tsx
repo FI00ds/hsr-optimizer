@@ -7,6 +7,7 @@ import {
 import { iconSize } from 'lib/constants/constantsUi'
 import { Assets } from 'lib/rendering/assets'
 import { Renderer } from 'lib/rendering/renderer'
+import { ShowcaseTheme } from 'lib/tabs/tabRelics/RelicPreview'
 import { Utils } from 'lib/utils/utils'
 import { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -22,25 +23,26 @@ export type SubstatDetails = {
   addedRolls?: number,
 }
 
-interface Colour {
-  r: number
-  g: number
-  b: number
-  a: number
-}
-const defaultColour: Colour = { r: 237, g: 221, b: 83, a: 0.4 }
-const colour = (colour: Colour, alpha: number) => `rgba(${colour.r},${colour.g},${colour.b},${alpha * colour.a})`
-function highlightGradient(baseColour: Colour = defaultColour) {
+type Colour = [
+  number,
+  number,
+  number,
+  number,
+]
+const defaultColour: Colour = [237, 221, 83, 0.4]
+const colour = (colour: Colour, alpha: number) => `rgba(${colour[0]},${colour[1]},${colour[2]},${alpha * colour[3]})`
+function highlightGradient(baseColour: [number, number, number, number] = defaultColour) {
   return `linear-gradient(90deg,${colour(baseColour, 1)} 0%,${colour(baseColour, 0.125)} 15%,${colour(baseColour, 0.05)} 100%)`
 }
 
 interface GenerateStatOptions {
   isPreview?: boolean
   highLightStats?: Array<StatsValues>
+  showcaseTheme?: ShowcaseTheme
 }
 
 export const GenerateStat = (stat: SubstatDetails, main: boolean, relic: Relic, options: GenerateStatOptions = {}) => {
-  const { isPreview, highLightStats } = options
+  const { isPreview, highLightStats, showcaseTheme } = options
   const { t } = useTranslation('common')
   if (!stat?.stat || stat.value == null) {
     return (
@@ -66,7 +68,7 @@ export const GenerateStat = (stat: SubstatDetails, main: boolean, relic: Relic, 
       style={{
         opacity: isPreview ? 0.4 : 1,
         background: highLightStats?.includes(stat.stat)
-          ? highlightGradient()
+          ? highlightGradient(showcaseTheme?.statHighlightColour)
           : undefined,
         borderRadius: 3,
       }}

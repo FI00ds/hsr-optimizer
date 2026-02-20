@@ -73,6 +73,7 @@ import {
   showcaseBackgroundColor,
   showcaseCardBackgroundColor,
   showcaseCardBorderColor,
+  showcaseCardStatHighlightColor,
   showcaseSegmentedColor,
   showcaseTransition,
 } from 'lib/utils/colorUtils'
@@ -239,7 +240,9 @@ export function CharacterPreview(props: {
   const derivedShowcaseTheme: ShowcaseTheme = {
     cardBackgroundColor: showcaseCardBackgroundColor(seedToken.colorPrimaryActive, darkMode),
     cardBorderColor: showcaseCardBorderColor(seedToken.colorPrimaryActive, darkMode),
+    statHighlightColour: showcaseCardStatHighlightColor(showcaseCardBackgroundColor(seedToken.colorPrimaryActive, darkMode), darkMode),
   }
+  console.debug(derivedShowcaseTheme)
 
   // ===== Display =====
 

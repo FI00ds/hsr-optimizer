@@ -48,6 +48,7 @@ import {
 export type ShowcaseTheme = {
   cardBackgroundColor: string,
   cardBorderColor: string,
+  statHighlightColour: [number, number, number, number],
 }
 
 export function RelicPreview(props: {
@@ -113,7 +114,7 @@ export function RelicPreview(props: {
   const scoringMetadata = useScoringMetadata(characterId)
 
   const { mainStatsToHighlight, subStatsToHighlight } = useMemo(() => {
-    // if (!highlightDesiredStats) return {}
+    if (!highlightDesiredStats) return {}
     let mainStatsToHighlight: Array<MainStats> = []
 
     const subStatsToHighlight: Array<SubStats> = (Object.entries(scoringMetadata?.stats ?? []) as Array<[keyof ScoringMetadataStats, number]>)
@@ -184,19 +185,19 @@ export function RelicPreview(props: {
 
           <Divider style={{ margin: '6px 0px 6px 0px' }} />
 
-          {GenerateStat(relic.main as SubstatDetails, true, relic, { highLightStats: mainStatsToHighlight })}
+          {GenerateStat(relic.main as SubstatDetails, true, relic, { highLightStats: mainStatsToHighlight, showcaseTheme })}
 
           <Divider style={{ margin: '6px 0px 6px 0px' }} />
 
           <Flex vertical gap={STAT_GAP}>
             {relic.substats.map((s, idx) => (
               <Fragment key={`substats-${idx}`}>
-                {GenerateStat(s, false, relic, { highLightStats: subStatsToHighlight })}
+                {GenerateStat(s, false, relic, { highLightStats: subStatsToHighlight, showcaseTheme })}
               </Fragment>
             ))}
             {relic.previewSubstats.map((s, idx) => (
               <Fragment key={`previews-${idx}`}>
-                {GenerateStat(s, false, relic, { isPreview: true, highLightStats: subStatsToHighlight })}
+                {GenerateStat(s, false, relic, { isPreview: true, highLightStats: subStatsToHighlight, showcaseTheme })}
               </Fragment>
             ))}
             {fillerStats.map((x, idx) => (

@@ -36,6 +36,11 @@ export function showcaseCardBorderColor(color: string, darkMode: boolean) {
   return darkModeModifier(finalColor, darkMode).css()
 }
 
+export function showcaseCardStatHighlightColor(color: string, darkMode: boolean) {
+  const finalColor = chroma(showcaseCardBackgroundColor(color, darkMode)).brighten(1.8).saturate(1.2).set('hsl.h', '+20').alpha(0.8)
+  return finalColor.rgba()
+}
+
 export function showcaseBackgroundColor(color: string, darkMode: boolean) {
   const finalColor = chroma(color).desaturate(0.2).luminance(0.02)
   return darkModeModifier(finalColor, darkMode).css()

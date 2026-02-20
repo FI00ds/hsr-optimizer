@@ -40,6 +40,7 @@ export function ShowcaseRelicsPanel(props: {
     <Flex gap={defaultGap}>
       <Flex vertical gap={defaultGap}>
         <RelicPreview
+          highlightDesiredStats
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
           setAddModalOpen={setAddModalOpen}
@@ -51,6 +52,7 @@ export function ShowcaseRelicsPanel(props: {
           showcaseTheme={showcaseColors}
         />
         <RelicPreview
+          highlightDesiredStats
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
           setAddModalOpen={setAddModalOpen}
@@ -62,6 +64,7 @@ export function ShowcaseRelicsPanel(props: {
           showcaseTheme={showcaseColors}
         />
         <RelicPreview
+          highlightDesiredStats
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
           setAddModalOpen={setAddModalOpen}
@@ -76,6 +79,7 @@ export function ShowcaseRelicsPanel(props: {
 
       <Flex vertical gap={defaultGap}>
         <RelicPreview
+          highlightDesiredStats
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
           setAddModalOpen={setAddModalOpen}
@@ -87,6 +91,7 @@ export function ShowcaseRelicsPanel(props: {
           showcaseTheme={showcaseColors}
         />
         <RelicPreview
+          highlightDesiredStats
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
           setAddModalOpen={setAddModalOpen}
@@ -98,6 +103,7 @@ export function ShowcaseRelicsPanel(props: {
           showcaseTheme={showcaseColors}
         />
         <RelicPreview
+          highlightDesiredStats
           setEditModalOpen={setEditModalOpen}
           setSelectedRelic={setSelectedRelic}
           setAddModalOpen={setAddModalOpen}
