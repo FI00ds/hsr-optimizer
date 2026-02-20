@@ -26,12 +26,15 @@ export type ShowcaseTemporaryOptions = {
   spdBenchmark?: number,
 }
 
+type ScoringMetadataStatsUgly = Record<SubStats, number> & Partial<Record<'headHands' | 'bodyFeet' | 'sphereRope', number>>
+export type ScoringMetadataStats = { [K in keyof ScoringMetadataStatsUgly]: ScoringMetadataStatsUgly[K] } & {}
+
 export type ScoringMetadata = {
   /*      stat score      */ characterId?: CharacterId,
   /*      stat score      */ modified?: boolean,
   /*      stat score      */ parts: Record<Exclude<Parts, typeof Parts.Head | typeof Parts.Hands>, MainStats[]>,
   /*      stat score      */ sets: Partial<Record<Sets, number>>,
-  /* stat score/optimizer */ stats: Record<SubStats, number> & Partial<Record<'headHands' | 'bodyFeet' | 'sphereRope', number>>,
+  /* stat score/optimizer */ stats: ScoringMetadataStats,
   /*      optimizer       */ presets: PresetDefinition[],
   /*      optimizer       */ sortOption: SortOptionProperties,
   /*      optimizer       */ hiddenColumns: SortOptionProperties[],

@@ -9,8 +9,13 @@ import {
   showcaseShadowInsetAddition,
   ShowcaseSource,
 } from 'lib/characterPreview/CharacterPreviewComponents'
-import { Parts } from 'lib/constants/constants'
+import {
+  MainStats,
+  Parts,
+  SubStats,
+} from 'lib/constants/constants'
 import { iconSize } from 'lib/constants/constantsUi'
+import { useScoringMetadata } from 'lib/hooks/useScoringMetadata'
 import { RelicScoringResult } from 'lib/relics/relicScorerPotential'
 import { Assets } from 'lib/rendering/assets'
 
@@ -27,9 +32,14 @@ import {
   Languages,
   localeNumberComma_0,
 } from 'lib/utils/i18nUtils'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Fragment } from 'react/jsx-runtime'
 import { CharacterId } from 'types/character'
+import {
+  ScoringMetadata,
+  ScoringMetadataStats,
+} from 'types/metadata'
 import {
   Relic,
   RelicSubstatMetadata,
@@ -51,6 +61,7 @@ export function RelicPreview(props: {
   setSelectedRelic?: (relic: Relic) => void,
   showcaseTheme?: ShowcaseTheme,
   unhoverable?: boolean,
+  highlightDesiredStats?: boolean,
 }) {
   const {
     source,
@@ -62,6 +73,7 @@ export function RelicPreview(props: {
     setSelectedRelic,
     showcaseTheme,
     unhoverable,
+    highlightDesiredStats,
   } = props
   const placeholderRelic: Partial<Relic> = {
     enhance: 0,
@@ -97,6 +109,23 @@ export function RelicPreview(props: {
       setEditModalOpen?.(true)
     }
   }
+
+  const scoringMetadata = useScoringMetadata(characterId)
+
+  const { mainStatsToHighlight, subStatsToHighlight } = useMemo(() => {
+    // if (!highlightDesiredStats) return {}
+    let mainStatsToHighlight: Array<MainStats> = []
+
+    const subStatsToHighlight: Array<SubStats> = (Object.entries(scoringMetadata?.stats ?? []) as Array<[keyof ScoringMetadataStats, number]>)
+      .filter(([stat, weight]) => weight > 0 && stat !== 'headHands' && stat !== 'bodyFeet' && stat !== 'sphereRope')
+      .map(([stat, _]) => stat as SubStats)
+
+    if (!(relic.part === Parts.Head || relic.part === Parts.Hands)) {
+      mainStatsToHighlight = scoringMetadata?.parts[relic.part] ?? []
+    }
+
+    return { mainStatsToHighlight, subStatsToHighlight }
+  }, [scoringMetadata, relic.part, highlightDesiredStats])
 
   const STAT_GAP = scoringType == ScoringType.NONE ? 6 : 0
   const ICON_SIZE = scoringType == ScoringType.NONE ? 54 : 50
@@ -155,14 +184,26 @@ export function RelicPreview(props: {
 
           <Divider style={{ margin: '6px 0px 6px 0px' }} />
 
-          {GenerateStat(relic.main as SubstatDetails, true, relic)}
+          {GenerateStat(relic.main as SubstatDetails, true, relic, { highLightStats: mainStatsToHighlight })}
 
           <Divider style={{ margin: '6px 0px 6px 0px' }} />
 
           <Flex vertical gap={STAT_GAP}>
-            {relic.substats.map((s, idx) => <Fragment key={`substats-${idx}`}>{GenerateStat(s, false, relic)}</Fragment>)}
-            {relic.previewSubstats.map((s, idx) => <Fragment key={`previews-${idx}`}>{GenerateStat(s, false, relic, true)}</Fragment>)}
-            {fillerStats.map((x, idx) => <Fragment key={`fillers-${idx}`}>{GenerateStat(x, false, relic)}</Fragment>)}
+            {relic.substats.map((s, idx) => (
+              <Fragment key={`substats-${idx}`}>
+                {GenerateStat(s, false, relic, { highLightStats: subStatsToHighlight })}
+              </Fragment>
+            ))}
+            {relic.previewSubstats.map((s, idx) => (
+              <Fragment key={`previews-${idx}`}>
+                {GenerateStat(s, false, relic, { isPreview: true, highLightStats: subStatsToHighlight })}
+              </Fragment>
+            ))}
+            {fillerStats.map((x, idx) => (
+              <Fragment key={`fillers-${idx}`}>
+                {GenerateStat(x, false, relic)}
+              </Fragment>
+            ))}
           </Flex>
 
           {scoringType != ScoringType.NONE && <ScoreFooter score={score} />}

@@ -1,6 +1,9 @@
 import { Flex } from 'antd'
 import { RightIcon } from 'icons/RightIcon'
-import { SubStats } from 'lib/constants/constants'
+import {
+  StatsValues,
+  SubStats,
+} from 'lib/constants/constants'
 import { iconSize } from 'lib/constants/constantsUi'
 import { Assets } from 'lib/rendering/assets'
 import { Renderer } from 'lib/rendering/renderer'
@@ -19,7 +22,25 @@ export type SubstatDetails = {
   addedRolls?: number,
 }
 
-export const GenerateStat = (stat: SubstatDetails, main: boolean, relic: Relic, isPreview = false) => {
+interface Colour {
+  r: number
+  g: number
+  b: number
+  a: number
+}
+const defaultColour: Colour = { r: 237, g: 221, b: 83, a: 0.4 }
+const colour = (colour: Colour, alpha: number) => `rgba(${colour.r},${colour.g},${colour.b},${alpha * colour.a})`
+function highlightGradient(baseColour: Colour = defaultColour) {
+  return `linear-gradient(90deg,${colour(baseColour, 1)} 0%,${colour(baseColour, 0.125)} 15%,${colour(baseColour, 0.05)} 100%)`
+}
+
+interface GenerateStatOptions {
+  isPreview?: boolean
+  highLightStats?: Array<StatsValues>
+}
+
+export const GenerateStat = (stat: SubstatDetails, main: boolean, relic: Relic, options: GenerateStatOptions = {}) => {
+  const { isPreview, highLightStats } = options
   const { t } = useTranslation('common')
   if (!stat?.stat || stat.value == null) {
     return (
@@ -39,7 +60,17 @@ export const GenerateStat = (stat: SubstatDetails, main: boolean, relic: Relic, 
   displayValue += Utils.isFlat(stat.stat) ? '' : '%'
 
   return (
-    <Flex justify='space-between' align='center' style={{ opacity: isPreview ? 0.4 : 1 }}>
+    <Flex
+      justify='space-between'
+      align='center'
+      style={{
+        opacity: isPreview ? 0.4 : 1,
+        background: highLightStats?.includes(stat.stat)
+          ? highlightGradient()
+          : undefined,
+        borderRadius: 3,
+      }}
+    >
       <Flex>
         <img
           src={Assets.getStatIcon(stat.stat)}

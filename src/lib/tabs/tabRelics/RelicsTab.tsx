@@ -64,7 +64,9 @@ export default function RelicsTab() {
 
         <Flex gap={10}>
           <RelicPreview
+            highlightDesiredStats
             relic={selectedRelic}
+            characterId={focusCharacter}
             setSelectedRelic={setSelectedRelic}
             setEditModalOpen={setRelicModalOpen}
             score={score}
