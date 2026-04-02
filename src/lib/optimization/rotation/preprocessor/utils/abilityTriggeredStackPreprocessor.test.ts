@@ -9,7 +9,7 @@ import {
   DEFAULT_ULT,
   WHOLE_ULT,
 } from 'lib/optimization/rotation/turnAbilityConfig'
-import { ComboState } from 'lib/tabs/tabOptimizer/combo/comboDrawerController'
+import type { ComboState } from 'lib/optimization/combo/comboTypes'
 import {
   beforeEach,
   expect,
@@ -26,7 +26,7 @@ const mockNumberActivation = vi.fn()
 
 const createMockComboState = (): ComboState => ({
   comboCharacter: {
-    // @ts-ignore
+    // @ts-expect-error - Partial mock for test
     metadata: {},
   },
 })

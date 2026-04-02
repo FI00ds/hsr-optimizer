@@ -1,14 +1,11 @@
-import {
-  Divider,
-  Flex,
-} from 'antd'
-import { BasicStatsObject } from 'lib/conditionals/conditionalConstants'
+import { Divider } from '@mantine/core'
+import { type BasicStatsObject } from 'lib/conditionals/conditionalConstants'
 import {
   Constants,
-  StatsValues,
+  type StatsValues,
 } from 'lib/constants/constants'
-import { iconSize } from 'lib/constants/constantsUi'
-import { ComputedStatsObjectExternal } from 'lib/optimization/engine/container/computedStatsContainer'
+import iconClasses from 'style/icons.module.css'
+import { type ComputedStatsObjectExternal } from 'lib/optimization/engine/container/computedStatsContainer'
 
 import { Assets } from 'lib/rendering/assets'
 import {
@@ -16,12 +13,10 @@ import {
   localeNumber_0,
   localeNumber_000,
 } from 'lib/utils/i18nUtils'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { Utils } from 'lib/utils/utils'
-import { ReactElement } from 'react'
+import { memo, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-
-// FIXME HIGH
+import { isFlat } from 'lib/utils/statUtils'
+import { truncate10ths, truncate1000ths, precisionRound } from 'lib/utils/mathUtils'
 
 const breakpointPresets = [
   [111.1, 111.2],
@@ -50,7 +45,7 @@ export const damageStats: Record<string, string> = {
   'Elation': 'Elation',
 }
 
-export const displayTextMap = {
+const displayTextMap: Record<string, string> = {
   'simScore': 'Combo DMG',
   'Fire DMG Boost': 'Fire DMG',
   'Ice DMG Boost': 'Ice DMG',
@@ -69,67 +64,70 @@ export const displayTextMap = {
   'DOT': 'DoT Damage',
 }
 
-export function StatRow(props: {
-  stat: string,
-  finalStats: BasicStatsObject | ComputedStatsObjectExternal,
-  value?: number,
-  edits?: Record<string, boolean>,
-  preciseSpd?: boolean,
-  loading?: boolean,
+export const StatRow = memo(function StatRow({
+  stat,
+  finalStats,
+  value: customValue,
+  edits,
+  preciseSpd,
+  loading,
+}: {
+  stat: string
+  finalStats: BasicStatsObject | ComputedStatsObjectExternal
+  value?: number
+  edits?: Record<string, boolean>
+  preciseSpd?: boolean
+  loading?: boolean
 }): ReactElement {
-  const { stat, finalStats, edits } = props
-  const value = TsUtils.precisionRound(finalStats[stat as keyof typeof finalStats])
+  const value = precisionRound(finalStats[stat as keyof typeof finalStats])
 
   const { t, i18n } = useTranslation('common')
 
-  // @ts-ignore
-  const readableStat: string = (displayTextMap[stat] || stat == 'CV')
+  const readableStat: string = (displayTextMap[stat] || stat === 'CV')
     ? (i18n.exists(`ReadableStats.${stat}`)
       ? t(`ReadableStats.${stat as StatsValues}`)
-      // @ts-ignore
-      : t(`DMGTypes.${stat}`))
+      : t(`DMGTypes.${stat}` as never))
     : t(`Stats.${stat as StatsValues}`)
 
-  const { valueDisplay, value1000thsPrecision } = getStatRenderValues(value, props.value!, props.stat, props.preciseSpd)
+  const { valueDisplay, value1000thsPrecision } = getStatRenderValues(value, customValue ?? 0, stat, preciseSpd)
 
   if (!finalStats) {
-    console.log('No final stats')
-    return <div></div>
+    return null as unknown as ReactElement
   }
   return (
-    <Flex justify='space-between' align='center' title={value1000thsPrecision} style={{ filter: props.loading ? 'blur(2px)' : 'none' }}>
-      <img src={Assets.getStatIcon(stat)} style={{ width: iconSize, height: iconSize, marginRight: 3 }} />
+    <div title={value1000thsPrecision} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 16, filter: loading ? 'blur(2px)' : 'none' }}>
+      <img src={Assets.getStatIcon(stat)} className={iconClasses.statIconSpaced} />
       {`${readableStat}${edits?.[stat] ? ' *' : ''}`}
-      <Divider style={{ margin: 'auto 10px', flexGrow: 1, width: 'unset', minWidth: 'unset' }} dashed />
-      {props.loading
+      <Divider style={{ margin: 'auto 10px', flexGrow: 1, width: 'unset', minWidth: 'unset' }} variant="dashed" />
+      {loading
         ? '...'
-        : `${valueDisplay}${Utils.isFlat(stat) || stat == 'CV' || stat == 'simScore' ? '' : '%'}${stat == 'simScore' ? t('ThousandsSuffix') : ''}`}
-    </Flex>
+        : `${valueDisplay}${isFlat(stat) || stat === 'CV' || stat === 'simScore' ? '' : '%'}${stat === 'simScore' ? t('ThousandsSuffix') : ''}`}
+    </div>
   )
-}
+})
 
 export function getStatRenderValues(statValue: number, customValue: number, stat: string, preciseSpd?: boolean) {
   let valueDisplay: string
   let value1000thsPrecision: string
 
-  if (stat == 'CV') {
-    valueDisplay = localeNumber_0(Utils.precisionRound(customValue))
-    value1000thsPrecision = localeNumber_000(Utils.precisionRound(customValue))
-  } else if (stat == 'simScore' || stat == 'COMBO_DMG') {
-    valueDisplay = localeNumber_0(Utils.truncate10ths(Utils.precisionRound((customValue ?? 0) / 1000)))
-    value1000thsPrecision = localeNumber_000(Utils.precisionRound(customValue))
-  } else if (stat == Constants.Stats.SPD) {
+  if (stat === 'CV') {
+    valueDisplay = localeNumber_0(precisionRound(customValue))
+    value1000thsPrecision = localeNumber_000(precisionRound(customValue))
+  } else if (stat === 'simScore' || stat === 'COMBO_DMG') {
+    valueDisplay = localeNumber_0(truncate10ths(precisionRound((customValue ?? 0) / 1000)))
+    value1000thsPrecision = localeNumber_000(precisionRound(customValue))
+  } else if (stat === Constants.Stats.SPD) {
     const is1000thSpeed = checkSpeedInBreakpoint(statValue)
     valueDisplay = is1000thSpeed || preciseSpd
-      ? localeNumber_000(Utils.precisionRound(statValue, 3))
-      : localeNumber_0(Utils.truncate10ths(Utils.precisionRound(statValue, 3)))
-    value1000thsPrecision = localeNumber_000(Utils.precisionRound(statValue))
-  } else if (Utils.isFlat(stat)) {
+      ? localeNumber_000(precisionRound(statValue, 3))
+      : localeNumber_0(truncate10ths(precisionRound(statValue, 3)))
+    value1000thsPrecision = localeNumber_000(precisionRound(statValue))
+  } else if (isFlat(stat)) {
     valueDisplay = localeNumber(Math.floor(statValue))
-    value1000thsPrecision = localeNumber_000(Utils.precisionRound(statValue))
+    value1000thsPrecision = localeNumber_000(precisionRound(statValue))
   } else {
-    valueDisplay = localeNumber_0(Utils.truncate10ths(Utils.precisionRound(statValue * 100)))
-    value1000thsPrecision = localeNumber_000(Utils.truncate1000ths(Utils.precisionRound(statValue * 100)))
+    valueDisplay = localeNumber_0(truncate10ths(precisionRound(statValue * 100)))
+    value1000thsPrecision = localeNumber_000(truncate1000ths(precisionRound(statValue * 100)))
   }
 
   return { valueDisplay, value1000thsPrecision }

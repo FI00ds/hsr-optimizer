@@ -1,93 +1,57 @@
 import {
-  CloseOutlined,
-  MenuOutlined,
-} from '@ant-design/icons'
-import {
-  Button,
-  Flex,
-  Layout,
-  theme,
-  Typography,
-} from 'antd'
+  IconMenu2,
+  IconX,
+} from '@tabler/icons-react'
+import { Button, Flex } from '@mantine/core'
 import {
   OpenCloseIDs,
   useOpenClose,
 } from 'lib/hooks/useOpenClose'
 import { LanguageSelector } from 'lib/i18n/LanguageSelector'
 import { Assets } from 'lib/rendering/assets'
-import { BASE_PATH } from 'lib/state/db'
-
-const { useToken } = theme
-const { Header } = Layout
+import { AppPages, BASE_PATH } from 'lib/constants/appPages'
+import { useGlobalStore } from 'lib/stores/app/appStore'
+import classes from 'lib/layout/layout.module.css'
 
 export const HEADER_HEIGHT = 48
 
 export function LayoutHeader() {
   const { isOpen: isOpenMenuSidebar, toggle: toggleMenuSidebar } = useOpenClose(OpenCloseIDs.MENU_SIDEBAR)
-  const { token } = useToken()
 
   return (
-    <Header
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        paddingLeft: '30px',
-        paddingRight: '0px',
-        height: HEADER_HEIGHT,
-        width: '100%',
-        backgroundColor: token.colorBgLayout,
-        backgroundImage: 'linear-gradient(rgb(0 0 0/60%) 0 0)',
-      }}
-    >
-      <Flex align='center' justify='space-between' style={{ width: '100%' }}>
-        <Flex>
-          <Button
-            type='text'
-            icon={isOpenMenuSidebar ? <CloseOutlined /> : <MenuOutlined />}
-            onClick={toggleMenuSidebar}
-            style={{
-              fontSize: '16px',
-              position: 'relative',
-              left: '-20px',
-            }}
-          />
-          <a href={BASE_PATH}>
-            <Flex
-              align='center'
-              style={{
-                position: 'relative',
-                left: '-10px',
-              }}
+    <header className={classes.header} style={{ height: HEADER_HEIGHT }}>
+      <Flex align='center' justify='space-between' className={classes.headerInner}>
+        <Flex gap={8} align='center'>
+          <Flex align='center' justify='center' style={{ width: HEADER_HEIGHT, minWidth: HEADER_HEIGHT }}>
+            <Button
+              variant='transparent'
+              onClick={toggleMenuSidebar}
+              className={classes.menuButton}
             >
-              <img src={Assets.getLogo()} style={{ width: 30, height: 30, marginRight: 15 }}></img>
-              <Typography
-                style={{ fontWeight: 600, fontSize: 22 }}
-                color='inherit'
-              >
-                Fribbels Honkai Star Rail Optimizer
-              </Typography>
+              {isOpenMenuSidebar ? <IconX size={16} /> : <IconMenu2 size={16} />}
+            </Button>
+          </Flex>
+          <a
+            href={BASE_PATH}
+            style={{ textDecoration: 'none', color: 'inherit' }}
+            onClick={(e) => {
+              if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return
+              e.preventDefault()
+              useGlobalStore.getState().setActiveKey(AppPages.HOME)
+            }}
+          >
+            <Flex align='center'>
+              <img src={Assets.getLogo()} className={classes.logo} />
+              <div className={classes.title}>
+                Fribbels Star Rail Optimizer
+              </div>
             </Flex>
           </a>
         </Flex>
-        <Flex>
+        <div>
           <LanguageSelector />
-          <a href='https://ko-fi.com/fribbels' target='_blank' rel='noreferrer'>
-            <Flex>
-              <img src={Assets.getKofi()} style={{ height: 36, marginRight: 6, borderRadius: 5 }}></img>
-            </Flex>
-          </a>
-          <a href='https://github.com/fribbels/hsr-optimizer' target='_blank' rel='noreferrer'>
-            <Flex>
-              <img src={Assets.getGithub()} style={{ height: 36, marginRight: 6, borderRadius: 5 }}></img>
-            </Flex>
-          </a>
-          <a href='https://discord.gg/rDmB4Un7qg' target='_blank' rel='noreferrer'>
-            <Flex>
-              <img src={Assets.getDiscord()} style={{ height: 36, marginRight: 8, borderRadius: 5 }}></img>
-            </Flex>
-          </a>
-        </Flex>
+        </div>
       </Flex>
-    </Header>
+    </header>
   )
 }

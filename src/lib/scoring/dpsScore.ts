@@ -1,105 +1,19 @@
 import {
-  Constants,
   Parts,
 } from 'lib/constants/constants'
-import {
-  OrnamentSetToIndex,
-  RelicSetToIndex,
+import type {
   SetsOrnaments,
   SetsRelics,
 } from 'lib/sets/setConfigRegistry'
-import { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 import {
+  OrnamentSetToIndex,
+  RelicSetToIndex,
+} from 'lib/sets/setConfigRegistry'
+import type {
   RelicBuild,
-  SimulationScore,
 } from 'lib/scoring/simScoringUtils'
-import {
-  resolveDpsScoreSimulationMetadata,
-  retrieveBenchmarkCache,
-  runDpsScoreBenchmarkOrchestrator,
-  setBenchmarkCache,
-} from 'lib/simulations/orchestrator/runDpsScoreBenchmarkOrchestrator'
-import DB from 'lib/state/db'
-import { TsUtils } from 'lib/utils/TsUtils'
-import {
-  Character,
-  SavedBuild,
-} from 'types/character'
-import {
-  ShowcaseTemporaryOptions,
-  SimulationMetadata,
-} from 'types/metadata'
-
-export type AsyncSimScoringExecution = {
-  done: boolean,
-  result: SimulationScore | null,
-  promise: Promise<SimulationScore | null> | null,
-}
-
-export function getShowcaseSimScoringExecution(
-  character: Character,
-  displayRelics: RelicBuild,
-  teamSelection: string,
-  showcaseTemporaryOptions: ShowcaseTemporaryOptions = {},
-  buildOverride?: SavedBuild | null,
-): AsyncSimScoringExecution {
-  const characterMetadata = DB.getMetadata().characters[character.id]
-  const simulationMetadata = resolveDpsScoreSimulationMetadata(character, teamSelection, buildOverride)
-  const singleRelicByPart = displayRelics as SingleRelicByPart
-
-  const asyncResult: AsyncSimScoringExecution = {
-    done: false,
-    result: null,
-    promise: null,
-  }
-
-  if (!simulationMetadata) {
-    console.log('Invalid sim character')
-    asyncResult.done = true
-    return asyncResult
-  }
-
-  const {
-    cacheKey,
-    cachedOrchestrator,
-  } = retrieveBenchmarkCache(character, simulationMetadata, singleRelicByPart, showcaseTemporaryOptions)
-  if (cachedOrchestrator) {
-    // console.debug('CACHED')
-    const simScore = cachedOrchestrator.simulationScore!
-    asyncResult.done = true
-    asyncResult.promise = Promise.resolve(simScore)
-    asyncResult.result = simScore
-    return asyncResult
-  } else {
-    // console.debug('NEW EXECUTION')
-  }
-
-  async function runSimulation() {
-    try {
-      const simulationOrchestrator = await runDpsScoreBenchmarkOrchestrator(character, simulationMetadata!, singleRelicByPart, showcaseTemporaryOptions)
-      const simulationScore = simulationOrchestrator.simulationScore
-      console.log('Percent', simulationScore?.percent)
-
-      if (!simulationScore) return null
-
-      simulationScore.characterMetadata = characterMetadata
-      asyncResult.result = simulationScore
-      asyncResult.done = true
-
-      setBenchmarkCache(cacheKey, simulationOrchestrator)
-
-      return simulationScore
-    } catch (error) {
-      console.error('Error in simulation:', error)
-      asyncResult.done = true
-      throw error
-    }
-  }
-
-  asyncResult.promise = runSimulation()
-
-  return asyncResult
-}
+import type { SimulationMetadata } from 'types/metadata'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export type SimulationSets = {
   relicSet1: SetsRelics,
@@ -233,7 +147,7 @@ export function getSimScoreGrade(score: number, verified: boolean, numRelics: nu
   }
 
   let best = 'WTF+'
-  const percent = TsUtils.precisionRound(score * 100)
+  const percent = precisionRound(score * 100)
   for (const [key, value] of Object.entries(SimScoreGrades)) {
     if (key == 'AEON' && !verified) {
       continue

@@ -1,0 +1,19 @@
+.pathImage {
+  width: 32px;
+}
+
+.starImage {
+  width: 16px;
+}
+
+.rarityContainer {
+  margin-top: 1px;
+}
+
+.elementImage {
+  width: 30px;
+}
+
+.segmentedFilterInner {
+  height: 100%;
+}

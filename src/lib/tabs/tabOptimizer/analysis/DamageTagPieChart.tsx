@@ -1,48 +1,28 @@
-import { Flex } from 'antd'
+import { ChartTooltipContainer, ChartTooltipContent, useChartTooltip } from 'lib/tabs/tabOptimizer/analysis/ChartTooltip'
 import {
   chartColor,
-  DamageTagSlice,
   extractDamageByTag,
 } from 'lib/tabs/tabOptimizer/analysis/damageSplitsExtractor'
-import { OptimizerResultAnalysis } from 'lib/tabs/tabOptimizer/analysis/expandedDataPanelController'
-import { cardShadowNonInset } from 'lib/tabs/tabOptimizer/optimizerForm/layout/FormCard'
+import type { DamageTagSlice } from 'lib/tabs/tabOptimizer/analysis/damageSplitsExtractor'
+import type { OptimizerResultAnalysis } from 'lib/tabs/tabOptimizer/analysis/expandedDataPanelController'
 import { localeNumberComma } from 'lib/utils/i18nUtils'
-import React, { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+
 import {
-  Cell,
   Pie,
   PieChart,
-  Tooltip,
 } from 'recharts'
 
 const PIE_SIZE = 260
 
-function CustomTooltip(props: {
-  active?: boolean
-  payload?: { payload: DamageTagSlice }[]
-}) {
-  const { active, payload } = props
-  if (!active || !payload?.[0]) return null
-
-  const slice = payload[0].payload
-  return (
-    <Flex
-      vertical
-      className='pre-font'
-      style={{ background: 'rgb(69,93,154)', padding: 8, borderRadius: 3 }}
-    >
-      <span style={{ fontSize: 14, fontWeight: 'bold' }}>{slice.label}</span>
-      <span>{localeNumberComma(Math.floor(slice.value))}</span>
-      <span>{`${(slice.percent * 100).toFixed(1)}%`}</span>
-    </Flex>
-  )
-}
-
-export function DamageTagPieChart(props: {
+export function DamageTagPieChart({ analysis }: {
   analysis: OptimizerResultAnalysis
 }) {
-  const { newX, context } = props.analysis
+  const { newX, context } = analysis
   const actions = context.rotationActions.length > 0 ? context.rotationActions : context.defaultActions
+
+  const [hoveredSlice, setHoveredSlice] = useState<DamageTagSlice | null>(null)
+  const { containerRef, tooltipRef, handleMouseMove } = useChartTooltip()
 
   const slices = useMemo(
     () => extractDamageByTag(newX, actions),
@@ -54,50 +34,57 @@ export function DamageTagPieChart(props: {
   const grandTotal = slices.reduce((s, sl) => s + sl.value, 0)
 
   return (
-    <Flex
-      vertical
-      align='center'
+    <div
       className='pre-font'
       style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         flex: 1,
-        background: '#243356',
-        border: '1px solid #354b7d',
-        boxShadow: cardShadowNonInset,
-        borderRadius: 5,
+        background: 'var(--layer-2)',
+        border: '1px solid var(--border-default)',
+        boxShadow: 'var(--shadow-card-flat)',
+        borderRadius: 6,
         padding: '12px 16px',
         overflow: 'hidden',
       }}
     >
-      <span style={{ fontSize: 15, color: chartColor, borderBottom: '1px solid #354b7d', paddingBottom: 4 }}>
+      <span style={{ fontSize: 15, color: chartColor, borderBottom: '1px solid var(--border-default)', paddingBottom: 4 }}>
         Combo Distribution
       </span>
 
-      <PieChart width={PIE_SIZE} height={PIE_SIZE}>
-        <Pie
-          data={slices}
-          dataKey='value'
-          nameKey='label'
-          cx='50%'
-          cy='50%'
-          outerRadius={110}
-          innerRadius={45}
-          cornerRadius={3}
-          startAngle={90}
-          endAngle={-270}
-          stroke='#243356'
-          strokeWidth={2}
-          isAnimationActive={false}
-          style={{ cursor: 'default' }}
-        >
-          {slices.map((slice) => (
-            <Cell key={slice.damageType} fill={slice.color} style={{ cursor: 'default' }} />
-          ))}
-        </Pie>
-        <Tooltip
-          isAnimationActive={false}
-          content={<CustomTooltip />}
-        />
-      </PieChart>
+      <div ref={containerRef} style={{ position: 'relative' }} onMouseMove={handleMouseMove}>
+        <PieChart width={PIE_SIZE} height={PIE_SIZE}>
+          <Pie
+            data={slices}
+            dataKey='value'
+            nameKey='label'
+            cx='50%'
+            cy='50%'
+            outerRadius={110}
+            innerRadius={45}
+            cornerRadius={2}
+            startAngle={90}
+            endAngle={-270}
+            stroke='var(--layer-2)'
+            strokeWidth={2}
+            isAnimationActive={false}
+            style={{ cursor: 'default' }}
+            onMouseEnter={(_, index) => setHoveredSlice(slices[index])}
+            onMouseLeave={() => setHoveredSlice(null)}
+          />
+        </PieChart>
+
+        <ChartTooltipContainer tooltipRef={tooltipRef} visible={!!hoveredSlice}>
+          {hoveredSlice && (
+            <ChartTooltipContent>
+              <span style={{ fontSize: 14, fontWeight: 'bold' }}>{hoveredSlice.label}</span>
+              <span>{localeNumberComma(Math.floor(hoveredSlice.value))}</span>
+              <span>{`${(hoveredSlice.percent * 100).toFixed(1)}%`}</span>
+            </ChartTooltipContent>
+          )}
+        </ChartTooltipContainer>
+      </div>
 
       <table style={{
         alignSelf: 'stretch',
@@ -106,11 +93,11 @@ export function DamageTagPieChart(props: {
       }}>
         <thead>
           <tr>
-            <th style={{ paddingBottom: 6 }} />
-            <th style={{ textAlign: 'right', fontWeight: 400, fontSize: 12, color: '#6b7d99', paddingBottom: 6 }}>
+            <th style={{ paddingBottom: 6, width: '100%' }} />
+            <th style={{ textAlign: 'right', fontWeight: 400, fontSize: 12, color: '#6b7d99', paddingBottom: 6, width: '1%', whiteSpace: 'nowrap' }}>
               #
             </th>
-            <th style={{ textAlign: 'right', fontWeight: 400, fontSize: 12, color: '#6b7d99', paddingBottom: 6, paddingLeft: 12 }}>
+            <th style={{ textAlign: 'right', fontWeight: 400, fontSize: 12, color: '#6b7d99', paddingBottom: 6, paddingLeft: 20, width: '1%', whiteSpace: 'nowrap' }}>
               %
             </th>
           </tr>
@@ -119,7 +106,7 @@ export function DamageTagPieChart(props: {
           {slices.map((slice) => (
             <tr key={slice.damageType}>
               <td style={{ paddingTop: 4, paddingBottom: 4 }}>
-                <Flex align='center' gap={8}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{
                     width: 10,
                     height: 10,
@@ -128,12 +115,12 @@ export function DamageTagPieChart(props: {
                     flexShrink: 0,
                   }} />
                   <span style={{ fontSize: 13, color: chartColor }}>{slice.label}</span>
-                </Flex>
+                </div>
               </td>
               <td style={{ textAlign: 'right', fontSize: 13, color: chartColor, paddingTop: 4, paddingBottom: 4 }}>
                 {localeNumberComma(Math.floor(slice.value))}
               </td>
-              <td style={{ textAlign: 'right', fontSize: 13, color: '#8899aa', paddingTop: 4, paddingBottom: 4, paddingLeft: 12 }}>
+              <td style={{ textAlign: 'right', fontSize: 13, color: '#8899aa', paddingTop: 4, paddingBottom: 4, paddingLeft: 20 }}>
                 {(slice.percent * 100).toFixed(1)}%
               </td>
             </tr>
@@ -141,18 +128,18 @@ export function DamageTagPieChart(props: {
         </tbody>
         <tfoot>
           <tr>
-            <td style={{ paddingTop: 6, borderTop: '1px solid #354b7d' }}>
+            <td style={{ paddingTop: 6, borderTop: '1px solid var(--border-default)' }}>
               <span style={{ fontSize: 13, color: '#8899aa', paddingLeft: 18 }}>Total</span>
             </td>
-            <td style={{ textAlign: 'right', fontSize: 13, color: chartColor, paddingTop: 6, borderTop: '1px solid #354b7d' }}>
+            <td style={{ textAlign: 'right', fontSize: 13, color: chartColor, paddingTop: 6, borderTop: '1px solid var(--border-default)' }}>
               {localeNumberComma(Math.floor(grandTotal))}
             </td>
-            <td style={{ textAlign: 'right', fontSize: 13, color: '#8899aa', paddingTop: 6, borderTop: '1px solid #354b7d', paddingLeft: 12 }}>
+            <td style={{ textAlign: 'right', fontSize: 13, color: '#8899aa', paddingTop: 6, borderTop: '1px solid var(--border-default)', paddingLeft: 20 }}>
               100.0%
             </td>
           </tr>
         </tfoot>
       </table>
-    </Flex>
+    </div>
   )
 }

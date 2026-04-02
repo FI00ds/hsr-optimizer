@@ -10,7 +10,7 @@ export function arrayToMap<
   return array.reduce((map, obj) => {
     map[obj[key]] = obj
     return map
-    // @ts-ignore
+    // @ts-expect-error - T[K] is a valid key type at runtime but TS can't prove it statically
   }, {} as Record<T[K], T>)
 }
 
@@ -39,11 +39,6 @@ export function filterUniqueStringify<T>(arr: T[]) {
   })
 }
 
-/** [0, 1, 2, null, 3] => [0, 1, 2, 3] */
-export function filterNonNull<T>(arr: T[]) {
-  return arr.filter(ArrayFilters.nonNullable)
-}
-
 /** [1, 2], 2 => 1 */
 export function getIndexOf<T>(array: readonly T[], item: unknown): number {
   return array.indexOf(item as T)
@@ -53,7 +48,10 @@ export const ArrayFilters = {
   nonNullable: <T>(x: T) => x != null,
 }
 
-/** only use this on objects where you know the shape strictly matches the type, otherwise you might get surprised by unexpected keys */
-export function definedEntries<K extends string | number | symbol, V>(record: Partial<Record<K, V>>) {
-  return Object.entries(record).filter((x) => x[1] !== undefined) as Array<[K, V]>
+export function arrayOfZeroes(n: number): number[] {
+  return new Array(n).fill(0)
+}
+
+export function arrayOfValue<T>(n: number, x: T): T[] {
+  return new Array(n).fill(x)
 }

@@ -7,12 +7,13 @@ import {
   SetsOrnaments,
   SetsRelics,
 } from 'lib/sets/setConfigRegistry'
-import { DynamicConditional } from 'lib/gpu/conditionals/dynamicConditionals'
+import { type DynamicConditional } from 'lib/gpu/conditionals/dynamicConditionals'
 import {
-  BasicStatsArray,
+  type BasicStatsArray,
   BasicStatsArrayCore,
 } from 'lib/optimization/basicStatsArray'
 import { BufferPacker } from 'lib/optimization/bufferPacker'
+import { resetConditionalState } from 'lib/optimization/conditionalStateUtils'
 import {
   calculateContextConditionalRegistry,
   wrapTeammateDynamicConditional,
@@ -27,25 +28,24 @@ import {
   calculateRelicStats,
   calculateSetCountsInPlace,
 } from 'lib/optimization/calculateStats'
-import { SetCounts } from 'lib/optimization/setMatching'
-import { BasicKey, BasicKeyType } from 'lib/optimization/basicStatsArray'
-import { GlobalRegister, StatKey } from 'lib/optimization/engine/config/keys'
+import { type SetCounts } from 'lib/optimization/setMatching'
+import { BasicKey, type BasicKeyType } from 'lib/optimization/basicStatsArray'
+import { GlobalRegister, StatKey, type StatKeyValue } from 'lib/optimization/engine/config/keys'
 import { OutputTag } from 'lib/optimization/engine/config/tag'
 import { ComputedStatsContainer, rebuildEntityRegistry } from 'lib/optimization/engine/container/computedStatsContainer'
 import { calculateEhp, getDamageFunction } from 'lib/optimization/engine/damage/damageCalculator'
-import { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
 import {
   SortOption,
-  SortOptionProperties,
+  type SortOptionProperties,
 } from 'lib/optimization/sortOptions'
-import { SimulationRelicArrayByPart } from 'lib/simulations/statSimulationTypes'
-import { Form } from 'types/form'
+import { type SimulationRelicArrayByPart } from 'lib/simulations/statSimulationTypes'
+import { type Form } from 'types/form'
 import {
-  CharacterMetadata,
-  OptimizerAction,
-  OptimizerContext,
+  type CharacterMetadata,
+  type OptimizerAction,
+  type OptimizerContext,
 } from 'types/optimizer'
-import { Relic } from 'types/relic'
+import { type Relic } from 'types/relic'
 
 const relicSetCount = Object.values(SetsRelics).length
 const ornamentSetCount = Object.values(SetsOrnaments).length
@@ -90,9 +90,9 @@ export function optimizerWorker(e: MessageEvent) {
   const relicSetSolutions = data.relicSetSolutions
   const ornamentSetSolutions = data.ornamentSetSolutions
 
-  const combatDisplay = request.statDisplay == 'combat'
+  const combatDisplay = request.statDisplay === 'combat'
   const baseDisplay = !combatDisplay
-  const memoDisplay = request.memoDisplay == 'memo'
+  const memoDisplay = request.memoDisplay === 'memo'
   const summonerDisplay = !memoDisplay
   let passCount = 0
 
@@ -112,11 +112,10 @@ export function optimizerWorker(e: MessageEvent) {
   function calculateTeammateDynamicConditionals(action: OptimizerAction, teammateMetadata: CharacterMetadata, index: number) {
     if (teammateMetadata?.characterId) {
       const teammateCharacterConditionalController = CharacterConditionalsResolver.get(teammateMetadata)
-      const dynamicConditionals = (teammateCharacterConditionalController.teammateDynamicConditionals ?? [])
-        .map((dynamicConditional: DynamicConditional) => {
+      ;(teammateCharacterConditionalController.teammateDynamicConditionals ?? [])
+        .forEach((dynamicConditional: DynamicConditional) => {
           const wrapped = wrapTeammateDynamicConditional(dynamicConditional, index)
           action.teammateDynamicConditionals.push(wrapped)
-          return wrapped
         })
     }
   }
@@ -249,14 +248,13 @@ export function optimizerWorker(e: MessageEvent) {
     for (let i = 0; i < context.rotationActions.length; i++) {
       const action = context.rotationActions[i]
       x.setConfig(action.config)
-      action.conditionalState = {}
+      resetConditionalState(action)
 
       x.setPrecompute(action.precomputedStats.a)
       calculateBasicEffects(x, action, context)
       calculateComputedStats(x, action, context)
       calculateBaseMultis(x, action, context)
 
-      const dotComboMultiplier = getDotComboMultiplier(action, context)
       let sum = 0
       for (let hitIndex = 0; hitIndex < action.hits!.length; hitIndex++) {
         const hit = action.hits![hitIndex]
@@ -266,7 +264,7 @@ export function optimizerWorker(e: MessageEvent) {
         // Only accumulate recorded damage hits to sum and comboDmg (not heals/shields)
         if (hit.outputTag == OutputTag.DAMAGE && hit.recorded !== false) {
           sum += dmg
-          comboDmg += dmg * dotComboMultiplier
+          comboDmg += dmg
         }
       }
       x.setActionRegisterValue(action.registerIndex, sum)
@@ -276,7 +274,7 @@ export function optimizerWorker(e: MessageEvent) {
     for (let i = 0; i < context.defaultActions.length; i++) {
       const action = context.defaultActions[i]
       x.setConfig(action.config)
-      action.conditionalState = {}
+      resetConditionalState(action)
 
       x.setPrecompute(action.precomputedStats.a)
       calculateBasicEffects(x, action, context)
@@ -336,7 +334,7 @@ export function optimizerWorker(e: MessageEvent) {
 
 function addBasicConditionIfNeeded(
   conditions: ((c: BasicStatsArray) => boolean)[],
-  statKey: any,
+  statKey: StatKeyValue,
   min: number,
   max: number,
 ) {
@@ -347,14 +345,14 @@ function addBasicConditionIfNeeded(
 
 function addCombatConditionIfNeeded(
   conditions: ((x: ComputedStatsContainer, entityIndex: number) => boolean)[],
-  statKey: any,
+  statKey: StatKeyValue,
   min: number,
   max: number,
 ) {
   if (min !== 0 || max !== Constants.MAX_INT) {
     conditions.push((x, entityIndex) => {
       const entityName = x.config.entitiesArray[entityIndex].name
-      const value = x.getActionValue(statKey as any, entityName)
+      const value = x.getActionValue(statKey, entityName)
       return value < min || value > max
     })
   }
@@ -362,15 +360,15 @@ function addCombatConditionIfNeeded(
 
 function addCombatBoostedConditionIfNeeded(
   conditions: ((x: ComputedStatsContainer, entityIndex: number) => boolean)[],
-  statKey: any,
-  boostKey: any,
+  statKey: StatKeyValue,
+  boostKey: StatKeyValue,
   min: number,
   max: number,
 ) {
   if (min !== 0 || max !== Constants.MAX_INT) {
     conditions.push((x, entityIndex) => {
       const entityName = x.config.entitiesArray[entityIndex].name
-      const value = x.getActionValue(statKey as any, entityName) + x.getActionValue(boostKey as any, entityName)
+      const value = x.getActionValue(statKey, entityName) + x.getActionValue(boostKey, entityName)
       return value < min || value > max
     })
   }
@@ -487,17 +485,4 @@ function generateResultMinFilter(request: Form, context: OptimizerContext) {
     failsBasicThresholdFilter: pass,
     failsComputedThresholdFilter: (x: ComputedStatsContainer) => getComputedValue(x) < threshold,
   }
-}
-
-/**
- * Returns the combo multiplier for a rotation action.
- * DOT actions get their damage multiplied by (comboDot / dotAbilities) to represent
- * multiple ticks of DOT damage occurring during the rotation.
- * Non-DOT actions get a multiplier of 1.
- */
-function getDotComboMultiplier(action: OptimizerAction, context: OptimizerContext): number {
-  if (action.actionType === AbilityKind.DOT && context.comboDot > 0 && context.dotAbilities > 0) {
-    return context.comboDot / context.dotAbilities
-  }
-  return 1
 }

@@ -1,9 +1,7 @@
 import { SaveState } from 'lib/state/saveState'
 import { useWarpCalculatorStore } from 'lib/tabs/tabWarp/useWarpCalculatorStore'
 import {
-  characterCumulative,
   characterDistribution,
-  lightConeCumulative,
   lightConeDistribution,
 } from 'lib/tabs/tabWarp/warpRates'
 
@@ -360,7 +358,15 @@ export type EnrichedWarpRequest = {
   totalJade: number,
 } & WarpRequest
 
-function enrichWarpRequest(request: WarpRequest) {
+function enrichWarpRequest(originalRequest: WarpRequest) {
+  const request: WarpRequest = {
+    ...originalRequest,
+    jades: Number(originalRequest.jades) || 0,
+    passes: Number(originalRequest.passes) || 0,
+    pityCharacter: Number(originalRequest.pityCharacter) || 0,
+    pityLightCone: Number(originalRequest.pityLightCone) || 0,
+  }
+
   const selectedIncome = request.income.map(
     (incomeId) => WarpIncomeOptions.find((option) => option.id == incomeId) ?? NONE_WARP_INCOME_OPTION,
   )
@@ -378,14 +384,6 @@ function enrichWarpRequest(request: WarpRequest) {
   const refundedWarps = Math.floor((StarlightMultiplier[request.starlight] ?? 0) * initialWarps)
   const totalStarlight = refundedWarps * 20
   const totalWarps = initialWarps + refundedWarps
-
-  // Treat null form values as empty and use defaults
-  for (const [key, value] of Object.entries(request)) {
-    if (value == null) {
-      // @ts-ignore
-      request[key] = DEFAULT_WARP_REQUEST[key]
-    }
-  }
 
   const enrichedRequest: EnrichedWarpRequest = {
     ...request,

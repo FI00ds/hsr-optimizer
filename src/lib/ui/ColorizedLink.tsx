@@ -1,9 +1,9 @@
 import {
-  ExportOutlined,
-  InfoCircleOutlined,
-  LinkOutlined,
-} from '@ant-design/icons'
-import { Flex } from 'antd'
+  IconExternalLink,
+  IconInfoCircle,
+  IconLink,
+} from '@tabler/icons-react'
+import { Flex } from '@mantine/core'
 
 export function ColorizedLinkWithIcon(props: {
   text?: string,
@@ -15,10 +15,10 @@ export function ColorizedLinkWithIcon(props: {
 }) {
   return (
     <a href={props.url} target='_blank' onClick={props.onClick} rel='noreferrer'>
-      <span style={{ display: 'inline-flex', gap: '4px', alignItems: 'center', textDecoration: props.noUnderline ? '' : 'underline', color: '#91bfff' }}>
+      <span style={{ display: 'inline-flex', gap: '4px', alignItems: 'center', textDecoration: props.noUnderline ? '' : 'underline', color: 'var(--color-link)' }}>
         {props.text}
-        {props.linkIcon && <LinkOutlined />}
-        {props.externalIcon && <ExportOutlined />}
+        {props.linkIcon && <IconLink size={14} />}
+        {props.externalIcon && <IconExternalLink size={14} />}
       </span>
     </a>
   )
@@ -34,11 +34,11 @@ export function ColorizedTitleWithInfo(props: {
 }) {
   return (
     <a href={props.url} target='_blank' onClick={props.onClick} rel='noreferrer'>
-      <Flex style={{ textDecoration: props.noUnderline ? '' : 'underline', color: '#91bfff', margin: 15 }} align='center' gap={10}>
+      <Flex style={{ textDecoration: props.noUnderline ? '' : 'underline', color: 'var(--color-link)', margin: 15 }} align='center' gap={10}>
         <pre style={{ fontSize: 28, fontWeight: 'bold', margin: 0 }}>
           {props.text}
         </pre>
-        <InfoCircleOutlined style={{ fontSize: 22 }} />
+        <IconInfoCircle style={{ fontSize: 22 }} />
       </Flex>
     </a>
   )

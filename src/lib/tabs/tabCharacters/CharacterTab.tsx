@@ -1,66 +1,59 @@
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-balham.css'
-import {
-  Flex,
-  theme,
-} from 'antd'
+import { Flex } from '@mantine/core'
 import { CharacterPreview } from 'lib/characterPreview/CharacterPreview'
 import { ShowcaseSource } from 'lib/characterPreview/CharacterPreviewComponents'
-import { BuildsModal } from 'lib/overlays/modals/BuildsModal'
-import CharacterModal from 'lib/overlays/modals/CharacterModal'
-import { SaveBuildModal } from 'lib/overlays/modals/SaveBuildModal'
-import { SwitchRelicsModal } from 'lib/overlays/modals/SwitchRelicsModal'
-import { getGridTheme } from 'lib/rendering/theme'
-import { AppPages } from 'lib/state/db'
+import { useCharacterModalStore } from 'lib/overlays/modals/characterModalStore'
+import { useCharacterStore } from 'lib/stores/character/characterStore'
 import { CharacterGrid } from 'lib/tabs/tabCharacters/CharacterGrid'
 import { CharacterMenu } from 'lib/tabs/tabCharacters/CharacterMenu'
 import { CharacterTabController } from 'lib/tabs/tabCharacters/characterTabController'
 import { FilterBar } from 'lib/tabs/tabCharacters/FilterBar'
 import { useCharacterTabStore } from 'lib/tabs/tabCharacters/useCharacterTabStore'
-import React, { Suspense } from 'react'
+import { useDeferReveal } from 'lib/ui/DeferredRender'
+import { useCallback } from 'react'
+import type { Character } from 'types/character'
 
-const { useToken } = theme
+import { cardTotalW, defaultGap, parentH } from 'lib/constants/constantsUi'
 
-export default function CharacterTab() {
-  const { token } = useToken()
+export function CharacterTab() {
+  const focusCharacter = useCharacterTabStore((s) => s.focusCharacter)
+  const selectedCharacter = useCharacterStore((s) => focusCharacter ? s.charactersById[focusCharacter] : null) ?? null
+  const containerRef = useDeferReveal()
 
-  const characterModalOpen = useCharacterTabStore((s) => s.characterModalOpen)
-  const setCharacterModalOpen = useCharacterTabStore((s) => s.setCharacterModalOpen)
-  const characterModalInitialCharacter = useCharacterTabStore((s) => s.characterModalInitialCharacter)
-  const setCharacterModalInitialCharacter = useCharacterTabStore((s) => s.setCharacterModalInitialCharacter)
-  const saveBuildModalOpen = useCharacterTabStore((s) => s.saveBuildModalOpen)
-  const setSaveBuildModalOpen = useCharacterTabStore((s) => s.setSaveBuildModalOpen)
-  const buildsModalOpen = useCharacterTabStore((s) => s.buildsModalOpen)
-  const setBuildsModalOpen = useCharacterTabStore((s) => s.setBuildsModalOpen)
+  // CharacterPreview calls setInitialCharacter(char) then setOpen(true) sequentially.
+  // We open the overlay on setInitialCharacter and ignore setOpen(true) since it's already open.
+  const setOriginalCharacterModalInitialCharacter = useCallback((character: Character | null) => {
+    useCharacterModalStore.getState().openOverlay({
+      initialCharacter: character,
+      onOk: CharacterTabController.onCharacterModalOk,
+    })
+  }, [])
 
-  console.log('======================================================================= RENDER CharacterTab')
-
-  const selectedCharacter = useCharacterTabStore((s) => s.selectedCharacter)
-
-  const defaultGap = 8
-  const parentH = 280 * 3 + defaultGap * 2
+  const setOriginalCharacterModalOpen = useCallback((open: boolean) => {
+    if (!open) {
+      useCharacterModalStore.getState().closeOverlay()
+    }
+    // open=true is handled by setOriginalCharacterModalInitialCharacter above
+  }, [])
 
   return (
     <Flex
+      ref={containerRef}
       style={{
         height: '100%',
         marginBottom: 200,
-        width: 1455,
+        width: 1593,
       }}
       gap={defaultGap}
     >
-      <Flex vertical gap={defaultGap}>
+      <Flex direction="column" gap={defaultGap}>
         <CharacterMenu />
 
-        <Flex vertical gap={8} style={{ minWidth: 240 }}>
+        <Flex direction="column" gap={defaultGap} miw={320}>
           <div
             id='characterGrid'
-            className='ag-theme-balham-dark'
             style={{
-              display: 'block',
               width: '100%',
               height: parentH,
-              ...getGridTheme(token),
             }}
           >
             <CharacterGrid />
@@ -68,41 +61,17 @@ export default function CharacterTab() {
         </Flex>
       </Flex>
 
-      <Flex vertical gap={defaultGap}>
+      <Flex direction="column" gap={defaultGap} w={cardTotalW}>
         <FilterBar />
 
-        <Suspense>
-          <CharacterPreview
-            id='characterTabPreview'
-            source={ShowcaseSource.CHARACTER_TAB}
-            character={selectedCharacter}
-            setOriginalCharacterModalOpen={setCharacterModalOpen}
-            setOriginalCharacterModalInitialCharacter={setCharacterModalInitialCharacter}
-          />
-        </Suspense>
+        <CharacterPreview
+          id='characterTabPreview'
+          source={ShowcaseSource.CHARACTER_TAB}
+          character={selectedCharacter}
+          setOriginalCharacterModalOpen={setOriginalCharacterModalOpen}
+          setOriginalCharacterModalInitialCharacter={setOriginalCharacterModalInitialCharacter}
+        />
       </Flex>
-
-      <CharacterModal
-        onOk={CharacterTabController.onCharacterModalOk}
-        open={characterModalOpen}
-        setOpen={setCharacterModalOpen}
-        initialCharacter={characterModalInitialCharacter}
-      />
-
-      <SwitchRelicsModal />
-
-      <SaveBuildModal
-        source={AppPages.CHARACTERS}
-        character={selectedCharacter}
-        isOpen={saveBuildModalOpen}
-        close={() => setSaveBuildModalOpen(false)}
-      />
-
-      <BuildsModal
-        selectedCharacter={selectedCharacter}
-        isOpen={buildsModalOpen}
-        close={() => setBuildsModalOpen(false)}
-      />
     </Flex>
   )
 }

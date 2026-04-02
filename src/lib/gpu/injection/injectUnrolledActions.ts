@@ -2,7 +2,7 @@ import { evaluateDependencyOrder } from 'lib/conditionals/evaluation/dependencyE
 import { CharacterConditionalsResolver } from 'lib/conditionals/resolver/characterConditionalsResolver'
 import { LightConeConditionalsResolver } from 'lib/conditionals/resolver/lightConeConditionalsResolver'
 import { Constants } from 'lib/constants/constants'
-import { DynamicConditional } from 'lib/gpu/conditionals/dynamicConditionals'
+import type { DynamicConditional } from 'lib/gpu/conditionals/dynamicConditionals'
 import {
   containerActionVal,
   getActionIndex,
@@ -13,10 +13,10 @@ import {
   indent,
   wgsl,
 } from 'lib/gpu/injection/wgslUtils'
-import { GpuConstants } from 'lib/gpu/webgpuTypes'
+import type { GpuConstants } from 'lib/gpu/webgpuTypes'
+import type { AKeyValue } from 'lib/optimization/engine/config/keys'
 import {
   AKey,
-  AKeyValue,
   GLOBAL_REGISTERS_LENGTH,
   GlobalRegister,
 } from 'lib/optimization/engine/config/keys'
@@ -25,19 +25,19 @@ import {
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
 import { matchesTargetTag } from 'lib/optimization/engine/container/gpuBuffBuilder'
-import { generateSetCombatWgsl, generateSetTerminalWgsl } from 'lib/sets/setConfigRegistry'
 import { getDamageFunction } from 'lib/optimization/engine/damage/damageCalculator'
-import { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
+import type { SortOptionKey } from 'lib/optimization/sortOptions'
+import { SortOption } from 'lib/optimization/sortOptions'
 import {
-  SortOption,
-  SortOptionKey,
-} from 'lib/optimization/sortOptions'
-import {
+  generateSetCombatWgsl,
+  generateSetTerminalWgsl,
+} from 'lib/sets/setConfigRegistry'
+import type {
   CharacterConditionalsController,
   LightConeConditionalsController,
 } from 'types/conditionals'
-import { Form } from 'types/form'
-import {
+import type { Form } from 'types/form'
+import type {
   OptimizerAction,
   OptimizerContext,
 } from 'types/optimizer'
@@ -307,7 +307,7 @@ function unrollAction(index: number, action: OptimizerAction, context: Optimizer
 
   //////////
 
-  const damageCalculationWgsl = indent(unrollDamageCalculations(index, action, context, gpuParams), 1)
+  const damageCalculationWgsl = indent(unrollDamageCalculations(action, context, gpuParams), 1)
 
   //////////
 
@@ -347,7 +347,7 @@ function unrollAction(index: number, action: OptimizerAction, context: Optimizer
       diffERR,
       diffOHB,
     );
-${addToComboDmg ? `    comboDmg += dmg${index} * ${getDotComboMultiplier(action, context)};\n` : ''}`
+${addToComboDmg ? `    comboDmg += dmg${index};\n` : ''}`
   
   const actionFunction = `
 fn unrolledAction${index}(
@@ -407,7 +407,7 @@ fn unrolledAction${index}(
   return { actionCall, actionFunction }
 }
 
-function unrollDamageCalculations(index: number, action: OptimizerAction, context: OptimizerContext, gpuParams: GpuConstants) {
+function unrollDamageCalculations(action: OptimizerAction, context: OptimizerContext, gpuParams: GpuConstants) {
   let code = ''
 
   for (let hitIndex = 0; hitIndex < action.hits!.length; hitIndex++) {
@@ -478,7 +478,7 @@ function unrollEntityBaseStats(action: OptimizerAction, targetTag: TargetTag = T
  * Generates combat stat filters that execute after the first default action.
  * Uses conditional extraction - only extracts stats that have active min/max filters.
  */
-export function generateCombatStatFilters(request: Form, context: OptimizerContext, gpuParams: GpuConstants): string {
+function generateCombatStatFilters(request: Form, context: OptimizerContext, gpuParams: GpuConstants): string {
   const action = context.defaultActions[0]
   const config = action.config
 
@@ -579,17 +579,4 @@ export function generateCombatStatFilters(request: Form, context: OptimizerConte
       continue;
     }
 `
-}
-
-/**
- * Returns the compile-time combo multiplier for a rotation action.
- * DOT actions get their damage multiplied by (comboDot / dotAbilities) to represent
- * multiple ticks of DOT damage occurring during the rotation.
- * Non-DOT actions get a multiplier of 1.0.
- */
-function getDotComboMultiplier(action: OptimizerAction, context: OptimizerContext): string {
-  if (action.actionType === AbilityKind.DOT && context.comboDot > 0 && context.dotAbilities > 0) {
-    return `${context.comboDot / context.dotAbilities}`
-  }
-  return '1.0'
 }

@@ -8,8 +8,8 @@ import {
 } from 'lib/conditionals/conditionalFinalizers'
 import {
   AbilityEidolon,
-  Conditionals,
-  ContentDefinition,
+  type Conditionals,
+  type ContentDefinition,
   createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import { HitDefinitionBuilder } from 'lib/conditionals/hitDefinitionBuilder'
@@ -41,7 +41,7 @@ import {
   SELF_ENTITY_INDEX,
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { buff } from 'lib/optimization/engine/container/gpuBuffBuilder'
 import {
   AbilityKind,
@@ -61,17 +61,17 @@ import {
   SPREAD_ORNAMENTS_2P_SUPPORT,
   SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
 } from 'lib/scoring/scoringConstants'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { Eidolon } from 'types/character'
-import { CharacterConfig } from 'types/characterConfig'
-import { CharacterConditionalsController } from 'types/conditionals'
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import { type Eidolon } from 'types/character'
+import { type CharacterConfig } from 'types/characterConfig'
+import { type CharacterConditionalsController } from 'types/conditionals'
 import {
-  ScoringMetadata,
-  SimulationMetadata,
+  type ScoringMetadata,
+  type SimulationMetadata,
 } from 'types/metadata'
 import {
-  OptimizerAction,
-  OptimizerContext,
+  type OptimizerAction,
+  type OptimizerContext,
 } from 'types/optimizer'
 
 export const KafkaB1Entities = createEnum('KafkaB1')
@@ -85,7 +85,8 @@ export const KafkaB1Abilities: AbilityKind[] = [
 ]
 
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
-  const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.KafkaB1.Content')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.KafkaB1.Content')
+  const tDot = wrappedFixedT(withContent).get(null, 'conditionals', 'Common.DotTickCoefficient')
   const { basic, skill, ult, talent } = AbilityEidolon.SKILL_BASIC_3_ULT_TALENT_5
   const {
     SOURCE_BASIC,
@@ -111,6 +112,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
     * (1 * 0.15 + 2 * 0.15 + 3 * 0.15 + 4 * 0.15 + 5 * 0.15 + 6 * 0.25)
 
   const defaults = {
+    dotTickCoefficient: 4,
     ehrBasedBuff: true,
     e1DotDmgReceivedDebuff: true,
     e2TeamDotDmg: true,
@@ -128,6 +130,15 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       formItem: 'switch',
       text: t('ehrBasedBuff.text'),
       content: t('ehrBasedBuff.content'),
+    },
+    dotTickCoefficient: {
+      id: 'dotTickCoefficient',
+      formItem: 'slider',
+      text: tDot('Text'),
+      content: tDot('Content'),
+      min: 0,
+      max: 20,
+      percent: true,
     },
     e1DotDmgReceivedDebuff: {
       id: 'e1DotDmgReceivedDebuff',
@@ -168,6 +179,8 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
 
     actionDeclaration: () => [...KafkaB1Abilities],
     actionDefinition: (action: OptimizerAction, context: OptimizerContext) => {
+      const r = action.characterConditionals as Conditionals<typeof content>
+
       // E6: DoT scaling bonus
       const dotTotalScaling = dotScaling + ((e >= 6) ? 1.56 : 0)
 
@@ -214,6 +227,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
               .damageElement(ElementTag.Lightning)
               .dotBaseChance(1.00)
               .atkScaling(dotTotalScaling)
+              .dotTickCoefficient(r.dotTickCoefficient)
               .build(),
           ],
         },
@@ -351,7 +365,6 @@ const simulation = (): SimulationMetadata => ({
     END_DOT,
     DEFAULT_FUA,
   ],
-  comboDot: 16,
   errRopeEidolon: 0,
   deprioritizeBuffs: true,
   relicSets: [
@@ -434,9 +447,9 @@ const display = {
   imageCenter: {
     x: 1000,
     y: 950,
-    z: 1.1,
+    z: 1.25,
   },
-  showcaseColor: '#ea8abc',
+  showcaseColor: '#d976be',
 }
 
 export const KafkaB1: CharacterConfig = {

@@ -1,15 +1,14 @@
 import {
   Constants,
   Stats,
-  StatsValues,
 } from 'lib/constants/constants'
+import type { StatsValues } from 'lib/constants/constants'
 import { RelicRollFixer } from 'lib/relics/relicRollFixer'
 import { RelicRollGrader } from 'lib/relics/relicRollGrader'
-import { Utils } from 'lib/utils/utils'
-import {
-  Relic,
-  UnaugmentedRelic,
-} from 'types/relic'
+import type { Relic, UnaugmentedRelic } from 'types/relic'
+import { isFlat } from 'lib/utils/statUtils'
+import { uuid } from 'lib/utils/miscUtils'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export type AugmentedStats = Record<StatsValues, number> & {
   mainStat: string,
@@ -18,7 +17,6 @@ export type AugmentedStats = Record<StatsValues, number> & {
 
 export const RelicAugmenter = {
   augment: function(relic: UnaugmentedRelic): Relic | null {
-    // console.log('Augmenting relic', relic)
     const augmentedStats: AugmentedStats = {} as AugmentedStats
 
     // Temporarily skip broken imports
@@ -37,7 +35,7 @@ export const RelicAugmenter = {
 
     for (const substat of relic.substats) {
       const stat = substat.stat
-      substat.value = Utils.precisionRound(substat.value)
+      substat.value = precisionRound(substat.value)
       substat.value = RelicRollFixer.fixSubStatValue(stat, substat.value, relic.grade)
       augmentedStats[stat] = substat.value
     }
@@ -46,7 +44,7 @@ export const RelicAugmenter = {
       relic.grade = 5
     }
 
-    relic.id ??= Utils.randomId()
+    relic.id ??= uuid()
 
     relic.previewSubstats ??= []
 
@@ -79,18 +77,17 @@ function sortSubstats(relic: UnaugmentedRelic) {
 
 // Changes the augmented stats percents to decimals
 function fixAugmentedStats(relics: UnaugmentedRelic[]) {
-  return relics.map((relic) => {
+  relics.forEach((relic) => {
     for (const stat of Object.values(Constants.Stats)) {
       if (!relic.augmentedStats) continue
 
       relic.augmentedStats[stat] = relic.augmentedStats[stat] || 0
-      if (!Utils.isFlat(stat)) {
+      if (!isFlat(stat)) {
         if (relic.augmentedStats.mainStat == stat) {
           relic.augmentedStats.mainValue = relic.augmentedStats.mainValue / 100
         }
         relic.augmentedStats[stat] = relic.augmentedStats[stat] / 100
       }
     }
-    return relic
   })
 }

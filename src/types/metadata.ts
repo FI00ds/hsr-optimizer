@@ -1,4 +1,4 @@
-import {
+import type {
   ElementName,
   MainStats,
   Parts,
@@ -9,16 +9,16 @@ import {
   StatsValues,
   SubStats,
 } from 'lib/constants/constants'
-import { statConversion } from 'lib/importer/characterConverter'
-import { TurnAbilityName } from 'lib/optimization/rotation/turnAbilityConfig'
-import { SortOptionProperties } from 'lib/optimization/sortOptions'
-import { PresetDefinition } from 'lib/scoring/presetEffects'
-import {
+import type {
   SetsOrnaments,
   SetsRelics,
 } from 'lib/sets/setConfigRegistry'
-import { CharacterId } from 'types/character'
-import { LightConeId } from 'types/lightCone'
+import type { statConversion } from 'lib/importer/characterConverter'
+import type { TurnAbilityName } from 'lib/optimization/rotation/turnAbilityConfig'
+import type { SortOptionProperties } from 'lib/optimization/sortOptions'
+import type { PresetDefinition } from 'lib/scoring/presetEffects'
+import type { CharacterId } from 'types/character'
+import type { LightConeId } from 'types/lightCone'
 
 export type ShowcasePreferences = {
   color?: string,
@@ -33,7 +33,7 @@ export type ScoringMetadata = {
   /*      stat score      */ characterId?: CharacterId,
   /*      stat score      */ modified?: boolean,
   /*      stat score      */ parts: Record<Exclude<Parts, typeof Parts.Head | typeof Parts.Hands>, MainStats[]>,
-  /* stat score/optimizer */ stats: Record<SubStats, number> & Partial<Record<'headHands' | 'bodyFeet' | 'sphereRope', number>>,
+  /* stat score/optimizer */ stats: Record<SubStats, number> & Partial<Record<'minWeightedRolls', number>>,
   /*      optimizer       */ presets: PresetDefinition[],
   /*      optimizer       */ sortOption: SortOptionProperties,
   /*      optimizer       */ hiddenColumns: SortOptionProperties[],
@@ -50,7 +50,7 @@ export type SimulationMetadata = {
   errRopeEidolon?: number,
   deprioritizeBuffs?: boolean,
   comboTurnAbilities: TurnAbilityName[],
-  comboDot: number,
+  comboDot?: number,
   relicSets: SetsRelics[][],
   ornamentSets: SetsOrnaments[],
   teammates: {
@@ -109,6 +109,8 @@ export type DBMetadataCharacter = {
   traces: Record<string, number>,
   traceTree: TraceNode[],
   imageCenter: ImageCenter,
+  spineCenter: ImageCenter,
+  disableSpine: boolean,
   scoringMetadata: ScoringMetadata,
 }
 

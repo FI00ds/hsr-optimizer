@@ -1,15 +1,13 @@
-import { Stats, StatsValues, } from 'lib/constants/constants'
+import { Stats, type StatsValues, } from 'lib/constants/constants'
 import { evaluateConditional } from 'lib/gpu/conditionals/dynamicConditionals'
-import { BasicKey, BasicStatsArray, BasicStatToKey } from 'lib/optimization/basicStatsArray'
-import { SetCounts } from 'lib/optimization/setMatching'
+import { BasicKey, type BasicStatsArray, BasicStatToKey } from 'lib/optimization/basicStatsArray'
+import { type SetCounts } from 'lib/optimization/setMatching'
 import { getAllSetDynamicConditionals, ornamentIndexToSetConfig, relicIndexToSetConfig } from 'lib/sets/setConfigRegistry'
 import { StatKey } from 'lib/optimization/engine/config/keys'
 import { TargetTag } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
-import { SimulationRelic } from 'lib/simulations/statSimulationTypes'
-import { OptimizerAction, OptimizerContext, SetConditional, } from 'types/optimizer'
-
-const SET_EFFECTS = new Map()
+import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import { type SimulationRelic } from 'lib/simulations/statSimulationTypes'
+import type { OptimizerAction, OptimizerContext, SetConditional } from 'types/optimizer'
 
 export function calculateSetCounts(
   sets: number[],
@@ -411,11 +409,3 @@ function sumFlatStat(
   return baseValue * (1 + setEffects + relicSum.a[BasicStatToKey[statP]] + trace[statP] + lc[statP]) + relicSum.a[BasicStatToKey[stat]] + trace[stat]
 }
 
-const pioneerSetIndexToCd: Record<number, number> = {
-  [-1]: 0,
-  0: 0,
-  1: 0.08,
-  2: 0.12,
-  3: 0.16,
-  4: 0.24,
-}

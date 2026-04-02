@@ -22,12 +22,13 @@ import { ComputedStatsContainer } from 'lib/optimization/engine/container/comput
 import { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
 import { SortOption } from 'lib/optimization/sortOptions'
 import { PresetEffects } from 'lib/scoring/presetEffects'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { Eidolon } from 'types/character'
-import { CharacterConfig } from 'types/characterConfig'
-import { CharacterConditionalsController } from 'types/conditionals'
-import { ScoringMetadata } from 'types/metadata'
-import {
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import { precisionRound } from 'lib/utils/mathUtils'
+import type { Eidolon } from 'types/character'
+import type { CharacterConfig } from 'types/characterConfig'
+import type { CharacterConditionalsController } from 'types/conditionals'
+import type { ScoringMetadata } from 'types/metadata'
+import type {
   OptimizerAction,
   OptimizerContext,
 } from 'types/optimizer'
@@ -43,7 +44,7 @@ export const HuohuoB1Abilities: AbilityKind[] = [
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
   // TODO
   const betaContent = i18next.t('BetaMessage', { ns: 'conditionals', Version: CURRENT_DATA_VERSION })
-  const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Huohuo')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Huohuo')
   const { basic, ult, skill, talent } = AbilityEidolon.ULT_TALENT_3_SKILL_BASIC_5
   const {
     SOURCE_BASIC,
@@ -85,7 +86,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'ultBuff',
       formItem: 'switch',
       text: t('Content.ultBuff.text'),
-      content: t('Content.ultBuff.content', { ultBuffValue: TsUtils.precisionRound(100 * ultBuffValue) }),
+      content: t('Content.ultBuff.content', { ultBuffValue: precisionRound(100 * ultBuffValue) }),
     },
     skillBuff: {
       id: 'skillBuff',
@@ -234,7 +235,7 @@ const display = {
     y: 975,
     z: 1.075,
   },
-  showcaseColor: '#8cf4fc',
+  showcaseColor: '#00b8c7',
 }
 
 export const HuohuoB1: CharacterConfig = {

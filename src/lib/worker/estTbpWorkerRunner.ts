@@ -1,8 +1,8 @@
-import { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
+import { type SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 import { RelicRollGrader } from 'lib/relics/relicRollGrader'
-import { BaseWorkerInput, baseWorkerPool } from 'lib/simulations/workerPool'
+import { type BaseWorkerInput, WorkerCancelledError, workerPool } from 'lib/worker/workerPool'
 import { WorkerType } from 'lib/worker/workerUtils'
-import { Relic } from 'types/relic'
+import { type Relic } from 'types/relic'
 
 export type EstTbpRunnerInput = {
   displayRelics: SingleRelicByPart,
@@ -59,7 +59,7 @@ export async function runEstTbpWorker(
 const errorResult = { days: 0 }
 
 export async function handleWork(relic: Relic, weights: Record<string, number>): Promise<EstTbpWorkerOutput> {
-  if (!relic || relic.grade != 5) return errorResult
+  if (!relic || relic.grade !== 5) return errorResult
 
   RelicRollGrader.calculateRelicSubstatRolls(relic)
 
@@ -69,8 +69,9 @@ export async function handleWork(relic: Relic, weights: Record<string, number>):
       weights: weights,
       workerType: WorkerType.EST_TBP,
     }
-    return await baseWorkerPool.runTask(input as BaseWorkerInput) as EstTbpWorkerOutput
+    return await workerPool.runTask<BaseWorkerInput, EstTbpWorkerOutput>(input)
   } catch (error) {
+    if (error instanceof WorkerCancelledError) throw error
     console.warn('EstTbp worker error:', error)
     return errorResult
   }

@@ -1,7 +1,7 @@
 import {
   AbilityEidolon,
-  Conditionals,
-  ContentDefinition,
+  type Conditionals,
+  type ContentDefinition,
   createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import { HitDefinitionBuilder } from 'lib/conditionals/hitDefinitionBuilder'
@@ -21,19 +21,20 @@ import {
   SELF_ENTITY_INDEX,
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { buff } from 'lib/optimization/engine/container/gpuBuffBuilder'
 import { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
 import { SortOption } from 'lib/optimization/sortOptions'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { Eidolon } from 'types/character'
-import { CharacterConfig } from 'types/characterConfig'
-import { CharacterConditionalsController } from 'types/conditionals'
-import { ScoringMetadata } from 'types/metadata'
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import { type Eidolon } from 'types/character'
+import { type CharacterConfig } from 'types/characterConfig'
+import { type CharacterConditionalsController } from 'types/conditionals'
+import { type ScoringMetadata } from 'types/metadata'
 import {
-  OptimizerAction,
-  OptimizerContext,
+  type OptimizerAction,
+  type OptimizerContext,
 } from 'types/optimizer'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export const RuanMeiEntities = createEnum('RuanMei')
 export const RuanMeiAbilities: AbilityKind[] = [
@@ -42,7 +43,7 @@ export const RuanMeiAbilities: AbilityKind[] = [
 ]
 
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
-  const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.RuanMei')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.RuanMei')
   const { basic, skill, ult, talent } = AbilityEidolon.ULT_TALENT_3_SKILL_BASIC_5
   const {
     SOURCE_BASIC,
@@ -85,7 +86,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'skillOvertoneBuff',
       formItem: 'switch',
       text: t('Content.skillOvertoneBuff.text'),
-      content: t('Content.skillOvertoneBuff.content', { skillScaling: TsUtils.precisionRound(100 * skillScaling) }),
+      content: t('Content.skillOvertoneBuff.content', { skillScaling: precisionRound(100 * skillScaling) }),
     },
     teamBEBuff: {
       id: 'teamBEBuff',
@@ -97,7 +98,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'ultFieldActive',
       formItem: 'switch',
       text: t('Content.ultFieldActive.text'),
-      content: t('Content.ultFieldActive.content', { fieldResPenValue: TsUtils.precisionRound(100 * fieldResPenValue) }),
+      content: t('Content.ultFieldActive.content', { fieldResPenValue: precisionRound(100 * fieldResPenValue) }),
     },
     e2AtkBoost: {
       id: 'e2AtkBoost',
@@ -121,7 +122,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'teamSpdBuff',
       formItem: 'switch',
       text: t('TeammateContent.teamSpdBuff.text'),
-      content: t('TeammateContent.teamSpdBuff.content', { talentSpdScaling: TsUtils.precisionRound(100 * talentSpdScaling) }),
+      content: t('TeammateContent.teamSpdBuff.content', { talentSpdScaling: precisionRound(100 * talentSpdScaling) }),
     },
     teamBEBuff: content.teamBEBuff,
     teamDmgBuff: {
@@ -216,7 +217,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
     finalizeCalculations: (x: ComputedStatsContainer, action: OptimizerAction, context: OptimizerContext) => {
       // Trace: DMG boost based on BE over 120%
       const be = x.getActionValue(StatKey.BE, RuanMeiEntities.RuanMei)
-      const beOver = Math.floor(TsUtils.precisionRound((be * 100 - 120) / 10))
+      const beOver = Math.floor(precisionRound((be * 100 - 120) / 10))
       const buffValue = Math.min(0.36, Math.max(0, beOver) * 0.06)
       x.buff(StatKey.DMG_BOOST, buffValue, x.source(SOURCE_TRACE))
     },
@@ -270,7 +271,7 @@ const display = {
     y: 1050,
     z: 1,
   },
-  showcaseColor: '#3964d1',
+  showcaseColor: '#7d97fb',
 }
 
 export const RuanMei: CharacterConfig = {

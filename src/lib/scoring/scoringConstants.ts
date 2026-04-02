@@ -27,8 +27,9 @@ export const RELICS_2P_CRIT = [
   Sets.ScholarLostInErudition,
   Sets.WavestriderCaptain,
   Sets.WorldRemakingDeliverer,
-  Sets.EverGloriousMagicalGirl
+  Sets.EverGloriousMagicalGirl,
 ]
+
 
 export const SPREAD_RELICS_4P_GENERAL_CONDITIONALS = [
   [Sets.WavestriderCaptain, Sets.WavestriderCaptain],

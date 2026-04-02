@@ -3,8 +3,8 @@ import { Lingsha } from 'lib/conditionals/character/1200/Lingsha'
 import { RuanMei } from 'lib/conditionals/character/1300/RuanMei'
 import {
   AbilityEidolon,
-  Conditionals,
-  ContentDefinition,
+  type Conditionals,
+  type ContentDefinition,
   createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import { HitDefinitionBuilder } from 'lib/conditionals/hitDefinitionBuilder'
@@ -32,35 +32,38 @@ import {
   SELF_ENTITY_INDEX,
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { buff } from 'lib/optimization/engine/container/gpuBuffBuilder'
 import {
   AbilityKind,
-  DEFAULT_BASIC,
-  DEFAULT_BREAK,
+  END_BASIC,
   END_BREAK,
   NULL_TURN_ABILITY_NAME,
   START_BASIC,
-  START_SKILL,
   START_ULT,
+  WHOLE_BASIC,
+  WHOLE_SKILL,
 } from 'lib/optimization/rotation/turnAbilityConfig'
 import { SortOption } from 'lib/optimization/sortOptions'
 import { PresetEffects } from 'lib/scoring/presetEffects'
-import { SPREAD_RELICS_4P_GENERAL_CONDITIONALS } from 'lib/scoring/scoringConstants'
-import { TsUtils } from 'lib/utils/TsUtils'
-
-import { Eidolon } from 'types/character'
-import { CharacterConfig } from 'types/characterConfig'
-import { CharacterConditionalsController } from 'types/conditionals'
-import { Hit } from 'types/hitConditionalTypes'
 import {
-  ScoringMetadata,
-  SimulationMetadata,
+  SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
+} from 'lib/scoring/scoringConstants'
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
+
+import { type Eidolon } from 'types/character'
+import { type CharacterConfig } from 'types/characterConfig'
+import { type CharacterConditionalsController } from 'types/conditionals'
+import { type Hit } from 'types/hitConditionalTypes'
+import {
+  type ScoringMetadata,
+  type SimulationMetadata,
 } from 'types/metadata'
 import {
-  OptimizerAction,
-  OptimizerContext,
+  type OptimizerAction,
+  type OptimizerContext,
 } from 'types/optimizer'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export const RappaEntities = createEnum('Rappa')
 export const RappaAbilities: AbilityKind[] = [
@@ -70,7 +73,7 @@ export const RappaAbilities: AbilityKind[] = [
 ]
 
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
-  const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Rappa')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Rappa')
   const { basic, skill, ult, talent } = AbilityEidolon.SKILL_TALENT_3_ULT_BASIC_5
   const {
     SOURCE_BASIC,
@@ -117,7 +120,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'sealformActive',
       formItem: 'switch',
       text: t('Content.sealformActive.text'),
-      content: t('Content.sealformActive.content', { ultBeBuff: TsUtils.precisionRound(100 * ultBeBuff) }),
+      content: t('Content.sealformActive.content', { ultBeBuff: precisionRound(100 * ultBeBuff) }),
     },
     atkToBreakVulnerability: {
       id: 'atkToBreakVulnerability',
@@ -129,7 +132,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'chargeStacks',
       formItem: 'slider',
       text: t('Content.chargeStacks.text'),
-      content: t('Content.chargeStacks.content', { talentChargeMultiplier: TsUtils.precisionRound(100 * talentChargeMultiplier) }),
+      content: t('Content.chargeStacks.content', { talentChargeMultiplier: precisionRound(100 * talentChargeMultiplier) }),
       min: 0,
       max: maxChargeStacks,
     },
@@ -301,7 +304,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
 
       if (r.atkToBreakVulnerability) {
         const atk = x.getActionValue(StatKey.ATK, RappaEntities.Rappa)
-        const atkOverStacks = Math.floor(TsUtils.precisionRound((atk - 2400) / 100))
+        const atkOverStacks = Math.floor(precisionRound((atk - 2400) / 100))
         const buffValue = Math.min(0.08, Math.max(0, atkOverStacks) * 0.01) + 0.02
 
         x.buff(StatKey.VULNERABILITY, buffValue, x.damageType(DamageTag.BREAK).source(SOURCE_TRACE))
@@ -326,8 +329,6 @@ const simulation = (): SimulationMetadata => ({
   parts: {
     [Parts.Body]: [
       Stats.ATK_P,
-      Stats.CR,
-      Stats.CD,
     ],
     [Parts.Feet]: [
       Stats.SPD,
@@ -338,7 +339,6 @@ const simulation = (): SimulationMetadata => ({
     ],
     [Parts.LinkRope]: [
       Stats.BE,
-      Stats.ATK_P,
     ],
   },
   substats: [
@@ -354,19 +354,12 @@ const simulation = (): SimulationMetadata => ({
   comboTurnAbilities: [
     NULL_TURN_ABILITY_NAME,
     START_ULT,
-    DEFAULT_BASIC,
-    DEFAULT_BREAK,
-    END_BREAK,
+    END_BASIC,
+    WHOLE_BASIC,
     START_BASIC,
-    DEFAULT_BREAK,
     END_BREAK,
-    START_BASIC,
-    DEFAULT_BREAK,
-    END_BREAK,
-    START_SKILL,
-    END_BREAK,
+    WHOLE_SKILL,
   ],
-  comboDot: 0,
   relicSets: [
     [Sets.IronCavalryAgainstTheScourge, Sets.IronCavalryAgainstTheScourge],
     [Sets.EagleOfTwilightLine, Sets.EagleOfTwilightLine],
@@ -436,11 +429,16 @@ const scoring = (): ScoringMetadata => ({
 
 const display = {
   imageCenter: {
-    x: 1125,
-    y: 1175,
-    z: 1,
+    x: 1163,
+    y: 1198,
+    z: 1.15,
   },
-  showcaseColor: '#7789e2',
+  spineCenter: {
+    x: 857,
+    y: 1228,
+    z: 1.95,
+  },
+  showcaseColor: '#9190f8',
 }
 
 export const Rappa: CharacterConfig = {

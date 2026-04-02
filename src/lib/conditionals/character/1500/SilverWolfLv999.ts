@@ -582,7 +582,8 @@ const display = {
     y: 900,
     z: 1.10,
   },
-  showcaseColor: '#5671dc',
+  disableSpine: true,
+  showcaseColor: '#968ff7',
 }
 
 export const SilverWolfLv999: CharacterConfig = {

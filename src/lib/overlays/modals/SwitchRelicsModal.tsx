@@ -1,10 +1,7 @@
-import {
-  Button,
-  Flex,
-  Form as AntDForm,
-  Modal,
-  Select,
-} from 'antd'
+import { useForm } from '@mantine/form'
+import { Button, Flex, Modal } from '@mantine/core'
+import { Assets } from 'lib/rendering/assets'
+import { useFormOnOpen } from 'lib/overlays/modals/useFormOnOpen'
 import { defaultGap } from 'lib/constants/constantsUi'
 import {
   OpenCloseIDs,
@@ -12,16 +9,14 @@ import {
 } from 'lib/hooks/useOpenClose'
 import { generateCharacterList } from 'lib/rendering/displayUtils'
 import { CharacterTabController } from 'lib/tabs/tabCharacters/characterTabController'
+import { useCharacterStore } from 'lib/stores/character/characterStore'
 import { useCharacterTabStore } from 'lib/tabs/tabCharacters/useCharacterTabStore'
 import { HeaderText } from 'lib/ui/HeaderText'
-import { Utils } from 'lib/utils/utils'
-import {
-  useEffect,
-  useMemo,
-} from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CharacterId } from 'types/character'
-import { ReactElement } from 'types/components'
+import type { CharacterId } from 'types/character'
+import type { ReactElement } from 'types/components'
+import { SearchableCombobox } from 'lib/ui/SearchableCombobox'
 
 export type SwitchRelicsFormSelectedCharacter = {
   key: string,
@@ -30,15 +25,28 @@ export type SwitchRelicsFormSelectedCharacter = {
   value: CharacterId,
 }
 
-export type SwitchRelicsForm = {
-  selectedCharacter: SwitchRelicsFormSelectedCharacter,
-}
+const panelWidth = 325 - 47
 
 export function SwitchRelicsModal() {
-  const currentCharacter = useCharacterTabStore((s) => s.selectedCharacter)
-  const [characterForm] = AntDForm.useForm()
-  const characters = useCharacterTabStore((s) => s.characters)
   const { isOpen, close } = useOpenClose(OpenCloseIDs.SWITCH_RELICS_MODAL)
+
+  return (
+    <Modal
+      opened={isOpen}
+      size={panelWidth + 47}
+      centered
+      onClose={close}
+    >
+      {isOpen && <SwitchRelicsModalContent close={close} />}
+    </Modal>
+  )
+}
+
+function SwitchRelicsModalContent({ close }: { close: () => void }) {
+  const focusCharacter = useCharacterTabStore((s) => s.focusCharacter)
+  const currentCharacter = useCharacterStore((s) => focusCharacter ? s.charactersById[focusCharacter] : null) ?? null
+  const characterForm = useForm({ initialValues: { selectedCharacter: null as string | null } })
+  const characters = useCharacterStore((s) => s.characters)
 
   const { t } = useTranslation('modals', { keyPrefix: 'SwitchRelics' })
   const { t: tCommon } = useTranslation('common')
@@ -56,67 +64,52 @@ export function SwitchRelicsModal() {
       tCharacters,
     ), [characters, currentCharacter, tCharacters])
 
-  useEffect(() => {
-    if (!isOpen) return
+  const comboboxOptions = useMemo(() =>
+    characterOptions.map((opt) => ({
+      value: opt.value,
+      label: opt.title ?? opt.value,
+      icon: Assets.getCharacterAvatarById(opt.value),
+    })),
+    [characterOptions],
+  )
 
-    characterForm.setFieldsValue({
-      characterId: null,
-    })
-  }, [characterForm, isOpen])
+  useFormOnOpen(characterForm, () => ({
+    selectedCharacter: null,
+  }))
 
   function onModalOk() {
-    const { selectedCharacter } = characterForm.getFieldsValue() as SwitchRelicsForm
-    console.log('Switch relics modal submitted with:', selectedCharacter)
-    CharacterTabController.onSwitchRelicsOk(selectedCharacter)
+    const { selectedCharacter } = characterForm.getValues()
+    CharacterTabController.onSwitchRelicsOk({ value: selectedCharacter as CharacterId } as SwitchRelicsFormSelectedCharacter)
     close()
   }
-
-  const handleCancel = () => {
-    close()
-  }
-
-  const panelWidth = 325 - 47
 
   return (
-    <Modal
-      open={isOpen}
-      width={panelWidth + 47}
-      destroyOnClose
-      centered
-      onOk={onModalOk}
-      onCancel={handleCancel}
-      footer={[
-        <Button key='back' onClick={handleCancel}>
-          {tCommon('Cancel') /* Cancel */}
-        </Button>,
-        <Button key='submit' type='primary' onClick={onModalOk}>
-          {tCommon('Save') /* Save */}
-        </Button>,
-      ]}
-    >
-      <AntDForm
-        form={characterForm}
-        preserve={false}
-        layout='vertical'
-      >
+    <>
+      <div>
         <Flex justify='space-between' align='center'>
           <HeaderText>{t('Title') /* Switch relics with character */}</HeaderText>
         </Flex>
 
-        <Flex vertical gap={defaultGap}>
+        <Flex direction="column" gap={defaultGap}>
           <Flex gap={defaultGap}>
-            <AntDForm.Item name='selectedCharacter'>
-              <Select
-                labelInValue
-                showSearch
-                filterOption={Utils.titleFilterOption}
-                style={{ width: panelWidth }}
-                options={characterOptions}
-              />
-            </AntDForm.Item>
+            <SearchableCombobox
+              options={comboboxOptions}
+              value={characterForm.values.selectedCharacter}
+              onChange={(val) => characterForm.setFieldValue('selectedCharacter', val)}
+              placeholder={t('Placeholder')}
+              style={{ width: panelWidth }}
+            />
           </Flex>
         </Flex>
-      </AntDForm>
-    </Modal>
+      </div>
+      <Flex justify='flex-end' gap={8} style={{ marginTop: 16 }}>
+        <Button key='back' variant="default" onClick={close}>
+          {tCommon('Cancel') /* Cancel */}
+        </Button>
+        <Button key='submit' onClick={onModalOk}>
+          {tCommon('Save') /* Save */}
+        </Button>
+      </Flex>
+    </>
   )
 }

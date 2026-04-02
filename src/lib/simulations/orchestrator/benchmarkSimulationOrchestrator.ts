@@ -4,7 +4,7 @@ import {
   Sets,
   Stats,
 } from 'lib/constants/constants'
-import { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
+import type { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 import { StatKey } from 'lib/optimization/engine/config/keys'
 import { SELF_ENTITY_INDEX } from 'lib/optimization/engine/config/tag'
 import { generateContext } from 'lib/optimization/context/calculateContext'
@@ -15,12 +15,16 @@ import {
 import {
   calculateSetNames,
   calculateSimSets,
-  SimulationSets,
 } from 'lib/scoring/dpsScore'
+import type { SimulationSets } from 'lib/scoring/dpsScore'
 import {
   calculateMaxSubstatRollCounts,
   calculateMinSubstatRollCounts,
 } from 'lib/scoring/rollCounter'
+import type {
+  SimulationFlags,
+  SimulationScore,
+} from 'lib/scoring/simScoringUtils'
 import {
   applyScoringFunction,
   baselineScoringParams,
@@ -31,24 +35,20 @@ import {
   maximumScoringParams,
   originalScoringParams,
   simSorter,
-  SimulationFlags,
-  SimulationScore,
   spdRollsCap,
 } from 'lib/scoring/simScoringUtils'
 import { generatePartialSimulations } from 'lib/simulations/benchmarks/simulateBenchmarkBuild'
-import {
-  generateStatImprovements,
-  SimulationStatUpgrade,
-} from 'lib/simulations/scoringUpgrades'
+import { generateStatImprovements } from 'lib/simulations/scoringUpgrades'
+import type { SimulationStatUpgrade } from 'lib/simulations/scoringUpgrades'
 import { runStatSimulations } from 'lib/simulations/statSimulation'
-import { convertRelicsToSimulation } from 'lib/simulations/statSimulationController'
-import {
+import { convertRelicsToSimulation } from 'lib/simulations/statSimulationUtils'
+import type {
   RunSimulationsParams,
   RunStatSimulationsResult,
   Simulation,
   SimulationRequest,
-  StatSimTypes,
 } from 'lib/simulations/statSimulationTypes'
+import { StatSimTypes } from 'lib/simulations/statSimulationTypes'
 import { KafkaB1 } from 'lib/conditionals/character/1000/KafkaB1'
 import { Fugue } from 'lib/conditionals/character/1200/Fugue'
 import { TheDahlia } from 'lib/conditionals/character/1300/TheDahlia'
@@ -56,22 +56,23 @@ import { PermansorTerrae } from 'lib/conditionals/character/1400/PermansorTerrae
 import { TrailblazerHarmonyCaelus, TrailblazerHarmonyStelle } from 'lib/conditionals/character/8000/TrailblazerHarmony'
 import { generateFullDefaultForm } from 'lib/simulations/utils/benchmarkForm'
 import { applyBasicSpeedTargetFlag } from 'lib/simulations/utils/benchmarkSpeedTargets'
-import { runComputeOptimalSimulationWorker } from 'lib/simulations/workerPool'
-import { SimpleCharacter } from 'lib/tabs/tabBenchmarks/useBenchmarksTabStore'
-import { TsUtils } from 'lib/utils/TsUtils'
+import { runComputeOptimalSimulationWorker } from 'lib/worker/computeOptimalSimulationWorkerRunner'
+import type { SimpleCharacter } from 'lib/tabs/tabBenchmarks/useBenchmarksTabStore'
+import { clone } from 'lib/utils/objectUtils'
+import { uuid } from 'lib/utils/miscUtils'
 import { computeOptimalSimulationWorker } from 'lib/worker/computeOptimalSimulationWorker'
-import {
+import type {
   ComputeOptimalSimulationWorkerInput,
   ComputeOptimalSimulationWorkerOutput,
 } from 'lib/worker/computeOptimalSimulationWorkerRunner'
 import { WorkerType } from 'lib/worker/workerUtils'
-import {
+import type {
   Form,
   OptimizerForm,
-  Teammate,
 } from 'types/form'
-import { SimulationMetadata } from 'types/metadata'
-import { OptimizerContext } from 'types/optimizer'
+import type { SimulationMetadata } from 'types/metadata'
+import type { OptimizerContext } from 'types/optimizer'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export class BenchmarkSimulationOrchestrator {
   public metadata: SimulationMetadata
@@ -148,9 +149,6 @@ export class BenchmarkSimulationOrchestrator {
     if (addBreakEffect && !metadata.relicSets.find((sets) => sets[0] == sets[1] && sets[1] == Sets.IronCavalryAgainstTheScourge)) {
       metadata.relicSets.push([Sets.IronCavalryAgainstTheScourge, Sets.IronCavalryAgainstTheScourge])
     }
-    if (addBreakEffect && !metadata.relicSets.find((sets) => sets[0] == sets[1] && sets[1] == Sets.IronCavalryAgainstTheScourge)) {
-      metadata.relicSets.push([Sets.IronCavalryAgainstTheScourge, Sets.IronCavalryAgainstTheScourge])
-    }
     if (addBreakEffect && !metadata.ornamentSets.find((set) => set == Sets.TaliaKingdomOfBanditry)) {
       metadata.ornamentSets.push(Sets.TaliaKingdomOfBanditry)
     }
@@ -196,7 +194,7 @@ export class BenchmarkSimulationOrchestrator {
   }
 
   public setOriginalSimRequestWithRelics(relicsByPart: SingleRelicByPart) {
-    const relics = TsUtils.clone(relicsByPart)
+    const relics = clone(relicsByPart)
     const { relicSetNames, ornamentSetName } = calculateSetNames(relics)
     const scoringParams = benchmarkScoringParams
 
@@ -320,7 +318,7 @@ export class BenchmarkSimulationOrchestrator {
     // Run the original character's sim to find the original basic SPD value
     // This value is used to determine the benchmark's corresponding basic SPD in special set cases (poet)
     const originalSimResult = cloneSimResult(runStatSimulations([originalSim], form, context, simParams)[0])
-    const originalSpd = TsUtils.precisionRound(originalSimResult.x.c.SPD.get(), 3)
+    const originalSpd = precisionRound(originalSimResult.x.c.SPD.get(), 3)
 
     applyBasicSpeedTargetFlag(flags, baselineSimResult, originalSpd, this.spdBenchmark, force)
 
@@ -344,7 +342,7 @@ export class BenchmarkSimulationOrchestrator {
     this.originalSim.result = this.originalSimResult
   }
 
-  public async calculateBenchmark() {
+  public async calculateBenchmark(clonedContext: OptimizerContext) {
     const form = this.form!
     const context = this.context!
     const metadata = this.metadata
@@ -352,13 +350,11 @@ export class BenchmarkSimulationOrchestrator {
     const targetSpd = this.benchmarkCombatSpdTarget!
     const baselineSimResult = this.baselineSimResult!
 
-    // Clone to remove functions
-    const clonedContext = TsUtils.clone(context)
-    const clonedBenchmarkScoringParams = TsUtils.clone(benchmarkScoringParams)
+    const clonedBenchmarkScoringParams = clone(benchmarkScoringParams)
 
     const partialSimulationWrappers = generatePartialSimulations(this)
 
-    const id = TsUtils.uuid()
+    const id = uuid()
     console.time('===== Benchmark runner time ' + id)
 
     const runnerPromises = partialSimulationWrappers.map((partialSimulationWrapper) => {
@@ -367,7 +363,7 @@ export class BenchmarkSimulationOrchestrator {
       // Find the speed deduction
       const finalSpeed = simulationResult.x.getActionValueByIndex(StatKey.SPD, SELF_ENTITY_INDEX)
       const mainsCount = partialSimulationWrapper.simulation.request.simFeet == Stats.SPD ? 1 : 0
-      const rolls = TsUtils.precisionRound(
+      const rolls = precisionRound(
         invertDiminishingReturnsSpdFormula(mainsCount, targetSpd - finalSpeed, clonedBenchmarkScoringParams.speedRollValue),
         3,
       )
@@ -419,7 +415,7 @@ export class BenchmarkSimulationOrchestrator {
     this.benchmarkSimRequest = benchmarkSim.request
   }
 
-  public async calculatePerfection() {
+  public async calculatePerfection(clonedContext: OptimizerContext) {
     const form = this.form!
     const context = this.context!
     const metadata = this.metadata
@@ -427,17 +423,16 @@ export class BenchmarkSimulationOrchestrator {
     const baselineSimResult = this.baselineSimResult!
     const flags = this.flags
 
-    const clonedContext = TsUtils.clone(context)
-    const clonedPerfectionScoringParams = TsUtils.clone(maximumScoringParams)
+    const clonedPerfectionScoringParams = clone(maximumScoringParams)
 
     const partialSimulationWrappers = generatePartialSimulations(this)
-    const id = TsUtils.uuid()
+    const id = uuid()
     console.time('===== Perfection runner time ' + id)
     const runnerPromises = partialSimulationWrappers.map((partialSimulationWrapper) => {
       const simulationResult = runStatSimulations([partialSimulationWrapper.simulation], form, context)[0]
 
       const finalSpeed = simulationResult.x.getActionValueByIndex(StatKey.SPD, SELF_ENTITY_INDEX)
-      const rolls = TsUtils.precisionRound((targetSpd - finalSpeed) / clonedPerfectionScoringParams.speedRollValue, 3)
+      const rolls = precisionRound((targetSpd - finalSpeed) / clonedPerfectionScoringParams.speedRollValue, 3)
 
       partialSimulationWrapper.speedRollsDeduction = Math.min(
         Math.max(0, rolls),
@@ -461,7 +456,7 @@ export class BenchmarkSimulationOrchestrator {
         simulationForm: form,
         context: clonedContext,
         metadata: metadata,
-        scoringParams: TsUtils.clone(maximumScoringParams),
+        scoringParams: clone(maximumScoringParams),
         simulationFlags: flags,
       }
 

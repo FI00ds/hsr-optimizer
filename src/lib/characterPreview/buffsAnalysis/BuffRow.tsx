@@ -1,4 +1,3 @@
-import { Flex } from 'antd'
 import {
   ABILITY_COLORS,
   DAMAGE_TAG_ENTRIES,
@@ -17,20 +16,19 @@ import {
   getSourceLabelStyle,
 } from 'lib/characterPreview/buffsAnalysis/designContext'
 import { buffMatchesFilter } from 'lib/characterPreview/buffsAnalysis/FilterBar'
-import { Buff } from 'lib/optimization/basicStatsArray'
+import type { Buff } from 'lib/optimization/basicStatsArray'
 import {
   BUFF_ABILITY,
   BUFF_TYPE,
 } from 'lib/optimization/buffSource'
-import React, {
-  ReactElement,
+import type { ReactElement } from 'react'
+import {
   useContext,
   useMemo,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
-export function BuffRow(props: { buff: Buff, isLast: boolean }) {
-  const { buff, isLast } = props
+export function BuffRow({ buff, isLast }: { buff: Buff, isLast: boolean }) {
   const options = useContext(DesignContext)
   const activeFilter = useContext(FilterContext)
   const dimmed = !buffMatchesFilter(buff, activeFilter)
@@ -81,10 +79,11 @@ export function BuffRow(props: { buff: Buff, isLast: boolean }) {
   const borderBottomStyle = isLast ? undefined : `1px solid ${options.borderColor}`
 
   return (
-    <Flex
-      align='center'
-      gap={6}
+    <div
       style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
         padding: `0 ${options.rowPaddingX}px`,
         height: options.rowHeight,
         lineHeight: `${options.rowHeight}px`,
@@ -111,25 +110,25 @@ export function BuffRow(props: { buff: Buff, isLast: boolean }) {
       >
         {sourceLabel}
       </span>
-    </Flex>
+    </div>
   )
 }
 
-function DamageTagPills(props: { damageTags?: number }) {
+function DamageTagPills({ damageTags }: { damageTags?: number }) {
   const pills = useMemo(() => {
-    if (props.damageTags == null) {
+    if (damageTags == null) {
       return [renderPill('ALL', ABILITY_COLORS.ALL, 'ALL')]
     }
 
     const result: ReactElement[] = []
     for (const entry of DAMAGE_TAG_ENTRIES) {
-      if ((props.damageTags & entry.tag) !== 0) {
+      if ((damageTags & entry.tag) !== 0) {
         result.push(renderPill(String(entry.tag), entry.color, entry.label))
       }
     }
     return result
-  }, [props.damageTags])
+  }, [damageTags])
 
   if (pills.length === 0) return null
-  return <Flex gap={2} wrap='wrap' style={{ flexShrink: 0 }}>{pills}</Flex>
+  return <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', flexShrink: 0 }}>{pills}</div>
 }

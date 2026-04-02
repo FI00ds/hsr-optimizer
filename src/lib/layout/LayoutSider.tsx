@@ -1,25 +1,25 @@
-import {
-  Flex,
-  Layout,
-  theme,
-} from 'antd'
+import { Flex } from '@mantine/core'
 import {
   OpenCloseIDs,
   useOpenClose,
 } from 'lib/hooks/useOpenClose'
 import { HEADER_HEIGHT } from 'lib/layout/LayoutHeader'
-import MenuDrawer from 'lib/overlays/drawers/MenuDrawer'
-import { useScrollLockState } from 'lib/rendering/scrollController'
+import { MenuDrawer } from 'lib/overlays/drawers/MenuDrawer'
+import { useScrollLockState } from 'lib/layout/scrollController'
+import classes from 'lib/layout/layout.module.css'
 
-const { useToken } = theme
-const { Sider } = Layout
+const SIDEBAR_WIDTH = 160
 
 export function LayoutSider() {
-  const { token } = useToken()
-
   const { isLocked, offset } = useScrollLockState()
-
   const { isOpen: isOpenMenuSidebar } = useOpenClose(OpenCloseIDs.MENU_SIDEBAR)
+
+  const siderWidth = isOpenMenuSidebar ? SIDEBAR_WIDTH : 48
+
+  const siderStyle: React.CSSProperties = {
+    width: siderWidth,
+    minWidth: siderWidth,
+  }
 
   return (
     <Flex
@@ -28,32 +28,14 @@ export function LayoutSider() {
         top: isLocked && offset > HEADER_HEIGHT ? offset - HEADER_HEIGHT : 0,
       }}
     >
-      <Sider
-        width={170}
-        style={{
-          background: token.colorBgContainer,
-          height: '100vh',
-          position: 'sticky',
-          top: 0,
-          overflow: 'hidden',
-        }}
-        collapsible
-        collapsedWidth={48}
-        collapsed={!isOpenMenuSidebar}
-        trigger={null}
+      <div
+        className={classes.siderPanel}
+        style={siderStyle}
       >
-        <div
-          style={{
-            height: '100%',
-            overflowY: 'auto',
-            scrollbarWidth: 'none', // Firefox
-            msOverflowStyle: 'none', // IE/Edge
-          }}
-          className='layout-sider-scroll'
-        >
-          <MenuDrawer />
+        <div className={`${classes.scrollContainer} layout-sider-scroll`}>
+          <MenuDrawer collapsed={!isOpenMenuSidebar} />
         </div>
-      </Sider>
+      </div>
     </Flex>
   )
 }

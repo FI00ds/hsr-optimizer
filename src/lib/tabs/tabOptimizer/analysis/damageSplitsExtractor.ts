@@ -1,7 +1,8 @@
+import i18next from 'i18next'
 import { DamageTag, OutputTag } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { AbilityMeta } from 'lib/optimization/rotation/turnAbilityConfig'
-import { OptimizerAction } from 'types/optimizer'
+import type { OptimizerAction } from 'types/optimizer'
 
 // --- Types ---
 
@@ -123,6 +124,7 @@ export type DamageTagSlice = {
   damageType: number
   label: string
   color: string
+  fill: string
   value: number
   percent: number
 }
@@ -149,10 +151,12 @@ export function extractDamageByTag(
 
   const slices: DamageTagSlice[] = []
   for (const [damageType, value] of totals) {
+    const color = getDamageTypeColor(damageType)
     slices.push({
       damageType,
       label: decodeDamageTypeLabel(damageType),
-      color: getDamageTypeColor(damageType),
+      color,
+      fill: color,
       value,
       percent: value / grandTotal,
     })
@@ -165,7 +169,8 @@ export function extractDamageByTag(
 // --- Action name formatting ---
 
 function formatActionName(action: OptimizerAction, mode: 'default' | 'rotation', comboIndex?: number): string {
-  const label = AbilityMeta[action.actionType].label
+  const labelKey = AbilityMeta[action.actionType].label
+  const label = i18next.t(`optimizerTab:ComboFilter.ComboOptions.${labelKey}`)
 
   if (mode === 'default') {
     return label

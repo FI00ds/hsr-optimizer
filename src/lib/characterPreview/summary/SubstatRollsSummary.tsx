@@ -1,19 +1,16 @@
-import { Flex } from 'antd'
-import {
-  Stats,
-  SubStats,
-} from 'lib/constants/constants'
+import styles from 'lib/characterPreview/summary/SubstatRollsSummary.module.css'
+import type { SubStats } from 'lib/constants/constants'
+import { Stats } from 'lib/constants/constants'
 import { defaultGap } from 'lib/constants/constantsUi'
 import {
   diminishingReturnsFormula,
   spdDiminishingReturnsFormula,
 } from 'lib/scoring/simScoringUtils'
-import { SimulationRequest } from 'lib/simulations/statSimulationTypes'
+import type { SimulationRequest } from 'lib/simulations/statSimulationTypes'
 import { VerticalDivider } from 'lib/ui/Dividers'
 import { numberToLocaleString } from 'lib/utils/i18nUtils'
-import { TsUtils } from 'lib/utils/TsUtils'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 type SubstatRollsSummaryProps = {
   simRequest: SimulationRequest,
@@ -36,8 +33,8 @@ export function SubstatRollsSummary({ simRequest, precision, diminish, columns =
         simRequest.simLinkRope,
         Stats.ATK,
         Stats.HP,
-      ].filter((x) => x == stat).length
-      if (stat == Stats.SPD) {
+      ].filter((x) => x === stat).length
+      if (stat === Stats.SPD) {
         diminishingReturns[stat] = rolls - spdDiminishingReturnsFormula(mainsCount, rolls)
       } else {
         diminishingReturns[stat] = rolls - diminishingReturnsFormula(mainsCount, rolls)
@@ -56,31 +53,31 @@ export function SubstatRollsSummary({ simRequest, precision, diminish, columns =
   )
 
   return (
-    <Flex vertical gap={defaultGap}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: defaultGap }}>
       {columns === 2
         ? (
-          <Flex justify='space-between'>
-            <Flex vertical gap={defaultGap} style={{ width: 125, paddingLeft: 5 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: defaultGap }} className={styles.leftColumn}>
               {renderStatRow(Stats.ATK_P)}
               {renderStatRow(Stats.ATK)}
               {renderStatRow(Stats.HP_P)}
               {renderStatRow(Stats.HP)}
               {renderStatRow(Stats.DEF_P)}
               {renderStatRow(Stats.DEF)}
-            </Flex>
+            </div>
             <VerticalDivider />
-            <Flex vertical gap={defaultGap} style={{ width: 125, paddingRight: 5 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: defaultGap }} className={styles.rightColumn}>
               {renderStatRow(Stats.SPD, 2)}
               {renderStatRow(Stats.CR)}
               {renderStatRow(Stats.CD)}
               {renderStatRow(Stats.EHR)}
               {renderStatRow(Stats.RES)}
               {renderStatRow(Stats.BE)}
-            </Flex>
-          </Flex>
+            </div>
+          </div>
         )
         : (
-          <Flex vertical gap={defaultGap} style={{ width: 150 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: defaultGap }} className={styles.singleColumn}>
             {renderStatRow(Stats.ATK_P)}
             {renderStatRow(Stats.ATK)}
             {renderStatRow(Stats.HP_P)}
@@ -93,32 +90,31 @@ export function SubstatRollsSummary({ simRequest, precision, diminish, columns =
             {renderStatRow(Stats.EHR)}
             {renderStatRow(Stats.RES)}
             {renderStatRow(Stats.BE)}
-          </Flex>
+          </div>
         )}
-    </Flex>
+    </div>
   )
 }
 
-function ScoringNumberParens(props: {
-  label: string,
-  number?: number,
-  parens?: number,
-  precision?: number,
+function ScoringNumberParens({ label, number, parens: parensValue, precision = 1 }: {
+  label: string
+  number?: number
+  parens?: number
+  precision?: number
 }) {
-  const precision = props.precision ?? 1
-  const value = TsUtils.precisionRound(props.number ?? 0)
-  const parens = TsUtils.precisionRound(props.parens ?? 0)
-  const show = value != 0
+  const value = precisionRound(number ?? 0)
+  const parens = precisionRound(parensValue ?? 0)
+  const show = value !== 0
   const showParens = parens > 0
 
   return (
-    <Flex gap={5} justify='space-between'>
-      <pre style={{ margin: 0 }}>{props.label}</pre>
-      <pre style={{ margin: 0, textAlign: 'right' }}>
+    <div style={{ display: 'flex', gap: 5, justifyContent: 'space-between' }}>
+      <pre className={styles.pre}>{label}</pre>
+      <pre className={styles.preRight}>
         {show && numberToLocaleString(value, precision)}
-        {showParens && <span style={{ margin: 3 }}>-</span>}
+        {showParens && <span className={styles.parensSpacer}>-</span>}
         {showParens && numberToLocaleString(parens, 1)}
       </pre>
-    </Flex>
+    </div>
   )
 }

@@ -1,4 +1,3 @@
-import { Flex } from 'antd'
 import i18next from 'i18next'
 import { DAMAGE_TAG_ENTRIES } from 'lib/characterPreview/buffsAnalysis/abilityColors'
 import { CardHeader } from 'lib/characterPreview/buffsAnalysis/BuffGroup'
@@ -18,16 +17,14 @@ import {
   OutputTag,
 } from 'lib/optimization/engine/config/tag'
 import { DamageFunctionType } from 'lib/optimization/engine/damage/damageCalculator'
-import {
-  AbilityKind,
-  AbilityMeta,
-} from 'lib/optimization/rotation/turnAbilityConfig'
+import type { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
+import { AbilityMeta } from 'lib/optimization/rotation/turnAbilityConfig'
 import {
   Fragment,
   useContext,
 } from 'react'
-import { Hit } from 'types/hitConditionalTypes'
-import { OptimizerAction, OptimizerContext } from 'types/optimizer'
+import type { Hit } from 'types/hitConditionalTypes'
+import type { OptimizerAction, OptimizerContext } from 'types/optimizer'
 
 function pct(v: number): string {
   return `${Math.round(v * 100)}%`
@@ -112,7 +109,7 @@ function buildRows(hit: Hit): HitPropRow[] {
   return rows
 }
 
-function HitSubHeader(props: { label: string }) {
+function HitSubHeader({ label }: { label: string }) {
   const options = useContext(DesignContext)
   const rowBase = getRowBaseStyle(options)
   return (
@@ -125,13 +122,12 @@ function HitSubHeader(props: { label: string }) {
         borderBottom: `1px solid ${options.borderColor}`,
       }}
     >
-      {props.label}
+      {label}
     </span>
   )
 }
 
-function HitRow(props: { hit: Hit, isLastHit: boolean }) {
-  const { hit, isLastHit } = props
+function HitRow({ hit, isLastHit }: { hit: Hit, isLastHit: boolean }) {
   const options = useContext(DesignContext)
   const rowBase = getRowBaseStyle(options)
   const sourceLabelStyle = getSourceLabelStyle(options)
@@ -150,11 +146,12 @@ function HitRow(props: { hit: Hit, isLastHit: boolean }) {
       {rows.map((row, i) => {
         const isLastRow = isLastHit && i === rows.length - 1
         return (
-          <Flex
+          <div
             key={i}
-            align='center'
-            gap={6}
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
               ...rowBase,
               borderBottom: isLastRow ? undefined : `1px solid ${options.borderColor}`,
             }}
@@ -167,27 +164,26 @@ function HitRow(props: { hit: Hit, isLastHit: boolean }) {
               {row.label}
             </span>
 
-            <Flex gap={2} style={{ flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
               {tagPills}
-            </Flex>
+            </div>
 
             {fnLabel && (
               <span style={sourceLabelStyle}>
                 {fnLabel}
               </span>
             )}
-          </Flex>
+          </div>
         )
       })}
     </>
   )
 }
 
-function ActionHitGroup(props: {
+function ActionHitGroup({ action, isLastAction }: {
   action: OptimizerAction
   isLastAction: boolean
 }) {
-  const { action, isLastAction } = props
   const hits = action.hits ?? []
   if (hits.length === 0) return null
 
@@ -215,13 +211,10 @@ function ActionHitGroup(props: {
   )
 }
 
-export function HitDefinitionRows(props: {
+export function HitDefinitionRows({ context, selectedAction }: {
   context: OptimizerContext
   selectedAction: number | null
 }) {
-  const { context, selectedAction } = props
-  const options = useContext(DesignContext)
-
   const actions = getSelectedActions(context, selectedAction)
   if (!actions.length) return null
 

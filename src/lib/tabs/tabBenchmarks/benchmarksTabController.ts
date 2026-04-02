@@ -1,4 +1,4 @@
-import { FormInstance } from 'antd/es/form/hooks/useForm'
+import type { UseFormReturnType } from '@mantine/form'
 import i18next from 'i18next'
 import {
   applyScoringMetadataPresets,
@@ -6,18 +6,19 @@ import {
 } from 'lib/conditionals/evaluation/applyPresets'
 import { Message } from 'lib/interactions/message'
 import { defaultSetConditionals } from 'lib/optimization/defaultForm'
-import { BenchmarkSimulationOrchestrator } from 'lib/simulations/orchestrator/benchmarkSimulationOrchestrator'
+import { type BenchmarkSimulationOrchestrator } from 'lib/simulations/orchestrator/benchmarkSimulationOrchestrator'
 import { runCustomBenchmarkOrchestrator } from 'lib/simulations/orchestrator/runCustomBenchmarkOrchestrator'
-import DB from 'lib/state/db'
+import { getCharacterById } from 'lib/stores/character/characterStore'
+import { getScoringMetadata } from 'lib/stores/scoring/scoringStore'
 import {
-  BenchmarkForm,
-  SimpleCharacter,
+  type BenchmarkForm,
+  type SimpleCharacter,
   useBenchmarksTabStore,
 } from 'lib/tabs/tabBenchmarks/useBenchmarksTabStore'
 import { filterUniqueStringify } from 'lib/utils/arrayUtils'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { CharacterId } from 'types/character'
-import { LightConeId } from 'types/lightCone'
+import { clone, objectHash } from 'lib/utils/objectUtils'
+import type { CharacterId } from 'types/character'
+import type { LightConeId } from 'types/lightCone'
 
 export type BenchmarkResultWrapper = {
   fullHash: string,
@@ -25,7 +26,16 @@ export type BenchmarkResultWrapper = {
   orchestrator?: BenchmarkSimulationOrchestrator,
 }
 
-const customBenchmarkCache: Record<string, BenchmarkSimulationOrchestrator> = {}
+let customBenchmarkCache: Record<string, BenchmarkSimulationOrchestrator> = {}
+
+export function clearBenchmarkCache() {
+  customBenchmarkCache = {}
+}
+
+export function handleResetBenchmarks() {
+  clearBenchmarkCache()
+  useBenchmarksTabStore.getState().resetCache()
+}
 
 export function handleBenchmarkFormSubmit(benchmarkForm: BenchmarkForm) {
   const { teammate0, teammate1, teammate2, setResults, storedRelics, storedOrnaments, setLoading } = useBenchmarksTabStore.getState()
@@ -72,7 +82,7 @@ export function handleBenchmarkFormSubmit(benchmarkForm: BenchmarkForm) {
           teammate2,
         }
 
-        const fullHash = TsUtils.objectHash(mergedBenchmarkForm)
+        const fullHash = objectHash(mergedBenchmarkForm)
 
         if (customBenchmarkCache[fullHash]) {
           promiseWrappers[fullHash] = {
@@ -100,6 +110,11 @@ export function handleBenchmarkFormSubmit(benchmarkForm: BenchmarkForm) {
         setResults(results, mergedStoredRelics, mergedStoredOrnaments)
         setLoading(false)
       })
+      .catch((error) => {
+        console.error('Benchmark generation failed:', error)
+        Message.error(i18next.t('benchmarksTab:Messages.Error.GenerationFailed', 'Benchmark generation failed'))
+        setLoading(false)
+      })
   }, 350)
 }
 
@@ -123,7 +138,7 @@ function invalidBenchmarkForm(benchmarkForm: BenchmarkForm) {
     return true
   }
 
-  const scoringMetadata = DB.getScoringMetadata(benchmarkForm.characterId)
+  const scoringMetadata = getScoringMetadata(benchmarkForm.characterId)
   const simulationMetadata = scoringMetadata?.simulation
   if (!simulationMetadata) {
     Message.error(t('UnsupportedCharacter'), 10)
@@ -138,19 +153,19 @@ function invalidBenchmarkForm(benchmarkForm: BenchmarkForm) {
   return false
 }
 
-export function handleCharacterSelectChange(id: CharacterId | null | undefined, formInstance: FormInstance<BenchmarkForm>) {
+export function handleCharacterSelectChange(id: CharacterId | null, formInstance: UseFormReturnType<BenchmarkForm>) {
   if (!id) return
   const t = i18next.getFixedT(null, 'benchmarksTab', 'Messages.Error')
 
-  const scoringMetadata = DB.getScoringMetadata(id)
+  const scoringMetadata = getScoringMetadata(id)
   const simulationMetadata = scoringMetadata?.simulation
   if (!simulationMetadata) {
     return Message.error(t('UnsupportedCharacter'), 10)
   }
 
-  const form = formInstance.getFieldsValue()
+  const form = formInstance.getValues()
 
-  const character = DB.getCharacterById(id)
+  const character = getCharacterById(id)
   if (character) {
     form.lightCone = character.form.lightCone ?? null
     form.characterEidolon = character.form.characterEidolon ?? 0
@@ -167,7 +182,7 @@ export function handleCharacterSelectChange(id: CharacterId | null | undefined, 
   form.simOrnamentSet = simulationMetadata.ornamentSets[0]
   form.subDps = !!simulationMetadata.deprioritizeBuffs
 
-  form.setConditionals = TsUtils.clone(defaultSetConditionals)
+  form.setConditionals = clone(defaultSetConditionals)
   applySetConditionalPresets(form)
   applyScoringMetadataPresets(form)
 
@@ -176,5 +191,5 @@ export function handleCharacterSelectChange(id: CharacterId | null | undefined, 
   state.updateTeammate(1, simulationMetadata.teammates[1])
   state.updateTeammate(2, simulationMetadata.teammates[2])
 
-  formInstance.setFieldsValue(form)
+  formInstance.setValues(form)
 }

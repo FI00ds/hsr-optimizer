@@ -430,7 +430,8 @@ const display = {
     y: 1100,
     z: 1.00,
   },
-  showcaseColor: '#9874e2',
+  disableSpine: true,
+  showcaseColor: '#ac87ee',
 }
 
 export const TrailblazerElationCaelus: CharacterConfig = {

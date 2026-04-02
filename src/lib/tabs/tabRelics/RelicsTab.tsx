@@ -1,82 +1,39 @@
-import {
-  Collapse,
-  Flex,
-} from 'antd'
-import { Hint } from 'lib/interactions/hint'
-import RelicModal from 'lib/overlays/modals/RelicModal'
-import { RelicScorer } from 'lib/relics/relicScorerPotential'
-import { ScoringType } from 'lib/scoring/simScoringUtils'
-import DB from 'lib/state/db'
+import { Accordion } from '@mantine/core'
 import { useScannerState } from 'lib/tabs/tabImport/ScannerWebsocketClient'
-import { RecentRelics } from 'lib/tabs/tabRelics/RecentRelics'
-import RelicFilterBar from 'lib/tabs/tabRelics/RelicFilterBar'
-import { RelicInsightsPanel } from 'lib/tabs/tabRelics/relicInsightsPanel/RelicInsightsPanel'
-import { RelicPreview } from 'lib/tabs/tabRelics/RelicPreview'
+import { BottomDock } from 'lib/tabs/tabRelics/bottomDock/BottomDock'
 import { RelicsGrid } from 'lib/tabs/tabRelics/RelicsGrid'
-import { RelicsTabController } from 'lib/tabs/tabRelics/relicsTabController'
-import { Toolbar } from 'lib/tabs/tabRelics/Toolbar'
-import useRelicsTabStore from 'lib/tabs/tabRelics/useRelicsTabStore'
-import { TooltipImage } from 'lib/ui/TooltipImage'
+import { RecentRelics } from 'lib/tabs/tabRelics/RecentRelics'
+import { TopBar } from 'lib/tabs/tabRelics/topBar/TopBar'
+import { DeferReveal, useDeferReveal } from 'lib/ui/DeferredRender'
 import { useTranslation } from 'react-i18next'
-import { Relic } from 'types/relic'
 
 export const TAB_WIDTH = 1460
 
-export default function RelicsTab() {
-  const { focusCharacter, selectedRelicId, relicModalOpen, setRelicModalOpen, setSelectedRelicsIds } = useRelicsTabStore()
-  const { recentRelics } = useScannerState()
-  const selectedRelic = DB.getRelicById(selectedRelicId ?? '') ?? null
+export function RelicsTab() {
+  const recentRelics = useScannerState((s) => s.recentRelics)
   const { t } = useTranslation('relicsTab')
-  const setSelectedRelic = (r: Relic) => setSelectedRelicsIds([r.id])
-  const score = (selectedRelic && focusCharacter)
-    ? RelicScorer.scoreCurrentRelic(selectedRelic, focusCharacter)
-    : undefined
+  const containerRef = useDeferReveal()
 
   return (
-    <Flex style={{ marginBottom: 100, width: TAB_WIDTH }}>
-      {
-        <RelicModal
-          open={relicModalOpen}
-          setOpen={setRelicModalOpen}
-          onOk={RelicsTabController.onRelicModalOk}
-          selectedRelic={selectedRelic}
-        />
-      }
-      <Flex vertical gap={10}>
-        <RelicFilterBar />
+    <div ref={containerRef} style={{ display: 'flex', flexDirection: 'column', gap: 5, width: TAB_WIDTH, marginBottom: 100 }}>
+      <TopBar />
 
-        {recentRelics.length > 0 && (
-          <Collapse
-            defaultActiveKey={['1']}
-            items={[
-              {
-                key: '1',
-                label: t('RecentlyUpdatedRelics.Header'), /* Recently Updated Relics */
-                children: <RecentRelics />,
-              },
-            ]}
-          />
-        )}
+      {recentRelics.length > 0 && (
+        <Accordion defaultValue={['1']} multiple>
+          <Accordion.Item value="1">
+            <Accordion.Control>{t('RecentlyUpdatedRelics.Header')}</Accordion.Control>
+            <Accordion.Panel><RecentRelics /></Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      )}
 
+      <DeferReveal>
         <RelicsGrid />
+      </DeferReveal>
 
-        <Toolbar />
-
-        <Flex gap={10}>
-          <RelicPreview
-            relic={selectedRelic}
-            setSelectedRelic={setSelectedRelic}
-            setEditModalOpen={setRelicModalOpen}
-            score={score}
-            scoringType={score ? ScoringType.SUBSTAT_SCORE : ScoringType.NONE}
-          />
-          <Flex style={{ display: 'block' }}>
-            <TooltipImage type={Hint.relics()} />
-          </Flex>
-
-          <RelicInsightsPanel />
-        </Flex>
-      </Flex>
-    </Flex>
+      <DeferReveal>
+        <BottomDock />
+      </DeferReveal>
+    </div>
   )
 }

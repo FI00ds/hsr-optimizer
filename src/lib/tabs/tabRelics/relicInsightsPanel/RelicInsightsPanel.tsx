@@ -1,27 +1,42 @@
 import { buffedCharacters } from 'lib/importer/kelzFormatParser'
-import { RelicScorer } from 'lib/relics/relicScorerPotential'
+import { RelicScorer } from 'lib/relics/scoring/relicScorer'
 import { sortAlphabeticEmojiLast } from 'lib/rendering/displayUtils'
-import DB from 'lib/state/db'
+import { getGameMetadata } from 'lib/state/gameMetadata'
+import { getCharacterById, useCharacterStore } from 'lib/stores/character/characterStore'
+import { useRelicById } from 'lib/stores/relic/relicStore'
+import { useScoringStore } from 'lib/stores/scoring/scoringStore'
 import { BucketsPanel } from 'lib/tabs/tabRelics/relicInsightsPanel/BucketsPanel'
 import { EstbpCard } from 'lib/tabs/tabRelics/relicInsightsPanel/Estbp'
 import { Top10Panel } from 'lib/tabs/tabRelics/relicInsightsPanel/Top10Panel'
-import useRelicsTabStore, {
+import {
   InsightCharacters,
   RelicInsights,
+  useRelicsTabStore,
 } from 'lib/tabs/tabRelics/useRelicsTabStore'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
+import { useElementSize } from '@mantine/hooks'
 import { useTranslation } from 'react-i18next'
-import { CharacterId } from 'types/character'
+import { useShallow } from 'zustand/react/shallow'
+import type { CharacterId } from 'types/character'
 
-export function RelicInsightsPanel() {
-  const { insightsCharacters, insightsMode, selectedRelicId, excludedRelicPotentialCharacters } = useRelicsTabStore()
-  const scoringMetadataOverrides = window.store((s) => s.scoringMetadataOverrides)
+export const RelicInsightsPanel = memo(function RelicInsightsPanel() {
+  const { insightsCharacters, insightsMode, selectedRelicId, excludedRelicPotentialCharacters } = useRelicsTabStore(
+    useShallow((s) => ({
+      insightsCharacters: s.insightsCharacters,
+      insightsMode: s.insightsMode,
+      selectedRelicId: s.selectedRelicId,
+      excludedRelicPotentialCharacters: s.excludedRelicPotentialCharacters,
+    })),
+  )
+  const scoringVersion = useScoringStore((s) => s.scoringVersion)
+  const characterCount = useCharacterStore((s) => s.characters.length)
   const { t } = useTranslation('gameData', { keyPrefix: 'Characters' })
-  const selectedRelic = DB.getRelicById(selectedRelicId ?? '') ?? null
+  const selectedRelic = useRelicById(selectedRelicId)
+  const { ref: containerRef, width: containerWidth } = useElementSize()
 
   const scores: Score[] = useMemo(() => {
     if (!selectedRelic) return []
-    return Object.values(DB.getMetadata().characters)
+    return Object.values(getGameMetadata().characters)
       .filter((x) => {
         if (buffedCharacters[x.id]) return false
 
@@ -31,35 +46,39 @@ export function RelicInsightsPanel() {
           case InsightCharacters.Custom:
             return !excludedRelicPotentialCharacters.includes(x.id)
           case InsightCharacters.Owned:
-            return DB.getCharacterById(x.id) != undefined
+            return getCharacterById(x.id) != undefined
         }
       })
       .map((char) => ({
         id: char.id,
         name: t(`${char.id}.Name`),
         score: RelicScorer.scoreRelicPotential(selectedRelic, char.id, true),
-        owned: DB.getCharacterById(char.id) != undefined,
+        owned: getCharacterById(char.id) != undefined,
       }))
       .sort((a, b) => {
-        if (b.score.bestPct == a.score.bestPct) {
+        if (b.score.bestPct === a.score.bestPct) {
           return sortAlphabeticEmojiLast('name')(a, b)
         } else return b.score.bestPct - a.score.bestPct
       })
-    // relic scores implicitly depend on scoringMetadataOverrides
-    // eslint-disable-next-line exhaustive-deps
-  }, [insightsCharacters, selectedRelic, excludedRelicPotentialCharacters, t, scoringMetadataOverrides])
+  }, [insightsCharacters, selectedRelic, excludedRelicPotentialCharacters, t, scoringVersion, characterCount])
 
-  if (!selectedRelic) return <></>
+  const chartWidth = containerWidth || undefined
 
-  switch (insightsMode) {
-    case RelicInsights.Buckets:
-      return <BucketsPanel scores={scores} />
-    case RelicInsights.Top10:
-      return <Top10Panel scores={scores} />
-    case RelicInsights.ESTBP:
-      return <EstbpCard />
-  }
-}
+  return (
+    <div ref={containerRef} style={{ width: '100%', overflow: 'hidden' }}>
+      {selectedRelic && (() => {
+        switch (insightsMode) {
+          case RelicInsights.Buckets:
+            return <BucketsPanel scores={scores} width={chartWidth} />
+          case RelicInsights.Top10:
+            return <Top10Panel scores={scores} width={chartWidth} />
+          case RelicInsights.ESTBP:
+            return <EstbpCard />
+        }
+      })()}
+    </div>
+  )
+})
 
 type Score = {
   id: CharacterId,
@@ -69,5 +88,7 @@ type Score = {
 }
 
 export type PanelProps = {
-  scores: Score[],
+  scores: Score[]
+  width?: number
+  height?: number
 }

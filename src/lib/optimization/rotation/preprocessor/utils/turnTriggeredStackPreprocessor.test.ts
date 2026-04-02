@@ -19,19 +19,19 @@ import {
   START_BASIC,
   START_FUA,
   START_ULT,
-  TurnAbilityName,
+  type TurnAbilityName,
   WHOLE_BASIC,
   WHOLE_SKILL,
 } from 'lib/optimization/rotation/turnAbilityConfig'
 import { Anaxa } from 'lib/conditionals/character/1400/Anaxa'
 import { Metadata } from 'lib/state/metadataInitializer'
-import {
+import { normalizeForm } from 'lib/stores/optimizerForm/optimizerFormConversions'
+import type {
   ComboBooleanConditional,
   ComboNumberConditional,
   ComboState,
-  initializeComboState,
-} from 'lib/tabs/tabOptimizer/combo/comboDrawerController'
-import { OptimizerTabController } from 'lib/tabs/tabOptimizer/optimizerTabController'
+} from 'lib/optimization/combo/comboTypes'
+import { initializeComboState } from 'lib/optimization/combo/comboInitializers'
 import {
   expect,
   test,
@@ -44,8 +44,7 @@ const processSequence = (
   abilityNames: TurnAbilityName[],
 ): ComboState => {
   const form = getDefaultForm({ id: Anaxa.id })
-  const displayFormValues = OptimizerTabController.formToDisplay(form)
-  const request = OptimizerTabController.displayToForm(displayFormValues)
+  const request = normalizeForm(form)
   const comboState = initializeComboState(request, true)
 
   comboState.comboTurnAbilities = [NULL_TURN_ABILITY_NAME, ...abilityNames]

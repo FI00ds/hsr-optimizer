@@ -1,31 +1,39 @@
-import { Flex } from 'antd'
 import { useScannerState } from 'lib/tabs/tabImport/ScannerWebsocketClient'
 import { RecentRelicCard } from 'lib/tabs/tabRelics/RecentRelicCard'
-import useRelicsTabStore from 'lib/tabs/tabRelics/useRelicsTabStore'
-import React from 'react'
+import { useRelicsTabStore } from 'lib/tabs/tabRelics/useRelicsTabStore'
+import { memo, useCallback } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import { useRelicStore } from 'lib/stores/relic/relicStore'
 
 function padArray<T>(array: T[], length: number, filler: T): T[] {
   return [...array, ...Array(length - array.length).fill(filler)]
 }
 
-export const RecentRelics = React.memo(() => {
-  const { focusCharacter: scoringCharacter, selectedRelicId, setSelectedRelicsIds } = useRelicsTabStore()
-  const { recentRelics: recentRelicIDs } = useScannerState()
-  const allRelics = window.store((s) => s.relicsById)
+export const RecentRelics = memo(() => {
+  const { focusCharacter: scoringCharacter, selectedRelicId, setSelectedRelicsIds } = useRelicsTabStore(
+    useShallow((s) => ({
+      focusCharacter: s.focusCharacter,
+      selectedRelicId: s.selectedRelicId,
+      setSelectedRelicsIds: s.setSelectedRelicsIds,
+    })),
+  )
+  const recentRelicIDs = useScannerState((s) => s.recentRelics)
+  const allRelics = useRelicStore((s) => s.relicsById)
 
   const recentRelics = recentRelicIDs
     .map((id) => allRelics[id])
     .filter((relic) => relic != null)
 
-  const setSelectedRelicID = (id: string) => {
+  const setSelectedRelicID = useCallback((id: string) => {
     setSelectedRelicsIds([id])
-  }
+  }, [setSelectedRelicsIds])
 
   return (
-    <Flex
-      gap={10}
-      justify='space-between'
+    <div
       style={{
+        display: 'flex',
+        gap: 10,
+        justifyContent: 'space-between',
         padding: 10,
       }}
     >
@@ -38,7 +46,7 @@ export const RecentRelics = React.memo(() => {
           setSelectedRelicID={setSelectedRelicID}
         />
       ))}
-    </Flex>
+    </div>
   )
 })
 RecentRelics.displayName = 'RecentRelics'

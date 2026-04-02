@@ -3,8 +3,8 @@ import { Feixiao } from 'lib/conditionals/character/1200/Feixiao'
 import { Robin } from 'lib/conditionals/character/1300/Robin'
 import {
   AbilityEidolon,
-  Conditionals,
-  ContentDefinition,
+  type Conditionals,
+  type ContentDefinition,
   createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import {
@@ -31,7 +31,7 @@ import {
   SELF_ENTITY_INDEX,
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import {
   AbilityKind,
   DEFAULT_FUA,
@@ -48,18 +48,19 @@ import {
   SPREAD_ORNAMENTS_2P_SUPPORT,
   SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
 } from 'lib/scoring/scoringConstants'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { Eidolon } from 'types/character'
-import { CharacterConfig } from 'types/characterConfig'
-import { CharacterConditionalsController } from 'types/conditionals'
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import { type Eidolon } from 'types/character'
+import { type CharacterConfig } from 'types/characterConfig'
+import { type CharacterConditionalsController } from 'types/conditionals'
 import {
-  ScoringMetadata,
-  SimulationMetadata,
+  type ScoringMetadata,
+  type SimulationMetadata,
 } from 'types/metadata'
 import {
-  OptimizerAction,
-  OptimizerContext,
+  type OptimizerAction,
+  type OptimizerContext,
 } from 'types/optimizer'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export const AventurineEntities = createEnum('Aventurine')
 export const AventurineAbilities: AbilityKind[] = [
@@ -71,7 +72,7 @@ export const AventurineAbilities: AbilityKind[] = [
 ]
 
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
-  const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Aventurine')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Aventurine')
   const { basic, skill, ult, talent } = AbilityEidolon.ULT_BASIC_3_SKILL_TALENT_5
   const {
     SOURCE_BASIC,
@@ -129,19 +130,19 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'fortifiedWagerBuff',
       formItem: 'switch',
       text: t('Content.fortifiedWagerBuff.text'),
-      content: t('Content.fortifiedWagerBuff.content', { talentResScaling: TsUtils.precisionRound(100 * talentResScaling) }),
+      content: t('Content.fortifiedWagerBuff.content', { talentResScaling: precisionRound(100 * talentResScaling) }),
     },
     enemyUnnervedDebuff: {
       id: 'enemyUnnervedDebuff',
       formItem: 'switch',
       text: t('Content.enemyUnnervedDebuff.text'),
-      content: t('Content.enemyUnnervedDebuff.content', { ultCdBoost: TsUtils.precisionRound(100 * ultCdBoost) }),
+      content: t('Content.enemyUnnervedDebuff.content', { ultCdBoost: precisionRound(100 * ultCdBoost) }),
     },
     fuaHitsOnTarget: {
       id: 'fuaHitsOnTarget',
       formItem: 'slider',
       text: t('Content.fuaHitsOnTarget.text'),
-      content: t('Content.fuaHitsOnTarget.content', { talentDmgScaling: TsUtils.precisionRound(100 * talentDmgScaling) }),
+      content: t('Content.fuaHitsOnTarget.content', { talentDmgScaling: precisionRound(100 * talentDmgScaling) }),
       min: 0,
       max: fuaHits,
     },
@@ -345,7 +346,6 @@ const simulation = (): SimulationMetadata => ({
     WHOLE_BASIC,
     DEFAULT_FUA,
   ],
-  comboDot: 0,
   deprioritizeBuffs: true,
   relicSets: [
     [Sets.PioneerDiverOfDeadWaters, Sets.PioneerDiverOfDeadWaters],
@@ -436,7 +436,8 @@ const display = {
     y: 1000,
     z: 1.05,
   },
-  showcaseColor: '#7cbcea',
+  disableSpine: true,
+  showcaseColor: '#00bbae',
 }
 
 export const Aventurine: CharacterConfig = {

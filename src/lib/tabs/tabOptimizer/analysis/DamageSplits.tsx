@@ -1,24 +1,21 @@
-import { Flex } from 'antd'
 import { chartColor, extractDamageSplits } from 'lib/tabs/tabOptimizer/analysis/damageSplitsExtractor'
 import { DamageSplitsChart } from 'lib/tabs/tabOptimizer/analysis/DamageSplitsChart'
-import { OptimizerResultAnalysis } from 'lib/tabs/tabOptimizer/analysis/expandedDataPanelController'
-import { cardShadowNonInset } from 'lib/tabs/tabOptimizer/optimizerForm/layout/FormCard'
-import React, { useMemo, useState } from 'react'
+import type { OptimizerResultAnalysis } from 'lib/tabs/tabOptimizer/analysis/expandedDataPanelController'
+import { useMemo, useState } from 'react'
 
 type SplitMode = 'default' | 'rotation'
 
-function ModeToggle(props: {
+function ModeToggle({ mode, onModeChange }: {
   mode: SplitMode
   onModeChange: (mode: SplitMode) => void
 }) {
-  const { mode, onModeChange } = props
   const modes: { key: SplitMode; label: string }[] = [
     { key: 'default', label: 'Default' },
     { key: 'rotation', label: 'Rotation' },
   ]
 
   return (
-    <Flex gap={6} align='center' style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {modes.map((m) => (
         <span
           key={m.key}
@@ -28,9 +25,9 @@ function ModeToggle(props: {
             color: mode === m.key ? '#DDD' : '#8899aa',
             cursor: 'pointer',
             fontWeight: 400,
-            background: mode === m.key ? '#354b7d' : 'transparent',
+            background: mode === m.key ? 'var(--border-default)' : 'transparent',
             padding: '3px 16px',
-            borderRadius: 12,
+            borderRadius: 6,
             transition: 'all 0.15s',
             minWidth: 70,
             textAlign: 'center',
@@ -39,14 +36,13 @@ function ModeToggle(props: {
           {m.label}
         </span>
       ))}
-    </Flex>
+    </div>
   )
 }
 
-export function DamageSplits(props: {
-  analysis: OptimizerResultAnalysis,
+export function DamageSplits({ analysis }: {
+  analysis: OptimizerResultAnalysis
 }) {
-  const { analysis } = props
   const { newX, context } = analysis
   const hasRotation = context.rotationActions.length > 0
   const [mode, setMode] = useState<SplitMode>(hasRotation ? 'rotation' : 'default')
@@ -59,24 +55,25 @@ export function DamageSplits(props: {
   )
 
   return (
-    <Flex
-      vertical
-      align='center'
+    <div
       className='pre-font'
-      gap={8}
       style={{
-        background: '#243356',
-        border: '1px solid #354b7d',
-        boxShadow: cardShadowNonInset,
-        borderRadius: 5,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 8,
+        background: 'var(--layer-2)',
+        border: '1px solid var(--border-default)',
+        boxShadow: 'var(--shadow-card-flat)',
+        borderRadius: 6,
         padding: '10px 0',
       }}
     >
-      <span style={{ fontSize: 15, color: chartColor, borderBottom: '1px solid #354b7d', paddingBottom: 4 }}>
+      <span style={{ fontSize: 15, color: chartColor, borderBottom: '1px solid var(--border-default)', paddingBottom: 4 }}>
         Combo Breakdown
       </span>
       <ModeToggle mode={mode} onModeChange={setMode} />
       <DamageSplitsChart data={data} />
-    </Flex>
+    </div>
   )
 }

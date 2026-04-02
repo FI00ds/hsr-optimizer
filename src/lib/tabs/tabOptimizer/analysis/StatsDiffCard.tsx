@@ -1,62 +1,45 @@
-import { Flex } from 'antd'
 import {
   getStatRenderValues,
   StatRow,
 } from 'lib/characterPreview/StatRow'
-import StatText from 'lib/characterPreview/StatText'
+import { StatText } from 'lib/characterPreview/StatText'
 import { Stats } from 'lib/constants/constants'
-import { ComputedStatsObjectExternal } from 'lib/optimization/engine/container/computedStatsContainer'
+import type { ComputedStatsObjectExternal } from 'lib/optimization/engine/container/computedStatsContainer'
 import { GlobalRegister, StatKey } from 'lib/optimization/engine/config/keys'
-import { OptimizerResultAnalysis } from 'lib/tabs/tabOptimizer/analysis/expandedDataPanelController'
+import type { OptimizerResultAnalysis } from 'lib/tabs/tabOptimizer/analysis/expandedDataPanelController'
 import { CharacterPreviewInternalImage } from 'lib/tabs/tabOptimizer/optimizerForm/components/OptimizerTabCharacterPanel'
-import { cardShadow } from 'lib/tabs/tabOptimizer/optimizerForm/layout/FormCard'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { Utils } from 'lib/utils/utils'
 import { useTranslation } from 'react-i18next'
+import classes from './StatsDiffCard.module.css'
+import { arrowColor, arrowDirection } from 'lib/utils/displayUtils'
+import { isFlat } from 'lib/utils/statUtils'
+import { precisionRound, truncate10ths, truncate1000ths } from 'lib/utils/mathUtils'
 
 const baseCardHeight = 429
 const basePortraitHeight = 400
 const extraRowHeight = 27
-const cardWidth = 730
-const border = '1px solid rgb(53, 75, 125)'
 
-export function StatsDiffCard(props: {
+export function StatsDiffCard({ analysis }: {
   analysis: OptimizerResultAnalysis,
 }) {
-  const { analysis } = props
   const extraHeight = analysis.extraRows.length * extraRowHeight
   const cardHeight = baseCardHeight + extraHeight
   const portraitHeight = basePortraitHeight + extraHeight
 
   return (
-    <Flex
-      style={{
-        borderRadius: 5,
-        width: cardWidth,
-        height: cardHeight,
-      }}
-      gap={10}
+    <div
+      className={classes.outerCard}
+      style={{ display: 'flex', height: cardHeight, gap: 10 }}
     >
       <CardImage analysis={analysis} portraitHeight={portraitHeight} />
 
-      <Flex
-        style={{
-          borderRadius: 5,
-          width: cardWidth,
-          overflow: 'hidden',
-          padding: 10,
-          background: '#243356',
-          boxShadow: cardShadow,
-        }}
-      >
+      <div className={classes.statsPanel}>
         <StatDiffSummary analysis={analysis} />
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   )
 }
 
-function StatDiffSummary(props: { analysis: OptimizerResultAnalysis }) {
-  const { analysis } = props
+function StatDiffSummary({ analysis }: { analysis: OptimizerResultAnalysis }) {
   const oldStats = analysis.oldX.toComputedStatsObject()
   const newStats = analysis.newX.toComputedStatsObject()
 
@@ -69,14 +52,14 @@ function StatDiffSummary(props: { analysis: OptimizerResultAnalysis }) {
   const newCombo = analysis.newX.getGlobalRegisterValue(GlobalRegister.COMBO_DMG)
   ;(oldStats as Record<string, number>).COMBO_DMG = oldCombo
   ;(newStats as Record<string, number>).COMBO_DMG = newCombo
-  // @ts-ignore For compatibility with StatRow
+  // @ts-expect-error simScore used for compatibility with StatRow
   oldStats.simScore = oldCombo
-  // @ts-ignore For compatibility with StatRow
+  // @ts-expect-error simScore used for compatibility with StatRow
   newStats.simScore = newCombo
 
   return (
     <StatText style={{ width: '100%' }}>
-      <Flex vertical gap={5}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         <DiffRow oldStats={oldStats} newStats={newStats} stat='COMBO_DMG' />
         <DiffRow oldStats={oldStats} newStats={newStats} stat={Stats.HP} />
         <DiffRow oldStats={oldStats} newStats={newStats} stat={Stats.ATK} />
@@ -89,23 +72,22 @@ function StatDiffSummary(props: { analysis: OptimizerResultAnalysis }) {
         <DiffRow oldStats={oldStats} newStats={newStats} stat={Stats.BE} />
         <DiffRow oldStats={oldStats} newStats={newStats} stat={Stats.OHB} />
         <DiffRow oldStats={oldStats} newStats={newStats} stat={Stats.ERR} />
-        <DiffRow oldStats={oldStats} newStats={newStats} stat={props.analysis.elementalDmgValue} />
-        {props.analysis.extraRows.map((stat) => (
+        <DiffRow oldStats={oldStats} newStats={newStats} stat={analysis.elementalDmgValue} />
+        {analysis.extraRows.map((stat) => (
           <DiffRow key={stat} oldStats={oldStats} newStats={newStats} stat={stat} />
         ))}
-      </Flex>
+      </div>
     </StatText>
   )
 }
 
-function DiffRow(props: {
+function DiffRow({ oldStats, newStats, stat }: {
   oldStats: ComputedStatsObjectExternal,
   newStats: ComputedStatsObjectExternal,
   stat: keyof ComputedStatsObjectExternal | 'COMBO_DMG',
 }) {
-  const { oldStats, newStats, stat } = props
-  const oldValue = TsUtils.precisionRound((oldStats as Record<string, number>)[stat])
-  const newValue = TsUtils.precisionRound((newStats as Record<string, number>)[stat])
+  const oldValue = precisionRound((oldStats as Record<string, number>)[stat])
+  const newValue = precisionRound((newStats as Record<string, number>)[stat])
 
   const { valueDisplay } = getStatRenderValues(
     newValue,
@@ -115,50 +97,36 @@ function DiffRow(props: {
   )
 
   return (
-    <Flex gap={12} align='center'>
-      <div style={{ width: 240 }}>
-        <StatRow finalStats={oldStats} stat={stat == 'COMBO_DMG' ? 'simScore' : stat} value={stat == 'COMBO_DMG' ? oldValue : undefined} />
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div className={classes.oldStatColumn}>
+        <StatRow finalStats={oldStats} stat={stat === 'COMBO_DMG' ? 'simScore' : stat} value={stat === 'COMBO_DMG' ? oldValue : undefined} />
       </div>
 
-      <span style={{ marginLeft: 15, marginRight: 15, fontSize: 14, lineHeight: '17px' }}>
+      <span className={classes.arrow}>
         ➤
       </span>
 
-      <Flex style={{ width: 55 }} justify='end'>
+      <div className={classes.newValueColumn} style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <RenderValue value={valueDisplay} stat={stat} />
-      </Flex>
+      </div>
 
       <DiffRender oldValue={oldValue} newValue={newValue} stat={stat} />
-    </Flex>
+    </div>
   )
 }
 
-function RenderValue(props: { value: string | number, stat: string, comboDiff?: boolean }) {
+function RenderValue({ value, stat, comboDiff }: { value: string | number, stat: string, comboDiff?: boolean }) {
   const { t } = useTranslation('common')
-  const { value, stat } = props
-  if (stat == 'COMBO_DMG') {
-    return value + (props.comboDiff ? '%' : t('ThousandsSuffix'))
-  } else if (Utils.isFlat(stat)) {
+  if (stat === 'COMBO_DMG') {
+    return value + (comboDiff ? '%' : t('ThousandsSuffix'))
+  } else if (isFlat(stat)) {
     return value
   }
   return value + '%'
 }
 
-const GREEN = '#95ef90'
-const RED = '#ff97a9'
-
-export function arrowColor(increase: boolean) {
-  return increase ? GREEN : RED
-}
-
-export function arrowDirection(increase: boolean) {
-  return increase ? '▲' : '▼'
-}
-
-function DiffRender(props: { oldValue: number, newValue: number, stat: string }) {
-  const { newValue, oldValue, stat } = props
-
-  if (visualDiff(newValue, oldValue, stat) == 0) return <></>
+function DiffRender({ oldValue, newValue, stat }: { oldValue: number, newValue: number, stat: string }) {
+  if (visualDiff(newValue, oldValue, stat) === 0) return null
 
   const increase = newValue > oldValue
   const diff = increase ? visualDiff(newValue, oldValue, stat) : -visualDiff(newValue, oldValue, stat)
@@ -167,19 +135,19 @@ function DiffRender(props: { oldValue: number, newValue: number, stat: string })
   const { valueDisplay } = getStatDiffRenderValues(diff, diff, stat)
 
   return (
-    <Flex style={{ color: color, width: 90 }} gap={10} justify='end' align='center'>
+    <div style={{ display: 'flex', color: color, width: 90, gap: 10, justifyContent: 'flex-end', alignItems: 'center' }}>
       <RenderValue value={valueDisplay} stat={stat} comboDiff={true} />
-      <span style={{ fontSize: 10, lineHeight: '17px' }}>
+      <span className={classes.arrowIcon}>
         {icon}
       </span>
-    </Flex>
+    </div>
   )
 }
 
 function getStatDiffRenderValues(statValue: number, customValue: number, stat: string) {
-  if (stat == 'COMBO_DMG') {
-    const valueDisplay = `${Utils.truncate10ths(Utils.precisionRound(customValue ?? 0)).toFixed(1)}`
-    const value1000thsPrecision = Utils.precisionRound(customValue).toFixed(3)
+  if (stat === 'COMBO_DMG') {
+    const valueDisplay = `${truncate10ths(precisionRound(customValue ?? 0)).toFixed(1)}`
+    const value1000thsPrecision = precisionRound(customValue).toFixed(3)
     return {
       valueDisplay,
       value1000thsPrecision,
@@ -189,29 +157,21 @@ function getStatDiffRenderValues(statValue: number, customValue: number, stat: s
 }
 
 function visualDiff(n1: number, n2: number, stat: string) {
-  if (stat == Stats.SPD) {
-    return TsUtils.precisionRound(Utils.truncate10ths(n1) - Utils.truncate10ths(n2))
-  } else if (Utils.isFlat(stat)) {
-    return TsUtils.precisionRound(Math.floor(n1) - Math.floor(n2))
-  } else if (stat == 'COMBO_DMG') {
-    return TsUtils.precisionRound((n1 / n2 - 1) * 100)
+  if (stat === Stats.SPD) {
+    return precisionRound(truncate10ths(n1) - truncate10ths(n2))
+  } else if (isFlat(stat)) {
+    return precisionRound(Math.floor(n1) - Math.floor(n2))
+  } else if (stat === 'COMBO_DMG') {
+    return precisionRound((n1 / n2 - 1) * 100)
   } else {
-    return TsUtils.precisionRound(Utils.truncate1000ths(n1) - Utils.truncate1000ths(n2))
+    return precisionRound(truncate1000ths(n1) - truncate1000ths(n2))
   }
 }
 
-function CardImage(props: { analysis: OptimizerResultAnalysis, portraitHeight: number }) {
+function CardImage({ analysis, portraitHeight }: { analysis: OptimizerResultAnalysis, portraitHeight: number }) {
   return (
-    <div
-      style={{
-        overflow: 'hidden',
-        boxShadow: cardShadow,
-        borderRadius: 5,
-        height: '100%',
-        background: '#243356',
-      }}
-    >
-      <CharacterPreviewInternalImage id={props.analysis.request.characterId} disableClick={true} parentH={props.portraitHeight} />
+    <div className={classes.cardImageContainer}>
+      <CharacterPreviewInternalImage id={analysis.request.characterId} disableClick={true} parentH={portraitHeight} />
     </div>
   )
 }

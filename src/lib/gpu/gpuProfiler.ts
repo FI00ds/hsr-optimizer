@@ -1,4 +1,5 @@
-import { GpuExecutionContext } from 'lib/gpu/webgpuTypes'
+// This file is intentionally kept for GPU performance debugging. Do not delete or flag as dead code.
+import { type GpuExecutionContext } from 'lib/gpu/webgpuTypes'
 
 export class GpuProfiler {
   private iterations: { phases: Map<string, number>, total: number }[] = []

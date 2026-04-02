@@ -1,0 +1,17 @@
+.wrapper {
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.accordion {
+  width: 100%;
+}
+
+.disclaimerText {
+  font-size: 14px;
+}
+
+.disclaimerPanel {
+  padding: 12px;
+}

@@ -1,4 +1,3 @@
-import { Flex } from 'antd'
 import {
   CardHeader,
   CardShell,
@@ -9,8 +8,8 @@ import {
   getRowBaseStyle,
   getSourceLabelStyle,
 } from 'lib/characterPreview/buffsAnalysis/designContext'
-import React, { useContext } from 'react'
-import { OptimizerContext } from 'types/optimizer'
+import { useContext } from 'react'
+import type { OptimizerContext } from 'types/optimizer'
 
 type EnemyRow = { label: string; value: string }
 
@@ -26,24 +25,25 @@ function formatEnemyRows(context: OptimizerContext): EnemyRow[] {
   ]
 }
 
-export function EnemyPanel(props: {
+export function EnemyPanel({ avatarSrc, context }: {
   avatarSrc: string
   context: OptimizerContext
 }) {
   const options = useContext(DesignContext)
   const rowBase = getRowBaseStyle(options)
   const sourceLabelStyle = getSourceLabelStyle(options)
-  const rows = formatEnemyRows(props.context)
+  const rows = formatEnemyRows(context)
 
   return (
-    <CardShell avatarSrc={props.avatarSrc}>
+    <CardShell avatarSrc={avatarSrc}>
       <CardHeader label='ENEMY' />
       {rows.map((row, i) => (
-        <Flex
+        <div
           key={row.label}
-          align='center'
-          gap={6}
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
             ...rowBase,
             borderBottom: i < rows.length - 1 ? `1px solid ${options.borderColor}` : undefined,
           }}
@@ -51,11 +51,11 @@ export function EnemyPanel(props: {
           <span style={{ minWidth: 60, fontSize: options.fontSize, textWrap: 'nowrap' }}>
             {row.value}
           </span>
-          <span style={{ ...ellipsisStyle(options.fontSize) }}>{row.label}</span>
+          <span style={ellipsisStyle(options.fontSize)}>{row.label}</span>
           <span style={sourceLabelStyle}>
             Enemy
           </span>
-        </Flex>
+        </div>
       ))}
     </CardShell>
   )

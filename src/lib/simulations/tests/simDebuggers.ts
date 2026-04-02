@@ -19,11 +19,15 @@ import { MemoriesOfThePast } from 'lib/conditionals/lightcone/4star/MemoriesOfTh
 import { PastSelfInTheMirror } from 'lib/conditionals/lightcone/5star/PastSelfInTheMirror'
 import { ScentAloneStaysTrue } from 'lib/conditionals/lightcone/5star/ScentAloneStaysTrue'
 import { WhereaboutsShouldDreamsRest } from 'lib/conditionals/lightcone/5star/WhereaboutsShouldDreamsRest'
-import DB from 'lib/state/db'
-import { TsUtils } from 'lib/utils/TsUtils'
+import { getGameMetadata } from 'lib/state/gameMetadata'
+import * as equipmentService from 'lib/services/equipmentService'
+import * as persistenceService from 'lib/services/persistenceService'
+import { SaveState } from 'lib/state/saveState'
+import { useScoringStore } from 'lib/stores/scoring/scoringStore'
+import { uuid } from 'lib/utils/miscUtils'
 
 export function injectBenchmarkDebuggers() {
-  // @ts-ignore
+  // @ts-expect-error - Injecting debug helper onto globalThis for dev tooling
   globalThis.equipTestCharacter = equipTestCharacter
 }
 
@@ -38,9 +42,9 @@ function equipTestCharacter() {
       stats: testStatSpread(),
     })
 
-  const simulationMetadata = DB.getMetadata().characters[testInput.character.characterId].scoringMetadata.simulation!
+  const simulationMetadata = getGameMetadata().characters[testInput.character.characterId].scoringMetadata.simulation!
 
-  DB.updateSimulationScoreOverrides(testInput.character.characterId, {
+  useScoringStore.getState().updateSimulationOverrides(testInput.character.characterId, {
     ...simulationMetadata,
     teammates: [
       testInput.teammate0,
@@ -48,9 +52,11 @@ function equipTestCharacter() {
       testInput.teammate2,
     ],
   })
+  SaveState.delayedSave()
 
-  // @ts-ignore
-  DB.addFromForm(testInput.character)
+  // @ts-expect-error - Test helper passes partial character data
+  persistenceService.upsertCharacterFromForm(testInput.character)
+  SaveState.delayedSave()
 
   const singleRelicByPart = generateTestSingleRelicsByPart(testInput.sets, testInput.mains, testInput.stats)
   singleRelicByPart.Head.substats = []
@@ -72,17 +78,17 @@ function equipTestCharacter() {
     { stat: Stats.EHR, value: 43.2 },
   ]
 
-  const relics = Object.values(singleRelicByPart)
-    .map((relic) => {
-      relic.id = TsUtils.uuid()
+  Object.values(singleRelicByPart)
+    .forEach((relic) => {
+      relic.id = uuid()
       relic.equippedBy = testInput.character.characterId
-      return RelicAugmenter.augment(relic)
+      RelicAugmenter.augment(relic)
     })
 
-  DB.setRelic(singleRelicByPart.Head)
-  DB.setRelic(singleRelicByPart.Hands)
-  DB.setRelic(singleRelicByPart.Body)
-  DB.setRelic(singleRelicByPart.Feet)
-  DB.setRelic(singleRelicByPart.PlanarSphere)
-  DB.setRelic(singleRelicByPart.LinkRope)
+  equipmentService.upsertRelicWithEquipment(singleRelicByPart.Head)
+  equipmentService.upsertRelicWithEquipment(singleRelicByPart.Hands)
+  equipmentService.upsertRelicWithEquipment(singleRelicByPart.Body)
+  equipmentService.upsertRelicWithEquipment(singleRelicByPart.Feet)
+  equipmentService.upsertRelicWithEquipment(singleRelicByPart.PlanarSphere)
+  equipmentService.upsertRelicWithEquipment(singleRelicByPart.LinkRope)
 }

@@ -1,49 +1,51 @@
-import {
-  Flex,
-  Input,
-} from 'antd'
+import { Flex, TextInput } from '@mantine/core'
 import { useCharacterTabStore } from 'lib/tabs/tabCharacters/useCharacterTabStore'
 import {
   generateElementTags,
   generatePathTags,
   SegmentedFilterRow,
-} from 'lib/tabs/tabOptimizer/optimizerForm/components/CardSelectModalComponents'
-import React from 'react'
+} from 'lib/ui/selectors/CardSelectModalComponents'
 import { useTranslation } from 'react-i18next'
+import { useShallow } from 'zustand/react/shallow'
 
 export function FilterBar() {
   const { t } = useTranslation('charactersTab')
-  const pathFilter = useCharacterTabStore((s) => s.filters.path)
-  const setPathFilter = useCharacterTabStore((s) => s.setPathFilter)
-  const elementFilter = useCharacterTabStore((s) => s.filters.element)
-  const setElementFilter = useCharacterTabStore((s) => s.setElementFilter)
-  const setNameFilter = useCharacterTabStore((s) => s.setNameFilter)
+  const { pathFilter, setPathFilter, elementFilter, setElementFilter, setNameFilter } = useCharacterTabStore(
+    useShallow((s) => ({
+      pathFilter: s.filters.path,
+      setPathFilter: s.setPathFilter,
+      elementFilter: s.filters.element,
+      setElementFilter: s.setElementFilter,
+      setNameFilter: s.setNameFilter,
+    })),
+  )
 
   return (
     <Flex
       gap={8}
-      style={{ width: '100%', marginBottom: 0, alignItems: 'center' }}
+      w='100%'
+      mb={0}
+      align='center'
       justify='space-between'
     >
-      <Input
-        allowClear
-        size='large'
+      <TextInput
         // Revisit width of search + filters with Remembrance path
-        style={{ height: 40, fontSize: 14, width: 200, borderRadius: 8 }}
+        styles={{ input: { height: 40, lineHeight: '40px', fontSize: 14, borderRadius: 4 } }}
+        w={200}
         placeholder={t('SearchPlaceholder') /* Search */}
         onChange={(e) => {
           setNameFilter(e.target.value.toLowerCase())
         }}
       />
-      <Flex style={{ flex: 1 }}>
+      <div style={{ flex: 1 }}>
         <SegmentedFilterRow
           tags={generatePathTags()}
           flexBasis='11.111%'
           currentFilter={pathFilter}
           setCurrentFilters={setPathFilter}
         />
-      </Flex>
-      <Flex
+      </div>
+      <div
         // Selected to align with relics panel
         style={{ width: 408 }}
       >
@@ -53,7 +55,7 @@ export function FilterBar() {
           currentFilter={elementFilter}
           setCurrentFilters={setElementFilter}
         />
-      </Flex>
+      </div>
     </Flex>
   )
 }

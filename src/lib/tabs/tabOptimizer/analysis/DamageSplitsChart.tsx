@@ -1,24 +1,23 @@
-import { Flex } from 'antd'
-import i18next from 'i18next'
+import { ChartTooltipContainer, ChartTooltipContent, useChartTooltip } from 'lib/tabs/tabOptimizer/analysis/ChartTooltip'
 import {
   chartColor,
-  DamageSplitEntry,
   decodeDamageTypeLabel,
   getDamageTypeColor,
 } from 'lib/tabs/tabOptimizer/analysis/damageSplitsExtractor'
-import { localeNumberComma } from 'lib/utils/i18nUtils'
-import React, { useMemo, useState } from 'react'
+import type { DamageSplitEntry } from 'lib/tabs/tabOptimizer/analysis/damageSplitsExtractor'
+import { localeNumberComma, renderThousandsK } from 'lib/utils/i18nUtils'
+import type { ReactNode } from 'react'
+import { useMemo, useState } from 'react'
+import type { LabelProps } from 'recharts'
 import {
   Bar,
   BarChart,
   LabelList,
-  LabelProps,
-  Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
 
-export const DAMAGE_SPLITS_CHART_WIDTH = 730
+const DAMAGE_SPLITS_CHART_WIDTH = 730
 const BAR_HEIGHT = 48
 const CHART_PADDING = 80
 
@@ -27,7 +26,7 @@ type FlattenedBar = {
   damageType: number
   label: string
   color: string
-  shape: (props: { x: number; y: number; width: number; height: number }) => React.ReactNode
+  shape: (props: { x: number; y: number; width: number; height: number }) => ReactNode
 }
 
 type LegendItem = {
@@ -77,6 +76,16 @@ function flattenData(data: DamageSplitEntry[]): { rows: FlatRow[]; bars: Flatten
     }
 
     rows.push(row)
+  }
+
+  // Fill missing bar keys with 0 so recharts stacking accumulates positions correctly
+  const allKeys = bars.map((b) => b.key)
+  for (const row of rows) {
+    for (const key of allKeys) {
+      if (row[key] === undefined) {
+        row[key] = 0
+      }
+    }
   }
 
   return { rows, bars, legendItems }
@@ -153,15 +162,22 @@ function parseLabel(name: string): { num: string; label: string } {
   return { num: '', label: name }
 }
 
-function dimNumberLeftTick(props: { x: number; y: number; payload: { value: string } }) {
+function dimNumberLeftTick(props: { x: string | number; y: string | number; payload: { value: string } }) {
   const { x, y, payload } = props
-  const tx = x - 70
+  const tx = Number(x) - 70
   const { num, label } = parseLabel(payload.value)
+  const words = label.split(' ')
+  const multiline = words.length > 1
+  const lineHeight = 14
+  const startDy = multiline ? -((words.length - 1) * lineHeight) / 2 : 0
 
   if (!num) {
     return (
-      <text x={tx} y={y} textAnchor='start' fill={chartColor} fontSize={13} fontWeight={300} dominantBaseline='central'>
-        {payload.value}
+      <text x={tx} y={y} textAnchor='start' fontSize={13} fontWeight={300} dominantBaseline='central'>
+        <tspan fill='transparent'>0. </tspan>
+        {words.map((word, i) => (
+          <tspan key={i} x={tx + 18} dy={i === 0 ? startDy : lineHeight} fill={chartColor}>{word}</tspan>
+        ))}
       </text>
     )
   }
@@ -169,15 +185,18 @@ function dimNumberLeftTick(props: { x: number; y: number; payload: { value: stri
   return (
     <text x={tx} y={y} textAnchor='start' fontSize={13} fontWeight={300} dominantBaseline='central'>
       <tspan fill='#667'>{num}. </tspan>
-      <tspan fill={chartColor}>{label}</tspan>
+      {words.map((word, i) => (
+        <tspan key={i} x={tx + 18} dy={i === 0 ? startDy : lineHeight} fill={chartColor}>{word}</tspan>
+      ))}
     </text>
   )
 }
 
-export function DamageSplitsChart(props: { data: DamageSplitEntry[] }) {
+export function DamageSplitsChart({ data }: { data: DamageSplitEntry[] }) {
   const [hoveredBar, setHoveredBar] = useState<string | null>(null)
+  const { containerRef, tooltipRef, handleMouseMove } = useChartTooltip()
 
-  const { rows, bars, legendItems } = useMemo(() => flattenData(props.data), [props.data])
+  const { rows, bars, legendItems } = useMemo(() => flattenData(data), [data])
 
   if (rows.length === 0) {
     return null
@@ -185,59 +204,62 @@ export function DamageSplitsChart(props: { data: DamageSplitEntry[] }) {
 
   const chartHeight = Math.max(200, rows.length * BAR_HEIGHT + CHART_PADDING)
 
-  return (
-    <Flex vertical align='center' className='pre-font'>
-      <BarChart
-        layout='vertical'
-        data={rows}
-        margin={{ top: 15, right: 60, bottom: 20, left: 25 }}
-        barCategoryGap='10%'
-        width={DAMAGE_SPLITS_CHART_WIDTH}
-        height={chartHeight}
-      >
-        <XAxis
-          type='number'
-          tick={{ fill: chartColor, textRendering: 'geometricPrecision', fontWeight: 300, fontSize: 13 }}
-          tickFormatter={renderThousandsK}
-          width={100}
-        />
-        <YAxis
-          dataKey='name'
-          type='category'
-          axisLine={false}
-          tickLine={false}
-          tick={dimNumberLeftTick}
-          tickMargin={15}
-          width={80}
-        />
-        <Tooltip
-          cursor={false}
-          isAnimationActive={false}
-          content={<CustomTooltip hoveredBar={hoveredBar} bars={bars} />}
-        />
+  const tooltipContent = hoveredBar ? renderTooltip(hoveredBar, bars, rows) : null
 
-        {bars.map((bar, i) => (
-          <Bar
-            key={bar.key}
-            dataKey={bar.key}
-            stackId='a'
-            fill={bar.color}
-            // @ts-ignore recharts shape typing
-            shape={bar.shape}
-            activeBar={false}
-            isAnimationActive={false}
-            onMouseEnter={() => setHoveredBar(bar.key)}
-            onMouseLeave={() => setHoveredBar(null)}
-          >
-            {i === bars.length - 1 && (
-              <LabelList dataKey='total' position='right' content={renderBarLabel} />
-            )}
-          </Bar>
-        ))}
-      </BarChart>
-      <Flex wrap='wrap' justify='center' gap={16} style={{ marginTop: -10 }}>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} className='pre-font'>
+      <div ref={containerRef} style={{ position: 'relative' }} onMouseMove={handleMouseMove}>
+        <BarChart
+          layout='vertical'
+          data={rows}
+          margin={{ top: 15, right: 60, bottom: 20, left: 25 }}
+          barCategoryGap='10%'
+          width={DAMAGE_SPLITS_CHART_WIDTH}
+          height={chartHeight}
+        >
+          <XAxis
+            type='number'
+            tick={{ fill: chartColor, textRendering: 'geometricPrecision', fontWeight: 300, fontSize: 13 }}
+            tickFormatter={renderThousandsK}
+            width={100}
+          />
+          <YAxis
+            dataKey='name'
+            type='category'
+            axisLine={false}
+            tickLine={false}
+            tick={dimNumberLeftTick}
+            tickMargin={15}
+            width={80}
+          />
+
+          {bars.map((bar, i) => (
+            <Bar
+              key={bar.key}
+              dataKey={bar.key}
+              stackId='a'
+              fill={bar.color}
+              // @ts-expect-error recharts shape typing doesn't support custom shape functions
+              shape={bar.shape}
+              activeBar={false}
+              isAnimationActive={false}
+              onMouseEnter={() => setHoveredBar(bar.key)}
+              onMouseLeave={() => setHoveredBar(null)}
+            >
+              {i === bars.length - 1 && (
+                <LabelList dataKey='total' position='right' content={renderBarLabel} />
+              )}
+            </Bar>
+          ))}
+        </BarChart>
+
+        <ChartTooltipContainer tooltipRef={tooltipRef} visible={!!tooltipContent}>
+          {tooltipContent}
+        </ChartTooltipContainer>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, marginTop: -10, paddingBlock: 8 }}>
         {legendItems.map((item) => (
-          <Flex key={item.damageType} align='center' gap={6}>
+          <div key={item.damageType} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{
               width: 12,
               height: 12,
@@ -245,43 +267,32 @@ export function DamageSplitsChart(props: { data: DamageSplitEntry[] }) {
               backgroundColor: item.color,
             }} />
             <span style={{ fontSize: 13, color: chartColor }}>{item.label}</span>
-          </Flex>
+          </div>
         ))}
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   )
 }
 
-type TooltipPayloadItem = {
-  dataKey: string
-  value: number
-}
-
-function CustomTooltip(props: {
-  active?: boolean
-  payload?: TooltipPayloadItem[]
-  hoveredBar: string | null
-  bars: FlattenedBar[]
-}) {
-  const { active, payload, hoveredBar, bars } = props
-  if (!active || !payload || !hoveredBar) return null
-
+function renderTooltip(hoveredBar: string, bars: FlattenedBar[], rows: FlatRow[]): ReactNode {
   const barDef = bars.find((b) => b.key === hoveredBar)
-  const dataItem = payload.find((p) => p.dataKey === hoveredBar)
-  if (!barDef || !dataItem) return null
+  if (!barDef) return null
+
+  let value = 0
+  for (const row of rows) {
+    const v = row[hoveredBar]
+    if (typeof v === 'number' && v > 0) {
+      value = v
+      break
+    }
+  }
+  if (!value) return null
 
   return (
-    <Flex
-      vertical
-      className='pre-font'
-      style={{ background: 'rgb(69,93,154)', padding: 8, borderRadius: 3 }}
-    >
+    <ChartTooltipContent>
       <span style={{ fontSize: 14, fontWeight: 'bold' }}>{barDef.label}</span>
-      <span>{localeNumberComma(Math.floor(dataItem.value))}</span>
-    </Flex>
+      <span>{localeNumberComma(Math.floor(value))}</span>
+    </ChartTooltipContent>
   )
 }
 
-export function renderThousandsK(n: number) {
-  return `${Math.floor(Number(n) / 1000)}${i18next.t('common:ThousandsSuffix')}`
-}

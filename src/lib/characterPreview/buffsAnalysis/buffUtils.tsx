@@ -1,18 +1,16 @@
 import i18next from 'i18next'
 import { DAMAGE_TAG_ENTRIES } from 'lib/characterPreview/buffsAnalysis/abilityColors'
 import { TEXT_DIM, PILL_SIZE } from 'lib/characterPreview/buffsAnalysis/designContext'
-import { AKeyType } from 'lib/optimization/engine/config/keys'
-import {
-  newStatsConfig,
-  StatConfigEntry,
-} from 'lib/optimization/engine/config/statsConfig'
+import type { AKeyType } from 'lib/optimization/engine/config/keys'
+import type { StatConfigEntry } from 'lib/optimization/engine/config/statsConfig'
+import { newStatsConfig } from 'lib/optimization/engine/config/statsConfig'
 import { currentLocale } from 'lib/utils/i18nUtils'
-import { TsUtils } from 'lib/utils/TsUtils'
-import React, { ReactElement } from 'react'
-import {
+import type { ReactElement } from 'react'
+import type {
   OptimizerAction,
   OptimizerContext,
 } from 'types/optimizer'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export function getStatConfig(stat: string): StatConfigEntry | undefined {
   return newStatsConfig[stat as AKeyType]
@@ -55,8 +53,8 @@ export function translatedLabel(stat: string, isMemo = false): string {
 }
 
 export function formatBuffValue(value: number, percent: boolean): string {
-  if (percent) return TsUtils.precisionRound(value * 100, 2).toLocaleString(currentLocale()) + ' %'
-  return TsUtils.precisionRound(value, 0).toLocaleString(currentLocale())
+  if (percent) return precisionRound(value * 100, 2).toLocaleString(currentLocale()) + ' %'
+  return precisionRound(value, 0).toLocaleString(currentLocale())
 }
 
 export function renderPill(key: string, color: string, label: string, dimmed?: boolean): ReactElement {
@@ -66,7 +64,7 @@ export function renderPill(key: string, color: string, label: string, dimmed?: b
       key={key}
       style={{
         padding: PILL_SIZE.padding,
-        borderRadius: 3,
+        borderRadius: 2,
         fontSize: PILL_SIZE.fontSize,
         fontWeight: 600,
         lineHeight: PILL_SIZE.lineHeight,

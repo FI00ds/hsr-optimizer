@@ -4,8 +4,8 @@ import { TheDahlia } from 'lib/conditionals/character/1300/TheDahlia'
 import {
   AbilityEidolon,
   addSuperBreakHits,
-  Conditionals,
-  ContentDefinition,
+  type Conditionals,
+  type ContentDefinition,
   createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import { HitDefinitionBuilder } from 'lib/conditionals/hitDefinitionBuilder'
@@ -18,14 +18,14 @@ import {
   Stats,
 } from 'lib/constants/constants'
 import { Source } from 'lib/optimization/buffSource'
-import { ModifierContext } from 'lib/optimization/context/calculateActions'
+import { type ModifierContext } from 'lib/optimization/context/calculateActions'
 import { StatKey } from 'lib/optimization/engine/config/keys'
 import {
   DamageTag,
   ElementTag,
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import {
   AbilityKind,
   DEFAULT_BASIC,
@@ -41,20 +41,21 @@ import {
   SPREAD_ORNAMENTS_2P_SUPPORT,
   SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
 } from 'lib/scoring/scoringConstants'
-import { TsUtils } from 'lib/utils/TsUtils'
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
 
-import { Eidolon } from 'types/character'
-import { CharacterConfig } from 'types/characterConfig'
-import { CharacterConditionalsController } from 'types/conditionals'
+import { type Eidolon } from 'types/character'
+import { type CharacterConfig } from 'types/characterConfig'
+import { type CharacterConditionalsController } from 'types/conditionals'
 import { HitDefinition } from 'types/hitConditionalTypes'
 import {
-  ScoringMetadata,
-  SimulationMetadata,
+  type ScoringMetadata,
+  type SimulationMetadata,
 } from 'types/metadata'
 import {
-  OptimizerAction,
-  OptimizerContext,
+  type OptimizerAction,
+  type OptimizerContext,
 } from 'types/optimizer'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export const FugueEntities = createEnum('Fugue')
 export const FugueAbilities: AbilityKind[] = [
@@ -64,7 +65,7 @@ export const FugueAbilities: AbilityKind[] = [
 ]
 
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
-  const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Fugue')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Fugue')
   const { basic, skill, ult, talent } = AbilityEidolon.SKILL_BASIC_3_ULT_TALENT_5
   const {
     SOURCE_BASIC,
@@ -116,19 +117,19 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'foxianPrayer',
       formItem: 'switch',
       text: t('Content.foxianPrayer.text'),
-      content: t('Content.foxianPrayer.content', { BreakBuff: TsUtils.precisionRound(100 * skillBeValue) }),
+      content: t('Content.foxianPrayer.content', { BreakBuff: precisionRound(100 * skillBeValue) }),
     },
     defReduction: {
       id: 'defReduction',
       formItem: 'switch',
       text: t('Content.defReduction.text'),
-      content: t('Content.defReduction.content', { DefShred: TsUtils.precisionRound(100 * skillDefPenValue) }),
+      content: t('Content.defReduction.content', { DefShred: precisionRound(100 * skillDefPenValue) }),
     },
     superBreakDmg: {
       id: 'superBreakDmg',
       formItem: 'switch',
       text: t('Content.superBreakDmg.text'),
-      content: t('Content.superBreakDmg.content', { SuperBreakMultiplier: TsUtils.precisionRound(100 * superBreakScaling) }),
+      content: t('Content.superBreakDmg.content', { SuperBreakMultiplier: precisionRound(100 * superBreakScaling) }),
     },
     e4BreakDmg: {
       id: 'e4BreakDmg',
@@ -302,7 +303,6 @@ const simulation = (): SimulationMetadata => ({
     START_BASIC,
     END_BREAK,
   ],
-  comboDot: 0,
   deprioritizeBuffs: true,
   relicSets: [
     [Sets.ThiefOfShootingMeteor, Sets.ThiefOfShootingMeteor],
@@ -380,7 +380,7 @@ const display = {
     y: 1125,
     z: 1.15,
   },
-  showcaseColor: '#fce4f7',
+  showcaseColor: '#eb7289',
 }
 
 export const Fugue: CharacterConfig = {

@@ -1,18 +1,19 @@
 import {
   ConditionalDataType,
   Sets,
+  Stats,
 } from 'lib/constants/constants'
-import { BasicStatsArray, WgslStatName } from 'lib/optimization/basicStatsArray'
+import { type BasicStatsArray, WgslStatName } from 'lib/optimization/basicStatsArray'
 import { Source } from 'lib/optimization/buffSource'
 import { basicP2 } from 'lib/gpu/injection/generateBasicSetEffects'
 import {
-  OptimizerContext,
+  type OptimizerContext,
 } from 'types/optimizer'
 import {
-  SetConditionals,
-  SetConfig,
-  SetDisplay,
-  SetInfo,
+  type SetConditionals,
+  type SetConfig,
+  type SetDisplay,
+  type SetInfo,
   SetType,
 } from 'types/setConfig'
 
@@ -20,6 +21,7 @@ const info = {
   index: 0,
   setType: SetType.RELIC,
   ingameId: '101',
+  twoPieceStatTag: Stats.OHB,
 } as const satisfies SetInfo
 
 const display = {

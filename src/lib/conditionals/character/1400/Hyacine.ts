@@ -5,8 +5,8 @@ import {
 } from 'lib/conditionals/conditionalConstants'
 import {
   AbilityEidolon,
-  Conditionals,
-  ContentDefinition,
+  type Conditionals,
+  type ContentDefinition,
   createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import { HitDefinitionBuilder } from 'lib/conditionals/hitDefinitionBuilder'
@@ -33,20 +33,21 @@ import {
   SELF_ENTITY_INDEX,
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
 import { SortOption } from 'lib/optimization/sortOptions'
 import { PresetEffects } from 'lib/scoring/presetEffects'
-import { TsUtils } from 'lib/utils/TsUtils'
-import { CharacterConfig } from 'types/characterConfig'
-import { ScoringMetadata } from 'types/metadata'
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import { type CharacterConfig } from 'types/characterConfig'
+import { type ScoringMetadata } from 'types/metadata'
 
-import { Eidolon } from 'types/character'
-import { CharacterConditionalsController } from 'types/conditionals'
+import { type Eidolon } from 'types/character'
+import { type CharacterConditionalsController } from 'types/conditionals'
 import {
-  OptimizerAction,
-  OptimizerContext,
+  type OptimizerAction,
+  type OptimizerContext,
 } from 'types/optimizer'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 export const HyacineEntities = createEnum('Hyacine', 'Ica')
 export const HyacineAbilities: AbilityKind[] = [
@@ -58,9 +59,9 @@ export const HyacineAbilities: AbilityKind[] = [
 ]
 
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
-  const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Hyacine.Content')
-  const tHeal = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Common.HealAbility')
-  const tBuff = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Common.BuffPriority')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.Hyacine.Content')
+  const tHeal = wrappedFixedT(withContent).get(null, 'conditionals', 'Common.HealAbility')
+  const tBuff = wrappedFixedT(withContent).get(null, 'conditionals', 'Common.BuffPriority')
   const { basic, skill, ult, talent, memoSkill } = AbilityEidolon.ULT_BASIC_MEMO_SKILL_3_SKILL_TALENT_MEMO_TALENT_5
   const {
     SOURCE_BASIC,
@@ -158,8 +159,8 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       formItem: 'switch',
       text: t('clearSkies.text'),
       content: t('clearSkies.content', {
-        UltHpBuffScaling: TsUtils.precisionRound(100 * ultHpBuffPercent),
-        UltHpBuffFlat: TsUtils.precisionRound(ultHpBuffFlat),
+        UltHpBuffScaling: precisionRound(100 * ultHpBuffPercent),
+        UltHpBuffFlat: precisionRound(ultHpBuffFlat),
       }),
     },
     healingDmgStacks: {
@@ -167,7 +168,7 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       formItem: 'slider',
       text: t('healingDmgStacks.text'),
       content: t('healingDmgStacks.content', {
-        TalentDmgBuff: TsUtils.precisionRound(100 * talentHealingDmgStackValue),
+        TalentDmgBuff: precisionRound(100 * talentHealingDmgStackValue),
       }),
       min: 0,
       max: 3,
@@ -528,7 +529,7 @@ const display = {
     y: 1025,
     z: 1.05,
   },
-  showcaseColor: '#a8ffde',
+  showcaseColor: '#00bb87',
 }
 
 export const Hyacine: CharacterConfig = {

@@ -1,42 +1,41 @@
+import type { CharacterId } from 'types/character'
 import { Assets } from 'lib/rendering/assets'
+import { useOptimizerDisplayStore } from 'lib/stores/optimizerUI/useOptimizerDisplayStore'
 
 const parentW = 233
 const parentH = 350
 const innerW = 350
 const innerH = 400
 
-export const OptimizerTabCharacterPanel = () => {
-  const optimizerTabFocusCharacter = window.store((s) => s.optimizerTabFocusCharacter)
+export function OptimizerTabCharacterPanel() {
+  const optimizerTabFocusCharacter = useOptimizerDisplayStore((s) => s.focusCharacterId)
 
   return (
-    <div style={{ width: parentW, height: parentH, borderRadius: 10, position: 'relative' }}>
+    <div style={{ width: parentW, height: parentH, borderRadius: 6, position: 'relative' }}>
       <CharacterPreviewInternalImage id={optimizerTabFocusCharacter!} />
     </div>
   )
 }
 
-export function CharacterPreviewInternalImage(props: { id: string, disableClick?: boolean, parentH?: number }) {
-  const customParentH = props.parentH ?? parentH
+export function CharacterPreviewInternalImage({ id, disableClick, parentH: customParentHProp }: {
+  id: CharacterId
+  disableClick?: boolean
+  parentH?: number
+}) {
+  const customParentH = customParentHProp ?? parentH
   const customInnerH = customParentH >= innerH ? customParentH : innerH
   return (
     <img
       width={innerW}
-      src={Assets.getCharacterPreviewById(props.id)}
+      src={Assets.getCharacterPreviewById(id)}
       style={{
         transform: `translate(${(innerW - parentW) / 2 / innerW * -100}%, ${(customInnerH - customParentH) / 2 / customInnerH * -100}%)`,
-        cursor: props.disableClick ? '' : 'pointer',
+        cursor: disableClick ? '' : 'pointer',
       }}
       onClick={() => {
-        if (props.disableClick) return
-        window.store.getState().setOptimizerTabFocusCharacterSelectModalOpen(true)
+        if (disableClick) return
+        useOptimizerDisplayStore.getState().setCharacterSelectModalOpen(true)
       }}
     />
   )
 }
-
-// TODO: I don't really like the way the light cone icon looks on top of the character portrait
-// <img
-//   width={100}
-//   src={Assets.getLightConeIconById(optimizerFormSelectedLightCone)}
-//   style={{ position: 'absolute', top: 235, left: 120 }}
-// />

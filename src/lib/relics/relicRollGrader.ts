@@ -1,12 +1,7 @@
 import { SubStatValues } from 'lib/constants/constants'
 import { StatCalculator } from 'lib/relics/statCalculator'
-import { TsUtils } from 'lib/utils/TsUtils'
-import {
-  StatRolls,
-  UnaugmentedRelic,
-} from 'types/relic'
-
-// FIXME LOW
+import type { StatRolls, UnaugmentedRelic } from 'types/relic'
+import { precisionRound } from 'lib/utils/mathUtils'
 
 // non exported interface, the number are float
 interface IncrementOptions {
@@ -49,7 +44,7 @@ export const RelicRollGrader = {
   calculateRelicSubstatRolls(relic: UnaugmentedRelic) {
     // Skip non 5 star relics for simplicity
     if (relic.grade < 5) {
-      relic.substats.map((x) => {
+      relic.substats.forEach((x) => {
         x.rolls = { high: 0, mid: 0, low: 0 }
         x.addedRolls = 0
       })
@@ -82,10 +77,10 @@ export const RelicRollGrader = {
     // Band-aid for overcounted rolls
     if (totalAddedRolls > Math.floor(relic.enhance / 3)) {
       const highestRolledSubstat = relic.substats.reduce(
-        // @ts-ignore addedRolls potentially undefined per the type
+        // @ts-expect-error - addedRolls potentially undefined per the type
         (max, substat) => max.addedRolls > substat.addedRolls ? max : substat,
       )
-      // @ts-ignore addedRolls potentially undefined per the type
+      // @ts-expect-error - addedRolls potentially undefined per the type
       highestRolledSubstat.addedRolls -= 1
     }
     calculateInitialRolls(relic)
@@ -100,7 +95,7 @@ function validatedRolls(relic: UnaugmentedRelic) {
       + rolls.mid * StatCalculator.getMaxedSubstatValue(stat, 0.9)
       + rolls.high * StatCalculator.getMaxedSubstatValue(stat, 1.0)
 
-    if (TsUtils.precisionRound(value, 3) != TsUtils.precisionRound(substat.value, 3)) {
+    if (precisionRound(value, 3) != precisionRound(substat.value, 3)) {
       return false
     }
   }
