@@ -3,7 +3,7 @@ import { Button, Flex, TextInput } from '@mantine/core'
 import { Message } from 'lib/interactions/message'
 import { Assets } from 'lib/rendering/assets'
 import { useGlobalStore } from 'lib/stores/app/appStore'
-import { AppPages } from 'lib/constants/appPages'
+import { AppPages, PageToRoute } from 'lib/constants/appPages'
 import { useShowcaseTabStore } from 'lib/tabs/tabShowcase/useShowcaseTabStore'
 import { submitForm } from 'lib/tabs/tabShowcase/showcaseApi'
 import { ColorizedLinkWithIcon } from 'lib/ui/ColorizedLink'
@@ -54,7 +54,7 @@ function SearchBar() {
       return Message.warning(t('Message') /* 'Invalid input - This should be your 9 digit ingame UUID' */)
     }
 
-    window.history.pushState({}, '', `/hsr-optimizer#showcase?id=${uuid}`)
+    window.history.pushState({}, '', `${PageToRoute[AppPages.SHOWCASE]}?id=${uuid}`)
     useGlobalStore.getState().setActiveKey(AppPages.SHOWCASE)
     submitForm({ scorerId: uuid })
   }
