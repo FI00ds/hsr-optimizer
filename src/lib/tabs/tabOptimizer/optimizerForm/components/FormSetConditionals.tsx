@@ -1,12 +1,10 @@
 import { Drawer, Flex, Popover, Select, Switch, Text } from '@mantine/core'
+import { Constants } from 'lib/constants/constants'
 import {
-  Constants,
-  type Sets,
-} from 'lib/constants/constants'
-import {
+  ornamentIndexToSetConfig,
+  relicIndexToSetConfig,
   type SetsOrnaments,
   type SetsRelics,
-  SetsRelicsNames,
   setToConditionalKey,
   setToId,
 } from 'lib/sets/setConfigRegistry'
@@ -14,10 +12,6 @@ import {
   type OpenCloseIDs,
   useOpenClose,
 } from 'lib/hooks/useOpenClose'
-import {
-  ConditionalSetMetadata,
-  type SetMetadata,
-} from 'lib/optimization/rotation/setConditionalContent'
 import type { SelectOptionContent } from 'types/setConfig'
 import { Assets } from 'lib/rendering/assets'
 import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerRequestStore'
@@ -133,10 +127,6 @@ function ConditionalSetOption({ set, description, conditional, selectOptions, ..
   )
 }
 
-function isRelicSet(set: Sets): set is SetsRelics {
-  return (SetsRelicsNames as Array<Sets>).includes(set)
-}
-
 export function FormSetConditionals({ id }: { id: OpenCloseIDs }) {
   const { close, isOpen } = useOpenClose(id)
   const { t } = useTranslation('optimizerTab', { keyPrefix: 'SetConditionals' })
@@ -162,33 +152,33 @@ function FormSetConditionalsContent() {
   const { t: tSelectOptions } = useTranslation('optimizerTab', { keyPrefix: 'SetConditionals.SelectOptions' })
 
   const { relicOptions, ornamentOptions } = useMemo(() => {
-    const entries = Object.entries(ConditionalSetMetadata) as Array<[Sets, SetMetadata]>
-
-    const relicOptions = entries
-      .filter(([set]) => isRelicSet(set))
-      .map(([set, meta]) => (
+    const relicOptions = relicIndexToSetConfig.map((config) => {
+      const set = config.id as SetsRelics
+      return (
         <ConditionalSetOption
           key={set}
-          set={set as SetsRelics}
-          p4Checked={!meta.modifiable}
+          set={set}
+          p4Checked={!config.display.modifiable}
           description={t('RelicDescription', { id: setToId[set] })}
           conditional={t(setToConditionalKey(set))}
-          selectOptions={meta.selectionOptions?.(tSelectOptions)}
+          selectOptions={config.display.selectionOptions?.(tSelectOptions)}
         />
-      ))
+      )
+    })
 
-    const ornamentOptions = entries
-      .filter(([set]) => !isRelicSet(set))
-      .map(([set, meta]) => (
+    const ornamentOptions = ornamentIndexToSetConfig.map((config) => {
+      const set = config.id as SetsOrnaments
+      return (
         <ConditionalSetOption
           key={set}
-          set={set as SetsOrnaments}
-          p2Checked={!meta.modifiable}
+          set={set}
+          p2Checked={!config.display.modifiable}
           description={t('PlanarDescription', { id: setToId[set] })}
           conditional={t(setToConditionalKey(set))}
-          selectOptions={meta.selectionOptions?.(tSelectOptions)}
+          selectOptions={config.display.selectionOptions?.(tSelectOptions)}
         />
-      ))
+      )
+    })
 
     return { relicOptions, ornamentOptions }
   }, [tSelectOptions, t])

@@ -6105,7 +6105,7 @@ interface Resources {
         },
         "Title": "Provide image",
         "Upload": {
-          "Limit": "Accepts .jpg .jpeg .png .gif (Max: 20MB)",
+          "Limit": "Accepts .jpg .jpeg .png .gif .webp (Max: 20MB)",
           "Method": "Click or drag image file to this area to upload"
         },
         "Url": {
@@ -7154,6 +7154,7 @@ interface Resources {
     },
     "ImportLabels": {
       "AllCharacters": "Import all characters & all relics into optimizer",
+      "Relics": "Import relics into optimizer",
       "SingleCharacter": "Import selected character & all relics into optimizer"
     },
     "Loading": {

@@ -352,7 +352,8 @@ const CharacterRowContent = memo(function CharacterRowContent({ character, rank,
   onRemove: (id: CharacterId) => void
 }) {
   const tGameData = i18next.getFixedT(null, 'gameData', 'Characters')
-  const characterName = tGameData(`${character.id}.LongName`)
+  const longName = tGameData(`${character.id}.LongName`) as string
+  const characterName = longName.includes('(') ? longName : tGameData(`${character.id}.Name`)
 
   // Form data for eidolon/LC
   const eidolon = character.form?.characterEidolon ?? 0
@@ -363,7 +364,15 @@ const CharacterRowContent = memo(function CharacterRowContent({ character, rank,
     <>
       {/* Portrait background */}
       <div className={classes.portraitBg}>
-        <img src={loadImages ? Assets.getCharacterPreviewById(character.id) : undefined} alt="" draggable={false} decoding="async" />
+        <img
+          src={loadImages ? Assets.getCharacterPreviewById(character.id) : undefined}
+          alt=""
+          draggable={false}
+          decoding="async"
+          style={getCharacterConfig(character.id)?.display.gridPortraitOffset
+            ? { marginTop: -(getCharacterConfig(character.id)?.display.gridPortraitOffset ?? 0) }
+            : undefined}
+        />
       </div>
 
       {/* Scrim gradient */}

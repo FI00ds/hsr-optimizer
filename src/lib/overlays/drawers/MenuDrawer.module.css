@@ -41,14 +41,14 @@
 /* ---- Group dividers (solid) ---- */
 
 .group + .group {
-  padding-top: 4px;
+  padding-top: 8px;
 }
 
 .group + .group::before {
   content: '';
   display: block;
   height: 1px;
-  margin: 0 14px 4px;
+  margin: 0 14px 8px;
   background: rgba(255, 255, 255, 0.10);
 }
 
@@ -145,7 +145,7 @@ a.itemCollapsed {
 .itemLabel {
   font-size: 14px;
   font-weight: 400;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.63);
   transition: color 0.1s ease;
   white-space: nowrap;
   line-height: 1;
@@ -162,6 +162,18 @@ a.itemCollapsed {
   gap: 1px;
 }
 
+.rootCollapsed .group {
+  width: 100%;
+}
+
+.rootCollapsed .group + .group {
+  padding-top: 16px;
+}
+
+.rootCollapsed .group + .group::before {
+  margin: 0 8px 16px;
+}
+
 .rootCollapsed .groupLabel {
   display: none;
 }
@@ -170,9 +182,9 @@ a.itemCollapsed {
 .itemCollapsed.itemCollapsed {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
-  padding: 8px 0;
+  padding: 8px 14px;
   position: relative;
   z-index: 1;
   border-radius: 0;
@@ -185,7 +197,12 @@ a.itemCollapsed {
 }
 
 .itemCollapsed:hover .itemIcon {
-  color: var(--primary-subtle);
+  color: var(--text-muted);
+}
+
+.itemCollapsed[data-active] {
+  background: linear-gradient(90deg, hsla(215, 82%, 62%, 0.18), hsla(215, 82%, 62%, 0.06));
+  box-shadow: inset 3px 0 0 var(--primary-default);
 }
 
 .itemCollapsed[data-active] .itemIcon {

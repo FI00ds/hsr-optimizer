@@ -112,14 +112,34 @@ function LoadingSpinner() {
   )
 }
 
-export const RelicContainer = memo(function RelicContainer({ ready, relicAnalysis, withoutPreview, horizontal }: {
+export const RelicContainer = memo(function RelicContainer({ ready, relicAnalysis, withoutPreview }: {
   ready: boolean
   relicAnalysis?: RelicAnalysis
   withoutPreview?: boolean
-  horizontal?: boolean
 }) {
   const slotVisible = useDeferredSlot()
-  const dynamicStyle = withoutPreview ? { width: 320, height: relicCardH } : { minHeight: 302 }
+
+  if (withoutPreview) {
+    if (!ready || !slotVisible) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', width: 320, minHeight: relicCardH }}>
+          <LoadingSpinner />
+        </div>
+      )
+    }
+
+    if (!relicAnalysis) {
+      return <div style={{ width: 320, minHeight: relicCardH }} />
+    }
+
+    return (
+      <div style={{ width: 320 }}>
+        <RelicAnalysisCard relicAnalysis={relicAnalysis} />
+      </div>
+    )
+  }
+
+  const dynamicStyle = { minHeight: 302 }
 
   if (!ready || !slotVisible) {
     return (
@@ -135,14 +155,6 @@ export const RelicContainer = memo(function RelicContainer({ ready, relicAnalysi
     return <div className={styles.card} style={dynamicStyle} />
   }
 
-  if (withoutPreview) {
-    return (
-      <div className={styles.card} style={dynamicStyle}>
-        <RelicAnalysisCard relicAnalysis={relicAnalysis} horizontal={horizontal} />
-      </div>
-    )
-  }
-
   return (
     <div
       className={styles.card}
@@ -154,29 +166,13 @@ export const RelicContainer = memo(function RelicContainer({ ready, relicAnalysi
   )
 })
 
-function RelicAnalysisCard({ relicAnalysis, horizontal }: { relicAnalysis?: RelicAnalysis; horizontal?: boolean }) {
+function RelicAnalysisCard({ relicAnalysis }: { relicAnalysis?: RelicAnalysis }) {
   if (!relicAnalysis) {
     return <div className={styles.innerCard} />
   }
 
-  if (horizontal) {
-    return (
-      <div style={{ display: 'flex', gap: 10, height: '100%' }} className={styles.fullWidth}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 260, flexShrink: 0 }}>
-          <div style={{ display: 'flex', gap: 10, height: 'auto', flex: 1 }} className={styles.metricRow}>
-            <MetricCard relicAnalysis={relicAnalysis} index={0} />
-            <MetricCard relicAnalysis={relicAnalysis} index={1} />
-          </div>
-        </div>
-        <div className={styles.rollsCard} style={{ flex: 1 }}>
-          <RollsCard relicAnalysis={relicAnalysis} />
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} className={styles.fullWidth}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, height: relicCardH }} className={styles.fullWidth}>
       <DeferCreate>
         <div style={{ display: 'flex', gap: 10 }} className={styles.metricRow}>
           <MetricCard relicAnalysis={relicAnalysis} index={0} />

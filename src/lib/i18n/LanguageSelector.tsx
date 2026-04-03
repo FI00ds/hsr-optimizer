@@ -47,8 +47,8 @@ export function LanguageSelector() {
           })
       }}
       size="xs"
-      style={{ width: 135, marginRight: 10 }}
-      styles={{ input: { height: 32, minHeight: 32, paddingLeft: 32 } }}
+      style={{ width: isBeta ? 200 : 150, marginRight: 10 }}
+      styles={{ input: { height: 32, minHeight: 32, paddingLeft: 32, backgroundColor: 'var(--layer-1)', borderColor: 'rgba(255, 255, 255, 0.06)' } }}
       maxDropdownHeight={400}
       comboboxProps={{ keepMounted: false, width: 210 }}
       defaultValue={i18n.resolvedLanguage}
