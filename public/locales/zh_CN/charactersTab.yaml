@@ -130,7 +130,6 @@ CharacterPreview:
       FUA: 追加攻击
       MEMO_SKILL: 忆灵技
       MEMO_TALENT: 忆灵天赋
-      DOTS: '持续伤害次数'
       BREAKS: '击破次数'
     CombatResults:
       Header: 战斗伤害结果
@@ -150,6 +149,7 @@ CharacterPreview:
         MEMO_SKILL: 忆灵技伤害
         MEMO_TALENT: 忆灵天赋伤害
         ELATION_SKILL: 欢愉技伤害
+        UNIQUE: 特殊伤害
         COMBO: 连招伤害
     CombatBuffs:
       Header: 战斗增益
