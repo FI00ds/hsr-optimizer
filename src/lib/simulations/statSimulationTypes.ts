@@ -1,7 +1,9 @@
-
 import type { Buff } from 'lib/optimization/basicStatsArray'
 import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
-import type { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
+import type {
+  AbilityKind,
+  TurnAbilityName,
+} from 'lib/optimization/rotation/turnAbilityConfig'
 import type { SimulationFlags } from 'lib/scoring/simScoringUtils'
 import type {
   SetsOrnaments,
@@ -52,36 +54,37 @@ export type PrimaryActionStats = {
   //   cr = CR (action+hit) + CR_BOOST (action)
   //   cd = CD (action+hit) + CD_BOOST (action)
   //   dmg = DMG_BOOST (action+hit) + elementDmgBoost (action)
-  DMG_BOOST: number
-  sourceEntityCR: number
-  sourceEntityCD: number
-  sourceEntityElementDmgBoost: number
+  DMG_BOOST: number,
+  sourceEntityCR: number,
+  sourceEntityCD: number,
+  sourceEntityElementDmgBoost: number,
 }
 
 export type ActionDamage = Partial<Record<AbilityKind, number>>
 
 export type RotationDamageStep = {
-  actionType: AbilityKind
-  damage: number
+  actionType: AbilityKind,
+  actionName: TurnAbilityName,
+  damage: number,
 }
 
 export type ActionBuffSnapshot = {
-  buffs: Buff[]
-  buffsMemo: Buff[]
+  buffs: Buff[],
+  buffsMemo: Buff[],
 }
 
 export type RotationBuffStep = {
-  actionType: string
-  snapshot: ActionBuffSnapshot
+  actionType: string,
+  snapshot: ActionBuffSnapshot,
 }
 
 export type SimulateBuildResult = {
-  x: ComputedStatsContainer
-  primaryActionStats: PrimaryActionStats
-  actionDamage: ActionDamage
-  rotationDamage: RotationDamageStep[]
-  actionBuffSnapshots?: Record<string, ActionBuffSnapshot>
-  rotationBuffSteps?: RotationBuffStep[]
+  x: ComputedStatsContainer,
+  primaryActionStats: PrimaryActionStats,
+  actionDamage: ActionDamage,
+  rotationDamage: RotationDamageStep[],
+  actionBuffSnapshots?: Record<string, ActionBuffSnapshot>,
+  rotationBuffSteps?: RotationBuffStep[],
 }
 
 export type RunStatSimulationsResult = {

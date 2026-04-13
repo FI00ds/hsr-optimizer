@@ -7,13 +7,12 @@ import { rollCounter } from 'lib/importer/characterConverter'
 import type { RelicScoringResult } from 'lib/relics/scoring/relicScorer'
 import { ScoringCache } from 'lib/relics/scoring/relicScorer'
 import { StatCalculator } from 'lib/relics/statCalculator'
-import type { ScoringType } from 'lib/scoring/simScoringUtils'
+import { precisionRound } from 'lib/utils/mathUtils'
 import { objectHash } from 'lib/utils/objectUtils'
 import type { EstTbpRunnerOutput } from 'lib/worker/estTbpWorkerRunner'
 import type { CharacterId } from 'types/character'
 import type { ScoringMetadata } from 'types/metadata'
 import type { Relic } from 'types/relic'
-import { precisionRound } from 'lib/utils/mathUtils'
 
 export type EnrichedRelics = {
   LinkRope?: RelicAnalysis,
@@ -58,7 +57,7 @@ export function enrichSingleRelicAnalysis(relic: Relic, days: number, scoringMet
   const score = scorer.getCurrentRelicScore(relic, characterId)
   const potentials = scorer.scoreRelicPotential(relic, characterId)
 
-  const weightedRolls = countRelicRolls(relic, scoringMetadata)
+  const weightedRolls = countRelicRolls(relic, scoringMetadata.stats)
   const valid = validMainStat(relic, scoringMetadata)
 
   if (!valid) {
@@ -94,7 +93,7 @@ function validMainStat(relic: Relic, scoringMetadata: ScoringMetadata) {
   return acceptableStats.includes(relic.main.stat)
 }
 
-function countRelicRolls(relic: Relic, scoringMetadata: ScoringMetadata) {
+export function countRelicRolls(relic: Relic, scoringMetadata: ScoringMetadata['stats']) {
   let weightedRolls = 0
   for (const substat of relic.substats) {
     const stat = substat.stat
@@ -113,7 +112,7 @@ function countRelicRolls(relic: Relic, scoringMetadata: ScoringMetadata) {
       substat.rolls = result.rolls
     }
 
-    weightedRolls += scoringMetadata.stats[stat] * flatReduction(stat) * (substat.rolls.high + substat.rolls.mid * 0.9 + substat.rolls.low * 0.8)
+    weightedRolls += scoringMetadata[stat] * flatReduction(stat) * (substat.rolls.high + substat.rolls.mid * 0.9 + substat.rolls.low * 0.8)
   }
 
   return weightedRolls
@@ -123,12 +122,10 @@ export function flatReduction(stat: string) {
   return stat === Stats.HP || stat === Stats.DEF || stat === Stats.ATK ? 0.4 : 1
 }
 
-// Scoring type isn't strictly needed in the hash, but it helps work around some rendering issues with switching score type
-export function hashEstTbpRun(displayRelics: SingleRelicByPart, characterId: CharacterId, scoringType: ScoringType, scoringMetadata: ScoringMetadata) {
+export function hashEstTbpRun(displayRelics: SingleRelicByPart, characterId: CharacterId, scoringMetadata: ScoringMetadata) {
   return objectHash({
     weights: scoringMetadata.stats,
     parts: scoringMetadata.parts,
-    scoringType,
     characterId,
     relicsHash: Object.values(displayRelics).map(hashRelic),
   })

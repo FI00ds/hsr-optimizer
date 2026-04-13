@@ -1,32 +1,30 @@
 import { SegmentedControl } from '@mantine/core'
-import { type ShowcaseMetadata } from 'lib/characterPreview/characterPreviewController'
 import { CharacterScoringSummary } from 'lib/characterPreview/buildAnalysis/CharacterScoringSummary'
+import type { ShowcaseMetadata } from 'lib/characterPreview/characterPreviewController'
 import { EstimatedTbpRelicsDisplay } from 'lib/characterPreview/summary/EstimatedTbpRelicsDisplay'
 import { SavedSessionKeys } from 'lib/constants/constantsSession'
-import { type SingleRelicByPart } from 'lib/gpu/webgpuTypes'
+import type { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 
-import {
-  ScoringType,
-  type SimulationScore,
-} from 'lib/scoring/simScoringUtils'
+import { ScoringType } from 'lib/scoring/simScoringUtils'
 import { SaveState } from 'lib/state/saveState'
-import { ColorizedTitleWithInfo } from 'lib/ui/ColorizedLink'
-import { memo, useCallback, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useGlobalStore } from 'lib/stores/app/appStore'
+import { ColorizedTitleWithInfo } from 'lib/ui/ColorizedLink'
+import {
+  memo,
+  Suspense,
+  useCallback,
+  useMemo,
+} from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ShowcaseBuildAnalysisProps {
   scoringType: ScoringType
-  scoringDone: boolean
-  scoringResult: SimulationScore | null
   showcaseMetadata: ShowcaseMetadata
   displayRelics: SingleRelicByPart
 }
 
 export const ShowcaseBuildAnalysis = memo(function ShowcaseBuildAnalysis({
   scoringType,
-  scoringDone,
-  scoringResult,
   showcaseMetadata,
   displayRelics,
 }: ShowcaseBuildAnalysisProps) {
@@ -61,10 +59,6 @@ export const ShowcaseBuildAnalysis = memo(function ShowcaseBuildAnalysis({
     SaveState.delayedSave()
   }, [])
 
-  if (!scoringDone) {
-    return <div style={{ minHeight: 182 }} />
-  }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 1000 }}>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
@@ -93,35 +87,30 @@ export const ShowcaseBuildAnalysis = memo(function ShowcaseBuildAnalysis({
           />
         </div>
       </div>
-      {scoringType === ScoringType.COMBAT_SCORE && (
-        <CharacterScoringSummary
-          simScoringResult={scoringResult ?? undefined}
-          displayRelics={displayRelics}
-          showcaseMetadata={showcaseMetadata}
-        />
-      )}
-      <StatScoringSummary
-        // Fall back to SUBSTAT_SCORE only when combat scoring has no result yet — never override NONE
-        scoringType={scoringResult == null && scoringType === ScoringType.COMBAT_SCORE
-          ? ScoringType.SUBSTAT_SCORE
-          : scoringType}
-        displayRelics={displayRelics}
-        showcaseMetadata={showcaseMetadata}
-      />
+      {scoringType === ScoringType.COMBAT_SCORE
+        && !simulationNull
+        && (
+          <CharacterScoringSummary
+            displayRelics={displayRelics}
+            showcaseMetadata={showcaseMetadata}
+          />
+        )}
+      {(scoringType === ScoringType.SUBSTAT_SCORE || simulationNull)
+        && (
+          <StatScoringSummary
+            displayRelics={displayRelics}
+            showcaseMetadata={showcaseMetadata}
+          />
+        )}
     </div>
   )
 })
 
-function StatScoringSummary({ scoringType, displayRelics, showcaseMetadata }: {
-  scoringType: ScoringType
-  displayRelics: SingleRelicByPart
-  showcaseMetadata: ShowcaseMetadata
+function StatScoringSummary({ displayRelics, showcaseMetadata }: {
+  displayRelics: SingleRelicByPart,
+  showcaseMetadata: ShowcaseMetadata,
 }) {
   const { t } = useTranslation('charactersTab', { keyPrefix: 'CharacterPreview.EST-TBP' })
-
-  if (scoringType !== ScoringType.SUBSTAT_SCORE) {
-    return null
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -130,7 +119,6 @@ function StatScoringSummary({ scoringType, displayRelics, showcaseMetadata }: {
         url='https://github.com/fribbels/hsr-optimizer/blob/main/docs/guides/en/stat-score.md'
       />
       <EstimatedTbpRelicsDisplay
-        scoringType={scoringType}
         displayRelics={displayRelics}
         showcaseMetadata={showcaseMetadata}
       />

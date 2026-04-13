@@ -1,22 +1,45 @@
-import { Divider } from '@mantine/core'
 import { type BasicStatsObject } from 'lib/conditionals/conditionalConstants'
 import {
   Constants,
+  type ElementName,
+  type PathName,
+  PathNames,
+  Stats,
   type StatsValues,
 } from 'lib/constants/constants'
-import iconClasses from 'style/icons.module.css'
 import { type ComputedStatsObjectExternal } from 'lib/optimization/engine/container/computedStatsContainer'
+import iconClasses from 'style/icons.module.css'
 
+import {
+  type i18n,
+  type TFunction,
+} from 'i18next'
+import { toBasicStatsObject } from 'lib/optimization/basicStatsArray'
 import { Assets } from 'lib/rendering/assets'
+import {
+  getElementalDmgFromContainer,
+  type SimulationScore,
+  StatsToStatKey,
+} from 'lib/scoring/simScoringUtils'
+import { usePromise } from 'hooks/usePromise'
+import { Skeleton } from '@mantine/core'
 import {
   localeNumber,
   localeNumber_0,
   localeNumber_000,
 } from 'lib/utils/i18nUtils'
-import { memo, type ReactElement } from 'react'
-import { useTranslation } from 'react-i18next'
+import {
+  precisionRound,
+  truncate1000ths,
+  truncate10ths,
+} from 'lib/utils/mathUtils'
 import { isFlat } from 'lib/utils/statUtils'
-import { truncate10ths, truncate1000ths, precisionRound } from 'lib/utils/mathUtils'
+import {
+  memo,
+  type ReactNode,
+  useMemo,
+} from 'react'
+import { useTranslation } from 'react-i18next'
 
 const breakpointPresets = [
   [111.1, 111.2],
@@ -64,23 +87,61 @@ const displayTextMap: Record<string, string> = {
   'DOT': 'DoT Damage',
 }
 
+function StatRowDivider() {
+  return <span style={{ margin: 'auto 10px', flexGrow: 1, borderBottom: '1px dashed rgba(255, 255, 255, 0.10)' }} />
+}
+
 export const StatRow = memo(function StatRow({
   stat,
   finalStats,
   value: customValue,
   edits,
   preciseSpd,
-  loading,
 }: {
-  stat: string
-  finalStats: BasicStatsObject | ComputedStatsObjectExternal
-  value?: number
-  edits?: Record<string, boolean>
-  preciseSpd?: boolean
-  loading?: boolean
-}): ReactElement {
+  stat: string,
+  finalStats: BasicStatsObject | ComputedStatsObjectExternal,
+  value?: number,
+  edits?: Record<string, boolean>,
+  preciseSpd?: boolean,
+}): ReactNode {
   const value = precisionRound(finalStats[stat as keyof typeof finalStats])
 
+  const { t, i18n } = useTranslation('common')
+
+  const readableStat: string = statToLabel(stat, t, i18n)
+
+  const { valueDisplay, value1000thsPrecision } = getStatRenderValues(value, customValue ?? 0, stat, preciseSpd)
+
+  if (!finalStats) {
+    return null
+  }
+
+  const valueText = `${valueDisplay}${isFlat(stat) || stat === 'CV' || stat === 'simScore' ? '' : '%'}${stat === 'simScore' ? t('ThousandsSuffix') : ''}`
+
+  return (
+    <div
+      title={value1000thsPrecision}
+      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 16 }}
+    >
+      <img src={Assets.getStatIcon(stat)} className={iconClasses.statIconSpaced} />
+      {`${readableStat}${edits?.[stat] ? ' *' : ''}`}
+      <StatRowDivider />
+      {valueText}
+    </div>
+  )
+})
+
+export const AsyncStatRow = memo(function({ promise, type, subType, stat, element, path, elementalDmgValue, edits, preciseSpd }: {
+  promise: Promise<SimulationScore | null>,
+  type: 'Character' | 'Benchmark' | 'Perfect',
+  subType: 'Basic' | 'Combat',
+  stat: string,
+  element: ElementName,
+  path: PathName,
+  elementalDmgValue: string,
+  edits?: Record<string, boolean>,
+  preciseSpd?: boolean,
+}) {
   const { t, i18n } = useTranslation('common')
 
   const readableStat: string = (displayTextMap[stat] || stat === 'CV')
@@ -89,24 +150,40 @@ export const StatRow = memo(function StatRow({
       : t(`DMGTypes.${stat}` as never))
     : t(`Stats.${stat as StatsValues}`)
 
-  const { valueDisplay, value1000thsPrecision } = getStatRenderValues(value, customValue ?? 0, stat, preciseSpd)
+  const output = usePromise(promise)
 
-  if (!finalStats) {
-    return null as unknown as ReactElement
-  }
+  const transformed = useMemo(() => {
+    if (!output) return null
+    const simResult = output[type === 'Benchmark' ? 'benchmarkSim' : 'maximumSim'].result
+    if (!simResult) return null
+    const stats = subType === 'Basic'
+      ? toBasicStatsObject(simResult.ca)
+      : (() => {
+        const combatStats = simResult.x.toComputedStatsObject()
+        ;(combatStats as Record<string, number>)[elementalDmgValue] = getElementalDmgFromContainer(simResult.x, element)
+        if (path === PathNames.Elation) {
+          combatStats![Stats.Elation] = simResult.x.getSelfValue(StatsToStatKey[Stats.Elation])
+        }
+        return combatStats
+      })()
 
-  const divider = <Divider style={{ margin: 'auto 10px', flexGrow: 1, width: 'unset', minWidth: 'unset' }} variant="dashed" />
+    const value = precisionRound(stats[stat as keyof typeof stats])
+    return getStatRenderValues(value, 0, stat, preciseSpd)
+  }, [output, type, subType, stat, preciseSpd, elementalDmgValue, element, path])
 
-  const valueText = loading
-    ? '...'
-    : `${valueDisplay}${isFlat(stat) || stat === 'CV' || stat === 'simScore' ? '' : '%'}${stat === 'simScore' ? t('ThousandsSuffix') : ''}`
+  const valueNode = transformed
+    ? <span>{`${transformed.valueDisplay}${isFlat(stat) || stat === 'CV' || stat === 'simScore' ? '' : '%'}${stat === 'simScore' ? t('ThousandsSuffix') : ''}`}</span>
+    : <Skeleton width={70} />
 
   return (
-    <div title={value1000thsPrecision} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 16, filter: loading ? 'blur(2px)' : 'none' }}>
+    <div
+      title={transformed?.value1000thsPrecision}
+      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 16 }}
+    >
       <img src={Assets.getStatIcon(stat)} className={iconClasses.statIconSpaced} />
       {`${readableStat}${edits?.[stat] ? ' *' : ''}`}
-      {divider}
-      {valueText}
+      <StatRowDivider />
+      {valueNode}
     </div>
   )
 })
@@ -115,10 +192,7 @@ export function getStatRenderValues(statValue: number, customValue: number, stat
   let valueDisplay: string
   let value1000thsPrecision: string
 
-  if (stat === 'CV') {
-    valueDisplay = localeNumber_0(precisionRound(customValue))
-    value1000thsPrecision = localeNumber_000(precisionRound(customValue))
-  } else if (stat === 'simScore' || stat === 'COMBO_DMG') {
+  if (stat === 'simScore' || stat === 'COMBO_DMG') {
     valueDisplay = localeNumber_0(truncate10ths(precisionRound((customValue ?? 0) / 1000)))
     value1000thsPrecision = localeNumber_000(precisionRound(customValue))
   } else if (stat === Constants.Stats.SPD) {
@@ -136,4 +210,12 @@ export function getStatRenderValues(statValue: number, customValue: number, stat
   }
 
   return { valueDisplay, value1000thsPrecision }
+}
+
+function statToLabel(stat: string, t: TFunction<'common'>, i18n: i18n) {
+  return (displayTextMap[stat] || stat === 'CV')
+    ? (i18n.exists(`ReadableStats.${stat}`)
+      ? t(`ReadableStats.${stat as StatsValues}`)
+      : t(`DMGTypes.${stat}` as never))
+    : t(`Stats.${stat as StatsValues}`)
 }

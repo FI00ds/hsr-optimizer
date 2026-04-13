@@ -1,51 +1,62 @@
 import {
+  Button,
+  SegmentedControl,
+} from '@mantine/core'
+import {
   IconArrowsExchange,
   IconRefresh,
   IconSettings,
 } from '@tabler/icons-react'
-import { Button, SegmentedControl } from '@mantine/core'
-import { CharacterCardCombatStats } from 'lib/characterPreview/scoring/CharacterCardCombatStats'
+import i18next, { type TFunction } from 'i18next'
 import {
   OverlayText,
   ShowcaseSource,
 } from 'lib/characterPreview/CharacterPreviewComponents'
-import styles from './ShowcaseDpsScore.module.css'
-import teammateClasses from 'style/teammateCard.module.css'
+import { CharacterCardCombatStats } from 'lib/characterPreview/scoring/CharacterCardCombatStats'
+import {
+  ScoringSelector,
+  useSimScoringContext,
+} from 'lib/characterPreview/SimScoringContext'
 import { StatText } from 'lib/characterPreview/StatText'
 import {
   CUSTOM_TEAM,
   DEFAULT_TEAM,
   SETTINGS_TEAM,
 } from 'lib/constants/constants'
-import { defaultGap } from 'lib/constants/constantsUi'
 import { type SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 import { getConfirmModal } from 'lib/interactions/confirmModal'
 import { Message } from 'lib/interactions/message'
 import { useCharacterModalStore } from 'lib/overlays/modals/characterModalStore'
+import type { CharacterModalForm } from 'lib/overlays/modals/characterModalStore'
 import { Assets } from 'lib/rendering/assets'
 import {
   getSimScoreGrade,
 } from 'lib/scoring/dpsScore'
-import { type SimulationScore } from 'lib/scoring/simScoringUtils'
+import { type PreparedState } from 'lib/scoring/scoringService'
 import { SaveState } from 'lib/state/saveState'
 import { getCharacterById } from 'lib/stores/character/characterStore'
-import { getScoringMetadata, useScoringStore } from 'lib/stores/scoring/scoringStore'
+import {
+  getScoringMetadata,
+  useScoringStore,
+} from 'lib/stores/scoring/scoringStore'
 import { useShowcaseTabStore } from 'lib/tabs/tabShowcase/useShowcaseTabStore'
 import { HeaderText } from 'lib/ui/HeaderText'
 import { localeNumber_0 } from 'lib/utils/i18nUtils'
-import i18next from 'i18next'
+import { truncate10ths } from 'lib/utils/mathUtils'
 import {
   memo,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import teammateClasses from 'style/teammateCard.module.css'
 import {
   type CharacterId,
 } from 'types/character'
-import type { CharacterModalForm } from 'lib/overlays/modals/characterModalStore'
-import { type PreparedState } from 'lib/scoring/scoringService'
-import { type SimulationMetadata } from 'types/metadata'
-import { truncate10ths } from 'lib/utils/mathUtils'
+import {
+  type ShowcaseTemporaryOptions,
+  type SimulationMetadata,
+} from 'types/metadata'
+import styles from './ShowcaseDpsScore.module.css'
 
 export const ShowcaseDpsScorePanel = memo(function ShowcaseDpsScorePanel({
   characterId,
@@ -53,10 +64,10 @@ export const ShowcaseDpsScorePanel = memo(function ShowcaseDpsScorePanel({
   teamSelection: teamSelectionProp,
   source,
 }: {
-  characterId: CharacterId
-  simulationMetadata: SimulationMetadata
-  teamSelection: string
-  source: ShowcaseSource
+  characterId: CharacterId,
+  simulationMetadata: SimulationMetadata,
+  teamSelection: string,
+  source: ShowcaseSource,
 }) {
   const readonly = source === ShowcaseSource.BUILDS_MODAL
   const teamSelection = readonly ? CUSTOM_TEAM : teamSelectionProp
@@ -88,9 +99,8 @@ export const ShowcaseDpsScorePanel = memo(function ShowcaseDpsScorePanel({
   )
 })
 
-export const ShowcaseCombatScoreDetailsFooter = memo(function ShowcaseCombatScoreDetailsFooter({ preview }: {
-  preview: PreparedState | null
-}) {
+export const ShowcaseCombatScoreDetailsFooter = memo(function ShowcaseCombatScoreDetailsFooter() {
+  const preview = useSimScoringContext(ScoringSelector.Preview)
   if (!preview) {
     return (
       <span className={styles.loadingBlurSmall}>
@@ -109,7 +119,7 @@ export const ShowcaseCombatScoreDetailsFooter = memo(function ShowcaseCombatScor
   )
 })
 
-function CharacterPreviewScoringTeammate({
+const CharacterPreviewScoringTeammate = memo(function CharacterPreviewScoringTeammate({
   index,
   simulationMetadata,
   characterId,
@@ -117,12 +127,12 @@ function CharacterPreviewScoringTeammate({
   setSelectedTeammateIndex,
   readonly,
 }: {
-  index: number
-  simulationMetadata: SimulationMetadata
-  characterId: CharacterId
-  teamSelection: string
-  setSelectedTeammateIndex: (i: number | undefined) => void
-  readonly?: boolean
+  index: number,
+  simulationMetadata: SimulationMetadata,
+  characterId: CharacterId,
+  teamSelection: string,
+  setSelectedTeammateIndex: (i: number | undefined) => void,
+  readonly?: boolean,
 }) {
   const { t } = useTranslation(['charactersTab', 'modals', 'common'])
 
@@ -178,46 +188,66 @@ function CharacterPreviewScoringTeammate({
       </div>
     </div>
   )
-}
+})
 
-export const ShowcaseDpsScoreHeader = memo(function ShowcaseDpsScoreHeader({ relics, scoringDone, scoringResult }: {
-  relics: SingleRelicByPart
-  scoringDone: boolean
-  scoringResult: SimulationScore | null
+export const ShowcaseDpsScoreHeader = memo(function ShowcaseDpsScoreHeader(props: {
+  relics: SingleRelicByPart,
+  tempOptions: ShowcaseTemporaryOptions,
 }) {
   const { t } = useTranslation(['charactersTab'])
 
-  const verified = Object.values(relics).filter((x) => x?.verified).length === 6
-  const numRelics = Object.values(relics).filter((x) => !!x).length
-
-  const lightCone = !!scoringResult?.simulationForm.lightCone
-
-  const titleRender = scoringResult?.spdBenchmark == null
+  const titleRender = props?.tempOptions?.spdBenchmark == null
     ? t('CharacterPreview.ScoreHeader.Title') // Combat Sim
-    : t('CharacterPreview.ScoreHeader.TitleBenchmark', { spd: formatSpd(scoringResult?.spdBenchmark ?? 0) }) // Benchmark vs {{spd}} SPD
+    : t('CharacterPreview.ScoreHeader.TitleBenchmark', { spd: formatSpd(props?.tempOptions?.spdBenchmark ?? 0) }) // Benchmark vs {{spd}} SPD
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }} className={styles.scoreHeaderWrapper}>
       <StatText className={styles.scoreHeaderText}>
         {titleRender}
       </StatText>
-      <StatText className={styles.scoreHeaderText} style={{ filter: !scoringDone ? 'blur(2px)' : 'none' }}>
-        {
-          !scoringDone
-            ? 'DPS Score Loading...'
-            : t(
-              'CharacterPreview.ScoreHeader.Score',
-              {
-                score: localeNumber_0(truncate10ths(Math.max(0, (scoringResult?.percent ?? 0) * 100))),
-                grade: getSimScoreGrade(scoringResult?.percent ?? 0, verified, numRelics, lightCone),
-              },
-            )
-          /* DPS Score {{score}}% {{grade}} */
-        }
-      </StatText>
+      <ShowcaseDpsScoreHeaderReady {...props} t={t} />
     </div>
   )
 })
+
+function ShowcaseDpsScoreHeaderReady({ relics, t }: {
+  relics: SingleRelicByPart,
+  t: TFunction<'charactersTab', undefined>,
+}) {
+  const result = useSimScoringContext(ScoringSelector.Score)
+
+  // Return loading state while result is null
+  if (result === null) {
+    return <ShowcaseDpsScoreHeaderPending t={t} />
+  }
+
+  const verified = Object.values(relics).filter((x) => x?.verified).length === 6
+  const numRelics = Object.values(relics).filter((x) => !!x).length
+  const lightCone = !!result.simulationForm.lightCone
+
+  return (
+    <StatText className={styles.scoreHeaderText}>
+      {
+        t(
+          'CharacterPreview.ScoreHeader.Score',
+          {
+            score: localeNumber_0(truncate10ths(Math.max(0, result.percent * 100))),
+            grade: getSimScoreGrade(result.percent, verified, numRelics, lightCone),
+          },
+        )
+        /* DPS Score {{score}}% {{grade}} */
+      }
+    </StatText>
+  )
+}
+
+function ShowcaseDpsScoreHeaderPending({ t }: { t: TFunction<'charactersTab', undefined> }) {
+  return (
+    <StatText className={styles.scoreHeaderText} style={{ filter: 'blur(2px)' }}>
+      {/* t('DpsScoreLoading') */} DPS Score Loading...
+    </StatText>
+  )
+}
 
 function formatSpd(n: number) {
   return truncate10ths(n).toFixed(1)
@@ -249,14 +279,14 @@ function createOnCharacterModalOk(
   }
 }
 
-function ShowcaseTeamSelectPanel({
+const ShowcaseTeamSelectPanel = memo(function ShowcaseTeamSelectPanel({
   characterId,
   teamSelection,
   readonly,
 }: {
-  characterId: CharacterId
-  teamSelection: string
-  readonly?: boolean
+  characterId: CharacterId,
+  teamSelection: string,
+  readonly?: boolean,
 }) {
   const { t } = useTranslation(['charactersTab', 'modals', 'common'])
 
@@ -335,7 +365,11 @@ function ShowcaseTeamSelectPanel({
           ),
         },
         {
-          label: <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconSettings size={18} /></div>,
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <IconSettings size={18} />
+            </div>
+          ),
           value: SETTINGS_TEAM,
         },
         {
@@ -355,4 +389,4 @@ function ShowcaseTeamSelectPanel({
       {tabsDisplay}
     </div>
   )
-}
+})

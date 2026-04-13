@@ -1,8 +1,13 @@
 import {
+  Badge,
+  Flex,
+  Table,
+  Tabs,
+} from '@mantine/core'
+import {
   IconChevronDown,
   IconChevronRight,
 } from '@tabler/icons-react'
-import { Badge, Flex, Table, Tabs } from '@mantine/core'
 import chroma from 'chroma-js'
 import i18next from 'i18next'
 import { CharacterStatSummary } from 'lib/characterPreview/card/CharacterStatSummary'
@@ -21,18 +26,23 @@ import type { BenchmarkSimulationOrchestrator } from 'lib/simulations/orchestrat
 import type { Simulation } from 'lib/simulations/statSimulationTypes'
 import { getGameMetadata } from 'lib/state/gameMetadata'
 import { useBenchmarksTabStore } from 'lib/tabs/tabBenchmarks/useBenchmarksTabStore'
-import { arrowColor } from 'lib/utils/displayUtils'
 import { VerticalDivider } from 'lib/ui/Dividers'
 import { HeaderText } from 'lib/ui/HeaderText'
+import { arrowColor } from 'lib/utils/displayUtils'
 import {
   currentLocale,
   localeNumber_0,
 } from 'lib/utils/i18nUtils'
+import { precisionRound } from 'lib/utils/mathUtils'
 import { uuid } from 'lib/utils/miscUtils'
-import { Fragment, memo, useMemo, useState } from 'react'
+import {
+  Fragment,
+  memo,
+  useMemo,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import styles from './BenchmarkResults.module.css'
-import { precisionRound } from 'lib/utils/mathUtils'
 
 type BenchmarkRow = {
   key: string,
@@ -83,7 +93,6 @@ function BenchmarkTable({ dataSource }: { dataSource: BenchmarkRow[] }) {
       return next
     })
   }
-
 
   return (
     <div className={styles.tableWrapper}>
@@ -214,15 +223,14 @@ function ExpandedRow({ row }: { row: BenchmarkRow }) {
 
   return (
     <Flex className={styles.expandedRow} gap={10} justify='space-around'>
-      <Flex direction="column" className={styles.statsColumn} align='center' gap={5}>
+      <Flex direction='column' className={styles.statsColumn} align='center' gap={5}>
         <HeaderText className={styles.sectionHeader}>{t('BasicStats') /* Basic Stats */}</HeaderText>
 
         <CharacterStatSummary
           characterId={characterId}
           finalStats={basicStats}
           elementalDmgValue={ElementToDamage[element]}
-          scoringDone={true}
-          scoringResult={null}
+          hasScoring
           simScore={result.simScore}
           showAll={true}
           zebra={true}
@@ -231,15 +239,14 @@ function ExpandedRow({ row }: { row: BenchmarkRow }) {
 
       <VerticalDivider />
 
-      <Flex direction="column" className={styles.statsColumn} align='center' gap={5}>
+      <Flex direction='column' className={styles.statsColumn} align='center' gap={5}>
         <HeaderText className={styles.sectionHeader}>{t('CombatStats') /* Combat Stats */}</HeaderText>
 
         <CharacterStatSummary
           characterId={characterId}
           finalStats={combatStats}
           elementalDmgValue={ElementToDamage[element]}
-          scoringDone={true}
-          scoringResult={null}
+          hasScoring
           simScore={result.simScore}
           showAll={true}
           zebra={true}
@@ -248,7 +255,7 @@ function ExpandedRow({ row }: { row: BenchmarkRow }) {
 
       <VerticalDivider />
 
-      <Flex direction="column" align='center' gap={5}>
+      <Flex direction='column' align='center' gap={5}>
         <HeaderText className={styles.sectionHeader}>{t('Rolls') /* Substat Rolls */}</HeaderText>
 
         <SubstatRollsSummary
@@ -261,9 +268,9 @@ function ExpandedRow({ row }: { row: BenchmarkRow }) {
 
       <VerticalDivider />
 
-      <Flex direction="column" align='center' gap={5}>
+      <Flex direction='column' align='center' gap={5}>
         <HeaderText className={styles.sectionHeader}>{t('Damage') /* Ability Damage */}</HeaderText>
-        <AbilityDamageSummary rotationDamage={simulation.result!.rotationDamage ?? []} comboTurnAbilities={orchestrator.metadata.comboTurnAbilities} />
+        <AbilityDamageSummary rotationDamage={simulation.result!.rotationDamage ?? []} />
       </Flex>
     </Flex>
   )
@@ -289,7 +296,7 @@ function SetsCell({ row }: { row: BenchmarkRow }) {
   )
 }
 
-function ComboDmgCell({ comboDmg, row }: { comboDmg: number; row: BenchmarkRow }) {
+function ComboDmgCell({ comboDmg, row }: { comboDmg: number, row: BenchmarkRow }) {
   return (
     <Flex className={styles.comboDmgOverlay} align='center'>
       <div

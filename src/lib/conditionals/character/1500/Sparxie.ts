@@ -51,6 +51,7 @@ import {
   SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
 } from 'lib/scoring/scoringConstants'
 import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import { precisionRound } from 'lib/utils/mathUtils'
 import {
   type CharacterConditionalFunction,
   type CharacterConfig,
@@ -64,7 +65,6 @@ import {
   type OptimizerAction,
   type OptimizerContext,
 } from 'types/optimizer'
-import { precisionRound } from 'lib/utils/mathUtils'
 
 export const SparxieEntities = createEnum('Sparxie')
 export const SparxieAbilities: AbilityKind[] = [
@@ -425,10 +425,8 @@ const simulation = (): SimulationMetadata => ({
   comboTurnAbilities: [
     NULL_TURN_ABILITY_NAME,
     START_ULT,
-    DEFAULT_SKILL,
     END_BASIC,
     WHOLE_ELATION_SKILL,
-    START_SKILL,
     END_BASIC,
     WHOLE_ELATION_SKILL,
   ],
