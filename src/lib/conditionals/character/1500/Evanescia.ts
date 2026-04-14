@@ -7,8 +7,8 @@ import {
 import { TrailblazerElationStelle } from 'lib/conditionals/character/8000/TrailblazerElation'
 import {
   AbilityEidolon,
-  Conditionals,
-  ContentDefinition,
+  type Conditionals,
+  type ContentDefinition,
   createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import {
@@ -35,7 +35,7 @@ import {
   ElementTag,
   TargetTag,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import {
   AbilityKind,
   DEFAULT_ELATION_SKILL,
@@ -56,15 +56,15 @@ import {
   SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
 } from 'lib/scoring/scoringConstants'
 
-import { Eidolon } from 'types/character'
-import { CharacterConfig } from 'types/characterConfig'
-import { CharacterConditionalsController } from 'types/conditionals'
-import { HitDefinition } from 'types/hitConditionalTypes'
-import {
+import type { Eidolon } from 'types/character'
+import type { CharacterConfig } from 'types/characterConfig'
+import type { CharacterConditionalsController } from 'types/conditionals'
+import type { HitDefinition } from 'types/hitConditionalTypes'
+import type {
   ScoringMetadata,
   SimulationMetadata,
 } from 'types/metadata'
-import {
+import type {
   OptimizerAction,
   OptimizerContext,
 } from 'types/optimizer'
@@ -482,21 +482,14 @@ const scoring = (): ScoringMetadata => ({
       Stats.CR,
       Stats.CD,
     ],
-    [Parts.Feet]: [
-      Stats.SPD,
-      Stats.ATK_P,
-    ],
-    [Parts.PlanarSphere]: [
-      Stats.Physical_DMG,
-      Stats.ATK_P,
-    ],
+    [Parts.Feet]: [],
+    [Parts.PlanarSphere]: [],
     [Parts.LinkRope]: [
       Stats.ATK_P,
       Stats.ERR,
     ],
   },
   presets: [
-    PresetEffects.BANANA_SET,
     PresetEffects.fnPioneerSet(4),
   ],
   sortOption: SortOption.ELATION_SKILL,

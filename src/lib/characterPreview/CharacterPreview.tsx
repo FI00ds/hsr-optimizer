@@ -30,6 +30,23 @@ import {
   resolveShowcaseTheme,
 } from 'lib/characterPreview/color/showcaseColorService'
 import { ShowcaseCustomizationSidebar } from 'lib/characterPreview/customization/ShowcaseCustomizationSidebar'
+import { useDebugPanelConfig } from 'lib/characterPreview/debugPanelConfig'
+import { DebugSliderPanel } from 'lib/characterPreview/DebugSliderPanel'
+import {
+  CARD_BG_ALPHA_DEFAULT,
+  type DebugVisualConfig,
+  INSET_BLUR,
+  INSET_OPACITY,
+  PORTRAIT_BLUR,
+  PORTRAIT_BRIGHTNESS,
+  PORTRAIT_SATURATE,
+  SHADOW_BLUR,
+  SHADOW_OPACITY,
+  SHADOW_X,
+  SHADOW_Y,
+  TEXT_SHADOW_DEFAULT,
+  useDebugVisualConfigStore,
+} from 'lib/characterPreview/debugVisualConfigStore'
 import { ShowcaseBuildAnalysis } from 'lib/characterPreview/scoring/ShowcaseBuildAnalysis'
 import {
   ShowcaseCombatScoreDetailsFooter,
@@ -55,34 +72,21 @@ import type { ShowcaseTabCharacter } from 'lib/tabs/tabShowcase/showcaseTabTypes
 import { useShowcaseTabStore } from 'lib/tabs/tabShowcase/useShowcaseTabStore'
 import { DeferReveal } from 'lib/ui/DeferredRender'
 import {
-  type DebugVisualConfig,
-  PORTRAIT_BLUR,
-  PORTRAIT_BRIGHTNESS,
-  PORTRAIT_SATURATE,
-  CARD_BG_ALPHA_DEFAULT,
-  SHADOW_X,
-  SHADOW_Y,
-  SHADOW_BLUR,
-  SHADOW_OPACITY,
-  INSET_BLUR,
-  INSET_OPACITY,
-  TEXT_SHADOW_DEFAULT,
-  useDebugVisualConfigStore,
-} from 'lib/characterPreview/debugVisualConfigStore'
-import { DebugSliderPanel } from 'lib/characterPreview/DebugSliderPanel'
-import { useDebugPanelConfig } from 'lib/characterPreview/debugPanelConfig'
-import {
   memo,
   useCallback,
   useEffect,
   useMemo,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   type Character,
   type CharacterId,
   type SavedBuild,
 } from 'types/character'
-import type { CustomImageConfig, CustomImagePayload } from 'types/customImage'
+import type {
+  CustomImageConfig,
+  CustomImagePayload,
+} from 'types/customImage'
 import type { ShowcaseTemporaryOptions } from 'types/metadata'
 import {
   ScoringSelector,
@@ -141,11 +145,11 @@ function ShowcaseBackgroundBlur({
   portraitFilter,
   blendMode,
 }: {
-  portraitUrl: string
-  portraitToUse: CustomImageConfig | undefined
-  displayDimensions: { charCenter: { x: number; y: number; z: number } }
-  portraitFilter: string
-  blendMode: 'screen' | 'normal'
+  portraitUrl: string,
+  portraitToUse: CustomImageConfig | undefined,
+  displayDimensions: { charCenter: { x: number, y: number, z: number } },
+  portraitFilter: string,
+  blendMode: 'screen' | 'normal',
 }) {
   let bgSize: string
   let bgPos: string
@@ -282,6 +286,7 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
   const character = rawCharacter as Character
 
   // Debug visual config with defaults
+  const { t } = useTranslation('gameData')
   const visual = resolveDebugVisualConfig(debugVisualConfig)
 
   const colorPipelineConfig = useMemo<ColorPipelineConfig>(() => ({
@@ -317,13 +322,15 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
         teamSelection: state.teamSelection,
         storedScoringType: effectiveScoringType,
         savedBuildOverride,
+        t,
       })
       if (forceDebug) {
         return { ...baseLayout, displayDimensions: { ...baseLayout.displayDimensions, disableSpine: true } }
       }
       return baseLayout
     },
-    [character, state.teamSelection, effectiveScoringType, savedBuildOverride, _scoringMetadataCacheBuster, forceDebug],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [character, state.teamSelection, effectiveScoringType, savedBuildOverride, _scoringMetadataCacheBuster, t, forceDebug],
   )
 
   // ===== Color + Theme (color-dependent, cheap) =====
@@ -406,7 +413,14 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
       showcaseTemporaryOptions={tempOptions}
       singleRelicByPart={displayRelics}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', width: cardTotalW, minHeight: forceDebug ? 'auto' : (source === ShowcaseSource.BUILDS_MODAL ? 900 : 2000) }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: cardTotalW,
+          minHeight: forceDebug ? 'auto' : (source === ShowcaseSource.BUILDS_MODAL ? 900 : 2000),
+        }}
+      >
         {
           /*
         Will only render (<></>) if source == ShowcaseSource.BUILDS_MODAL
