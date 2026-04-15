@@ -1,4 +1,7 @@
-import { SegmentedControl } from '@mantine/core'
+import {
+  SegmentedControl,
+  Space,
+} from '@mantine/core'
 import { CharacterScoringSummary } from 'lib/characterPreview/buildAnalysis/CharacterScoringSummary'
 import type { ShowcaseMetadata } from 'lib/characterPreview/characterPreviewController'
 import { EstimatedTbpRelicsDisplay } from 'lib/characterPreview/summary/EstimatedTbpRelicsDisplay'
@@ -11,11 +14,11 @@ import { useGlobalStore } from 'lib/stores/app/appStore'
 import { ColorizedTitleWithInfo } from 'lib/ui/ColorizedLink'
 import {
   memo,
-  Suspense,
   useCallback,
   useMemo,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { StatRollSummary } from '../summary/StatScoreRollSummary'
 
 interface ShowcaseBuildAnalysisProps {
   scoringType: ScoringType
@@ -118,10 +121,9 @@ function StatScoringSummary({ displayRelics, showcaseMetadata }: {
         text={t('Header') /* Stat Score Analysis */}
         url='https://github.com/fribbels/hsr-optimizer/blob/main/docs/guides/en/stat-score.md'
       />
-      <EstimatedTbpRelicsDisplay
-        displayRelics={displayRelics}
-        showcaseMetadata={showcaseMetadata}
-      />
+      <StatRollSummary displayRelics={displayRelics} characterId={showcaseMetadata.characterId} />
+      <Space h='md' />
+      <EstimatedTbpRelicsDisplay displayRelics={displayRelics} showcaseMetadata={showcaseMetadata} />
     </div>
   )
 }
