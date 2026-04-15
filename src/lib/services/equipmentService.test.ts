@@ -1,17 +1,41 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Parts, Sets, Stats } from 'lib/constants/constants'
+import {
+  Parts,
+  Sets,
+  Stats,
+} from 'lib/constants/constants'
 import { useGlobalStore } from 'lib/stores/app/appStore'
-import { getCharacterById, useCharacterStore } from 'lib/stores/character/characterStore'
-import { getRelicById, useRelicStore } from 'lib/stores/relic/relicStore'
-import { equipRelic, switchRelics, upsertRelicWithEquipment } from './equipmentService'
-import type { Character, CharacterId } from 'types/character'
+import {
+  getCharacterById,
+  useCharacterStore,
+} from 'lib/stores/character/characterStore'
+import {
+  getRelicById,
+  useRelicStore,
+} from 'lib/stores/relic/relicStore'
+import type {
+  Character,
+  CharacterId,
+} from 'types/character'
 import type { Relic } from 'types/relic'
+import type * as FrontendUtils from 'lib/utils/frontendUtils'
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
+import {
+  equipRelic,
+  switchRelics,
+  upsertRelicWithEquipment,
+} from './equipmentService'
 
 // ---- Mocks ----
 
 vi.mock('lib/utils/frontendUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('lib/utils/frontendUtils')>()
+  const actual = await importOriginal<typeof FrontendUtils>()
   return { ...actual, debounceEffect: vi.fn() }
 })
 
@@ -118,5 +142,4 @@ describe('equipmentService', () => {
       expect(stored.ageIndex).toBeGreaterThanOrEqual(0)
     })
   })
-
 })

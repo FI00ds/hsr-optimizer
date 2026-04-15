@@ -1,10 +1,10 @@
 import { ABILITY_LIMIT } from 'lib/constants/constants'
-import { type TurnAbility } from 'lib/optimization/rotation/turnAbilityConfig'
 import type {
   ComboBooleanConditional,
   ComboNumberConditional,
   ComboState,
 } from 'lib/optimization/combo/comboTypes'
+import { type TurnAbility } from 'lib/optimization/rotation/turnAbilityConfig'
 
 export abstract class AbilityPreprocessorBase {
   abstract id: string
@@ -43,7 +43,7 @@ export function setComboNumberCategoryCharacterActivation(comboState: ComboState
       category.partitions.forEach((x) => x.activations[index] = false)
       const newPartition = {
         value,
-        activations: new Array(ABILITY_LIMIT + 1).fill(false),
+        activations: Array.from({ length: ABILITY_LIMIT + 1 }, () => false),
       }
       newPartition.activations[index] = true
       category.partitions.push(newPartition)

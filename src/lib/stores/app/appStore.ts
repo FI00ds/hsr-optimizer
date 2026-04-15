@@ -1,10 +1,10 @@
+import { getDefaultActiveKey } from 'lib/constants/appPages'
 import {
   COMPUTE_ENGINE_GPU_STABLE,
   CURRENT_OPTIMIZER_VERSION,
 } from 'lib/constants/constants'
 import { SavedSessionKeys } from 'lib/constants/constantsSession'
-import { getDefaultActiveKey } from 'lib/constants/appPages'
-import { DefaultSettingOptions } from 'lib/overlays/drawers/SettingsDrawer'
+import { DefaultSettingOptions } from 'lib/constants/settingsConstants'
 import { ScoringType } from 'lib/scoring/simScoringUtils'
 import type {
   GlobalSavedSession,

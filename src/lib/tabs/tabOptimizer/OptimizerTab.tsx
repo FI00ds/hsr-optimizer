@@ -1,19 +1,28 @@
 import { Flex } from '@mantine/core'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-balham.css'
-import { SettingOptions } from 'lib/overlays/drawers/SettingsDrawer'
+import { SettingOptions } from 'lib/constants/settingsConstants'
 import { ExpandedDataPanel } from 'lib/tabs/tabOptimizer/analysis/ExpandedDataPanel'
 import { OptimizerBuildPreview } from 'lib/tabs/tabOptimizer/OptimizerBuildPreview'
 import { OptimizerGrid } from 'lib/tabs/tabOptimizer/optimizerForm/grid/OptimizerGrid'
 
-import { OptimizerForm } from 'lib/tabs/tabOptimizer/optimizerForm/OptimizerForm'
-import { Sidebar } from 'lib/tabs/tabOptimizer/Sidebar'
-import { UnreleasedCharacterDisclaimer } from 'lib/tabs/tabOptimizer/UnreleasedCharacterDisclaimer'
 import { DPSScoreDisclaimer } from 'lib/characterPreview/DPSScoreDisclaimer'
 import { TabVisibilityContext } from 'lib/hooks/useTabVisibility'
 import { useGlobalStore } from 'lib/stores/app/appStore'
-import { DeferCreate, DeferReveal, DeferCreateProvider, useDeferReveal } from 'lib/ui/DeferredRender'
-import { useContext, useEffect, useState } from 'react'
+import { OptimizerForm } from 'lib/tabs/tabOptimizer/optimizerForm/OptimizerForm'
+import { Sidebar } from 'lib/tabs/tabOptimizer/Sidebar'
+import { UnreleasedCharacterDisclaimer } from 'lib/tabs/tabOptimizer/UnreleasedCharacterDisclaimer'
+import {
+  DeferCreate,
+  DeferCreateProvider,
+  DeferReveal,
+  useDeferReveal,
+} from 'lib/ui/DeferredRender'
+import {
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 
 export function OptimizerTab() {
   const expandedPanelPosition = useGlobalStore((s) => s.settings.ExpandedInfoPanelPosition)
@@ -30,7 +39,7 @@ export function OptimizerTab() {
   return (
     <DeferCreateProvider resetKey={null} enabled={activated}>
       <Flex ref={containerRef}>
-        <Flex direction="column" gap={10} style={{ marginBottom: 100, width: 1302 }}>
+        <Flex direction='column' gap={10} style={{ marginBottom: 100, width: 1302 }}>
           <OptimizerForm />
           <DPSScoreDisclaimer />
           <UnreleasedCharacterDisclaimer />

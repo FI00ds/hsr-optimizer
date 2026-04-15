@@ -1,11 +1,11 @@
 import { Fugue } from 'lib/conditionals/character/1200/Fugue'
-import { floorSafe } from 'lib/utils/mathUtils'
 import { Lingsha } from 'lib/conditionals/character/1200/Lingsha'
 import { TheDahlia } from 'lib/conditionals/character/1300/TheDahlia'
+import type {
+  Conditionals,
+  ContentDefinition} from 'lib/conditionals/conditionalUtils';
 import {
   AbilityEidolon,
-  Conditionals,
-  ContentDefinition,
   createEnum,
   teammateMatchesId,
 } from 'lib/conditionals/conditionalUtils'
@@ -39,7 +39,7 @@ import {
   ElementTag,
   SELF_ENTITY_INDEX,
 } from 'lib/optimization/engine/config/tag'
-import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
+import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { buff } from 'lib/optimization/engine/container/gpuBuffBuilder'
 import {
   AbilityKind,
@@ -52,6 +52,7 @@ import {
 import { SortOption } from 'lib/optimization/sortOptions'
 import { SPREAD_RELICS_4P_GENERAL_CONDITIONALS } from 'lib/scoring/scoringConstants'
 import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import { floorSafe } from 'lib/utils/mathUtils'
 import { precisionRound } from 'lib/utils/mathUtils'
 
 import type { Eidolon } from 'types/character'

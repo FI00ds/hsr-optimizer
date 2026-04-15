@@ -9,12 +9,12 @@ import {
   probabilityOfCorrectStat,
 } from 'lib/relics/estTbp/estTbp'
 import { Metadata } from 'lib/state/metadataInitializer'
+import { precisionRound } from 'lib/utils/mathUtils'
 import type {
   Relic,
   RelicSubstatMetadata,
 } from 'types/relic'
 import { test } from 'vitest'
-import { precisionRound } from 'lib/utils/mathUtils'
 
 Metadata.initialize()
 
@@ -130,7 +130,7 @@ test('Simulated relics', () => {
     }
   }
 
-  const histogram = new Array(80).fill(0)
+  const histogram = Array.from({ length: 80 }, () => 0)
   for (const result of results) {
     histogram[Math.floor(result * 10)]++
   }

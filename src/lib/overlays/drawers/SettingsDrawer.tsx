@@ -1,53 +1,30 @@
+import {
+  Drawer,
+  Flex,
+  Select,
+} from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { Drawer, Flex, Select } from '@mantine/core'
+import {
+  DefaultSettingOptions,
+  SettingOptions,
+} from 'lib/constants/settingsConstants'
 import {
   OpenCloseIDs,
   useOpenClose,
 } from 'lib/hooks/useOpenClose'
 import { SaveState } from 'lib/state/saveState'
-import { clone, mergeDefinedValues } from 'lib/utils/objectUtils'
+import { useGlobalStore } from 'lib/stores/app/appStore'
+import {
+  clone,
+  mergeDefinedValues,
+} from 'lib/utils/objectUtils'
 import {
   useEffect,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type UserSettings } from 'types/store'
-import { useGlobalStore } from 'lib/stores/app/appStore'
 
-const SelectOptionWordWrap = (props: React.ComponentPropsWithoutRef<'span'>) => (
-  <span style={{ whiteSpace: 'wrap', wordBreak: 'break-word' }} {...props} />
-)
-
-export const SettingOptions = {
-  RelicEquippingBehavior: {
-    Replace: 'Replace',
-    Swap: 'Swap',
-  },
-  PermutationsSidebarBehavior: {
-    ShowXL: 'Show XL',
-    ShowXXL: 'Show XXL',
-    NoShow: 'Do Not Show',
-  },
-  ExpandedInfoPanelPosition: {
-    Above: 'Above',
-    Below: 'Below',
-  },
-  ShowLocatorInRelicsModal: {
-    No: 'No',
-    Yes: 'Yes',
-  },
-  ShowComboDmgWarning: {
-    Show: 'Show',
-    Hide: 'Hide',
-  },
-} as const satisfies Record<keyof UserSettings, Record<string, string>>
-
-export const DefaultSettingOptions: Record<keyof UserSettings, string> = {
-  RelicEquippingBehavior: SettingOptions.RelicEquippingBehavior.Replace,
-  PermutationsSidebarBehavior: SettingOptions.PermutationsSidebarBehavior.ShowXL,
-  ExpandedInfoPanelPosition: SettingOptions.ExpandedInfoPanelPosition.Below,
-  ShowLocatorInRelicsModal: SettingOptions.ShowLocatorInRelicsModal.No,
-  ShowComboDmgWarning: SettingOptions.ShowComboDmgWarning.Show,
-}
+const SelectOptionWordWrap = (props: React.ComponentPropsWithoutRef<'span'>) => <span style={{ whiteSpace: 'wrap', wordBreak: 'break-word' }} {...props} />
 
 export function SettingsDrawer() {
   const { close: closeSettingsDrawer, isOpen: isOpenSettingsDrawer } = useOpenClose(OpenCloseIDs.SETTINGS_DRAWER)
@@ -78,7 +55,7 @@ function SettingsDrawerContent() {
     },
   })
 
-  const optionsMap: Partial<Record<keyof UserSettings, { value: string; label: string }[]>> = {}
+  const optionsMap: Partial<Record<keyof UserSettings, { value: string, label: string }[]>> = {}
   for (const key of Object.keys(SettingOptions) as (keyof typeof SettingOptions)[]) {
     const group = SettingOptions[key]
     optionsMap[key] = Object.entries(group)
@@ -93,7 +70,7 @@ function SettingsDrawerContent() {
   }, [])
 
   return (
-    <Flex direction="column" gap={10}>
+    <Flex direction='column' gap={10}>
       {(Object.keys(SettingOptions) as (keyof typeof SettingOptions)[])
         .map((option) => (
           <Flex justify='space-between' align='center' key={option}>

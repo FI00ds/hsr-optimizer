@@ -2,10 +2,6 @@ import {
   COMPUTE_ENGINE_GPU_STABLE,
   Stats,
 } from 'lib/constants/constants'
-import {
-  SetsOrnaments,
-  SetsRelics,
-} from 'lib/sets/setConfigRegistry'
 import type { WebgpuTest } from 'lib/gpu/tests/webgpuTestGenerator'
 import {
   destroyPipeline,
@@ -23,6 +19,10 @@ import { OutputTag } from 'lib/optimization/engine/config/tag'
 import { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { SortOption } from 'lib/optimization/sortOptions'
 import type { AugmentedStats } from 'lib/relics/relicAugmenter'
+import {
+  SetsOrnaments,
+  SetsRelics,
+} from 'lib/sets/setConfigRegistry'
 import { simulateBuild } from 'lib/simulations/simulateBuild'
 import type { SimulationRelicByPart } from 'lib/simulations/statSimulationTypes'
 import type { Form } from 'types/form'
@@ -32,8 +32,8 @@ export async function runTestRequest(request: Form, relics: RelicsByPart, device
   request.resultSort = SortOption.COMBO.key
   const context = generateContext(request)
 
-  const relicSetSolutions = new Array<number>(Math.pow(Object.keys(SetsRelics).length, 4)).fill(1)
-  const ornamentSetSolutions = new Array<number>(Math.pow(Object.keys(SetsOrnaments).length, 2)).fill(1)
+  const relicSetSolutions = Array.from<number>({ length: Math.pow(Object.keys(SetsRelics).length, 4) }).fill(1)
+  const ornamentSetSolutions = Array.from<number>({ length: Math.pow(Object.keys(SetsOrnaments).length, 2) }).fill(1)
   const permutations = 1
 
   const gpuContext = await initializeGpuPipeline(
