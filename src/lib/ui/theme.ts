@@ -41,7 +41,6 @@ export function createMantineTheme(seed: string): MantineThemeOverride {
     components: {
       Input: {
         defaultProps: { size: 'xs' },
-        styles: { input: { lineHeight: '30px' } },
       },
       InputBase: { defaultProps: { size: 'xs' } },
       InputWrapper: { defaultProps: { size: 'xs' } },
@@ -73,7 +72,7 @@ export function createMantineTheme(seed: string): MantineThemeOverride {
         defaultProps: { size: 'xs', withItemsBorders: false },
         styles: {
           root: { backgroundColor: 'rgba(0, 0, 0, 0.18)' },
-          label: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: 22, paddingBlock: 0 },
+          label: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
           innerLabel: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
         },
       },

@@ -69,20 +69,17 @@ export const ShowcaseBuildAnalysis = memo(function ShowcaseBuildAnalysis({
           style={{
             display: 'flex',
             justifyContent: 'center',
-            paddingLeft: 20,
-            paddingRight: 5,
             borderRadius: 6,
             height: 40,
             marginTop: 10,
+            marginBottom: 10,
             backgroundColor: 'color-mix(in srgb, var(--layer-0) 52%, transparent)',
             alignItems: 'center',
           }}
         >
-          <div style={{ width: 150 }}>
-            {t('CharacterPreview.AlgorithmSlider.Title') /* Scoring algorithm: */}
-          </div>
           <SegmentedControl
-            style={{ width: 354, height: 30 }}
+            size="sm"
+            style={{ width: 400 }}
             onChange={handleScoringTypeChange}
             value={String(scoringType)}
             fullWidth
