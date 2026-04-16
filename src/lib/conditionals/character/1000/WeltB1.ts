@@ -4,7 +4,8 @@ import { Acheron } from 'lib/conditionals/character/1300/Acheron'
 import { PermansorTerrae } from 'lib/conditionals/character/1400/PermansorTerrae'
 import type {
   Conditionals,
-  ContentDefinition} from 'lib/conditionals/conditionalUtils';
+  ContentDefinition,
+} from 'lib/conditionals/conditionalUtils'
 import {
   AbilityEidolon,
   createEnum,
@@ -326,8 +327,11 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       const r = action.characterConditionals as Conditionals<typeof content>
 
       // E6: Skill/Ult hitting Slow target → CR +30%, CD +60%
-      x.buff(StatKey.CR, (e >= 6 && r.e6SlowedCrCdBoost) ? 0.30 : 0, x.damageType(DamageTag.SKILL | DamageTag.ULT).source(SOURCE_E6))
-      x.buff(StatKey.CD, (e >= 6 && r.e6SlowedCrCdBoost) ? 0.60 : 0, x.damageType(DamageTag.SKILL | DamageTag.ULT).source(SOURCE_E6))
+      const e6DamageTags = DamageTag.SKILL | DamageTag.ULT | DamageTag.ADDITIONAL
+      x.buff(StatKey.CR, (e >= 6 && r.e6SlowedCrCdBoost) ? 0.30 : 0, x.actionKind(AbilityKind.SKILL).damageType(e6DamageTags).source(SOURCE_E6))
+      x.buff(StatKey.CR, (e >= 6 && r.e6SlowedCrCdBoost) ? 0.30 : 0, x.actionKind(AbilityKind.ULT).damageType(e6DamageTags).source(SOURCE_E6))
+      x.buff(StatKey.CD, (e >= 6 && r.e6SlowedCrCdBoost) ? 0.60 : 0, x.actionKind(AbilityKind.SKILL).damageType(e6DamageTags).source(SOURCE_E6))
+      x.buff(StatKey.CD, (e >= 6 && r.e6SlowedCrCdBoost) ? 0.60 : 0, x.actionKind(AbilityKind.ULT).damageType(e6DamageTags).source(SOURCE_E6))
     },
 
     precomputeMutualEffectsContainer: (x: ComputedStatsContainer, action: OptimizerAction, context: OptimizerContext) => {
@@ -424,7 +428,6 @@ const simulation = (): SimulationMetadata => ({
   errRopeEidolon: 0,
   relicSets: [
     [Sets.PioneerDiverOfDeadWaters, Sets.PioneerDiverOfDeadWaters],
-    [Sets.ScholarLostInErudition, Sets.ScholarLostInErudition],
     ...SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
   ],
   ornamentSets: [

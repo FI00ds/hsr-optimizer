@@ -1,7 +1,7 @@
 import {
   Drawer,
   Flex,
-  Popover,
+  HoverCard,
   Select,
   Switch,
   Text,
@@ -135,9 +135,13 @@ function ConditionalSetOption({ set, description, conditional, selectOptions, st
   }
 
   return (
-    <Popover width={400} position='left' withArrow>
-      <Popover.Target>
-        <Flex gap={defaultGap} align='center' style={{ cursor: 'pointer' }}>
+    <HoverCard width={400} position='left' withArrow openDelay={300} closeDelay={200}>
+      <HoverCard.Target>
+        <Flex
+          gap={defaultGap}
+          align='center'
+          style={{ cursor: 'pointer' }}
+        >
           <div style={{ width: setConditionalsIconWidth, marginRight: 5 }}>
             <img
               src={Assets.getSetImage(set, Constants.Parts.PlanarSphere)}
@@ -158,12 +162,12 @@ function ConditionalSetOption({ set, description, conditional, selectOptions, st
             {inputType}
           </Flex>
         </Flex>
-      </Popover.Target>
-      <Popover.Dropdown style={{ fontSize: 13 }}>
+      </HoverCard.Target>
+      <HoverCard.Dropdown style={{ fontSize: 13 }}>
         <Text fw={600} mb={4} size='sm'>{t('SetName', { id: setToId[set] })}</Text>
         {content}
-      </Popover.Dropdown>
-    </Popover>
+      </HoverCard.Dropdown>
+    </HoverCard>
   )
 }
 
