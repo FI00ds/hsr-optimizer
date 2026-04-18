@@ -93,8 +93,7 @@ interface Resources {
           "CombatScoreTBD": "Combat (TBD)",
           "NoneScore": "None",
           "StatScore": "Stat Score"
-        },
-        "Title": "Scoring algorithm:"
+        }
       },
       "ArtBy": "Art by {{artistName}}",
       "BuildAnalysis": {
@@ -257,10 +256,9 @@ interface Resources {
         "UpgradedDpsScore": "Upgraded DPS Score"
       }
     },
-    "GridHeaders": {
-      "Character": "Character",
-      "Icon": "Icon",
-      "Priority": "Priority"
+    "GridDensityOptions": {
+      "compact": "Compact",
+      "default": "Default"
     },
     "Messages": {
       "BuildAlreadyExists": "Build name {{name}} already exists",
@@ -308,6 +306,7 @@ interface Resources {
     "Damage": "DMG",
     "DamagePercent": "DMG %",
     "EidolonNShort": "E{{eidolon}}",
+    "Element": "Element",
     "Elements": {
       "Fire": "$t(gameData:Elements.Fire)",
       "Ice": "$t(gameData:Elements.Ice)",
@@ -1177,6 +1176,46 @@ interface Resources {
           }
         }
       },
+      "Evanescia": {
+        "Content": {
+          "cdToElation": {
+            "content": "Evanescia gains Elation equal to 20% of her CRIT DMG.",
+            "text": "CD to Elation conversion"
+          },
+          "certifiedBanger": {
+            "content": "When Evanescia possesses \"Certified Banger\": ::BR:: Using her Skill deals Physical Elation DMG equal to {{skillElationScaling}}% to the attacked enemy target. ::BR:: Using her Ultimate deals Physical Elation DMG equal to {{ultElationScaling}}% to all enemies and deals Physical Elation DMG equal to {{ultBounceElationScaling}}% to the enemy target randomly attacked by Ultimate. When Ultimate deals Elation DMG, it takes into account \"Certified Banger\" at least equal to Max Energy. ::BR:: \"Master Fox's\" attack deals Physical Elation DMG equal to {{foxElationScaling}}% of ATK to all enemies.",
+            "text": "Certified Banger"
+          },
+          "certifiedBangerStacks": {
+            "content": "When Evanescia possesses \"Certified Banger\": ::BR:: Using her Skill deals Physical Elation DMG equal to {{skillElationScaling}}% to the attacked enemy target. ::BR:: Using her Ultimate deals Physical Elation DMG equal to {{ultElationScaling}}% to all enemies and deals Physical Elation DMG equal to {{ultBounceElationScaling}}% to the enemy target randomly attacked by Ultimate. When Ultimate deals Elation DMG, it takes into account \"Certified Banger\" at least equal to Max Energy. ::BR:: \"Master Fox's\" attack deals Physical Elation DMG equal to {{foxElationScaling}}% of ATK to all enemies.",
+            "text": "Certified Banger stacks"
+          },
+          "e1ResPen": {
+            "content": "Increases All-Type RES PEN by 20%.",
+            "text": "E1 RES PEN"
+          },
+          "e2CritDmg": {
+            "content": "CRIT DMG increases by 36%.",
+            "text": "E2 Crit DMG"
+          },
+          "e4DefPen": {
+            "content": "Evanescia's DMG dealt ignores 15% of the enemy target's DEF.",
+            "text": "E4 DEF PEN"
+          },
+          "e6Merrymake": {
+            "content": "Elation DMG dealt by Evanescia merrymakes by 15%. For every 100 points of \"Certified Banger\" possessed, it additionally merrymakes by 2.0%, with a maximum of 1000 points of \"Certified Banger\" taken into account.",
+            "text": "E6 Merrymake"
+          },
+          "masterFoxVuln": {
+            "content": "When \"Master Fox\" uses an attack, it additionally inflicts Vulnerability on the target, increasing the DMG they take by 12% for 3 turns.",
+            "text": "Vulnerability"
+          },
+          "punchlineStacks": {
+            "content": "Select the number of punchline the team possesses. This is used to calculate the damage of Elation skills.",
+            "text": "Punchline stacks"
+          }
+        }
+      },
       "Evernight": {
         "Content": {
           "cyreneSpecialEffect": {
@@ -1291,6 +1330,42 @@ interface Resources {
           },
           "superBreakDmg": {
             "content": "When SAM is in Complete Combustion with a Break Effect that is equal to or greater than 200%/360%, attacking a Weakness-Broken enemy target will convert the Toughness Reduction of this attack into 1 instance of 35%/50% Super Break DMG.",
+            "text": "Super Break enabled (force weakness break)"
+          },
+          "talentDmgReductionBuff": {
+            "content": "The lower the HP, the less DMG received. When HP is 20% or lower, the DMG Reduction reaches its maximum effect, reducing up to {{talentDmgReductionBuff}}%. During the Complete Combustion, the DMG Reduction remains at its maximum effect, and the Effect RES increases by {{talentResBuff}}%.",
+            "text": "Max EHP buff"
+          }
+        }
+      },
+      "FireflyB1": {
+        "Content": {
+          "atkToBeConversion": {
+            "content": "For every 10 points of SAM's ATK that exceeds 1800, increases this unit's Break Effect by 0.8%.",
+            "text": "ATK to BE buff"
+          },
+          "e1DefShred": {
+            "content": "When using the Enhanced Skill, ignores 15% of the target's DEF. The Enhanced Skill does not consume Skill Points.",
+            "text": "E1 DEF PEN"
+          },
+          "e4ResBuff": {
+            "content": "While in Complete Combustion, increases SAM's Effect RES by 50%.",
+            "text": "E4 RES buff"
+          },
+          "e6Buffs": {
+            "content": "While in Complete Combustion, increases SAM's Fire RES PEN by 20%. When using the Enhanced Basic ATK or Enhanced Skill, increases the Weakness Break efficiency by 50%.",
+            "text": "E6 buffs"
+          },
+          "enhancedStateActive": {
+            "content": "Enters the Complete Combustion state, advances this unit's Action by 100%, and gains Enhanced Basic ATK and Enhanced Skill. While in Complete Combustion, increases SPD by 60, and when using the Enhanced Basic ATK or Enhanced Skill, increases this unit's Weakness Break Efficiency by 50% and increases the Break DMG dealt by SAM to the enemy targets by {{breakDmgDealt}}%, lasting until this current attack ends. ::BR:: A2: While in the Complete Combustion state, SAM's Break Effect increases by 25%. ::BR:: A4: When SAM is in Complete Combustion with a Break Effect that is equal to or greater than 150%/ 300%, attacking a Weakness-Broken enemy target will convert the Toughness Reduction of this attack into 1 instance of 100%/150% Super Break DMG. ::BR:: E1: When using the Enhanced Skill, ignores 15% of the target's DEF. ::BR:: E4: While in Complete Combustion, increases SAM's Effect RES by 50%. ::BR:: E6: While in Complete Combustion, increases SAM's Fire RES PEN by 20%. When using the Enhanced Basic ATK or Enhanced Skill, increases Weakness Break Efficiency by 50%.",
+            "text": "Enhanced state"
+          },
+          "enhancedStateSpdBuff": {
+            "content": "While in Complete Combustion, increases SPD by {{ultSpdBuff}}.",
+            "text": "Enhanced SPD buff"
+          },
+          "superBreakDmg": {
+            "content": "When SAM is in Complete Combustion with a Break Effect that is equal to or greater than 200%/360%, attacking a Weakness-Broken enemy target will convert the Toughness Reduction of this attack into 1 instance of 100%/150% Super Break DMG.",
             "text": "Super Break enabled (force weakness break)"
           },
           "talentDmgReductionBuff": {
@@ -1525,6 +1600,22 @@ interface Resources {
           },
           "ultBuff": {
             "content": "Increases all allies' ATK by {{ultBuffValue}}% for 2 turns after using Ultimate.",
+            "text": "Ult ATK buff"
+          }
+        }
+      },
+      "HuohuoB1": {
+        "Content": {
+          "e6DmgBuff": {
+            "content": "When healing a target ally, increases the target ally's DMG dealt by 50% for 2 turns.",
+            "text": "E6 DMG buff"
+          },
+          "skillBuff": {
+            "content": "When Huohuo possesses \"Divine Provision,\" her Outgoing Healing increases by 20%, all allies' SPD increases by 12%.",
+            "text": "E1 buffs"
+          },
+          "ultBuff": {
+            "content": "Increases all allies' ATK by {{ultBuffValue}}% for 2 turns after using Ultimate. ::BR:: A4: When using Ultimate, if an ally target's Max Energy is 160 or higher, additionally increases their ATK by 24%",
             "text": "Ult ATK buff"
           }
         }
@@ -2313,6 +2404,30 @@ interface Resources {
           }
         }
       },
+      "SeeleB1": {
+        "Content": {
+          "buffedState": {
+            "content": "Enters the buffed state upon defeating an enemy with Basic ATK, Skill, or Ultimate, and receives an extra turn. While in the buffed state, the DMG of Seele's attacks increases by {{buffedStateDmgBuff}}% for 3 turns.::BR::While Seele is in the buffed state, her Quantum RES PEN increases by 25%.",
+            "text": "Buffed state"
+          },
+          "dmgBoostStacks": {
+            "content": "When defeating an enemy target, increases the wearer's DMG dealt by 50%. This effect can stack up to 3 times and lasts for 3 turns.",
+            "text": "DMG boost stacks"
+          },
+          "e1EnemyHp80CrBoost": {
+            "content": "When dealing DMG to an enemy whose HP percentage is 80% or lower, increases CRIT Rate by 15%, and DMG ignores 20% of target's DEF.",
+            "text": "E1 enemy HP ≤ 80% CR boost"
+          },
+          "e6UltTargetDebuff": {
+            "content": "After Seele uses her Ultimate, inflict the target enemy with Butterfly Flurry for 3 turns. Enemy targets in \"Butterfly Flurry\" will additionally take 1 instance of True DMG equal to 30% of Seele's Ultimate DMG after receiving an attack. When the target under the \"Butterfly Flurry\" state is defeated by any unit, Seele's Talent will also be triggered.",
+            "text": "E6 Butterfly Flurry"
+          },
+          "speedBoostStacks": {
+            "content": "After using her skill, Seele's SPD increases by 25% for 2 turns.::BR::E2: The SPD Boost effect of Seele's Skill can stack up to 2 times.",
+            "text": "Speed buff stacks"
+          }
+        }
+      },
       "Serval": {
         "Content": {
           "enemyDefeatedBuff": {
@@ -2378,6 +2493,50 @@ interface Resources {
           "ultDefShredDebuff": {
             "content": "There's a {{UltBaseChance}}% base chance to decrease all enemies' DEF by {{UltDefShred}}% for 3 turns.",
             "text": "Ult DEF shred"
+          }
+        }
+      },
+      "SilverWolfLv999": {
+        "Content": {
+          "certifiedBanger": {
+            "content": "While Silver Wolf LV.999 possesses \"Certified Banger,\" using Basic ATK or Skill against attacked enemy targets deals {{talentCBScaling}}% Imaginary Elation DMG. Enhanced Basic ATK's ability DMG is converted to Elation DMG at the same multiplier. ::BR:: Each time an ally target within the Zone consumes 1 Skill Point, there is a chance to trigger Silver Wolf LV.999's \"Top Loot Box\" 1 time, dealing Imaginary Elation DMG equal to {{lootboxScaling}}% split evenly among all enemies, and randomly triggering 1 of the following effects: ::BR:: \"Big Flipping Sword\": Additionally deals True DMG to the enemy target with the highest HP equal to 20% of the total DMG dealt this time. ::BR:: \"Kaboom Eggsplosion\": Recovers 2 Skill Points. ::BR:: \"Funky Munch Bean\": Gains 3 Punchlines.",
+            "text": "Certified Banger"
+          },
+          "certifiedBangerStacks": {
+            "content": "While Silver Wolf LV.999 possesses \"Certified Banger,\" using Basic ATK or Skill against attacked enemy targets deals {{talentCBScaling}}% Imaginary Elation DMG. Enhanced Basic ATK's ability DMG is converted to Elation DMG at the same multiplier. ::BR:: Each time an ally target within the Zone consumes 1 Skill Point, there is a chance to trigger Silver Wolf LV.999's \"Top Loot Box\" 1 time, dealing Imaginary Elation DMG equal to {{lootboxScaling}}% split evenly among all enemies, and randomly triggering 1 of the following effects: ::BR:: \"Big Flipping Sword\": Additionally deals True DMG to the enemy target with the highest HP equal to 20% of the total DMG dealt this time. ::BR:: \"Kaboom Eggsplosion\": Recovers 2 Skill Points. ::BR:: \"Funky Munch Bean\": Gains 3 Punchlines.",
+            "text": "Certified Banger stacks"
+          },
+          "e1Vulnerability": {
+            "content": "Increases the DMG taken by enemy targets in the Zone by 20%.",
+            "text": "E1 Vulnerability"
+          },
+          "e4PunchlineBoost": {
+            "content": "Elation DMG dealt by \"Honkai-DMG Demo\" additionally takes into account Punchline points times 5.",
+            "text": "E4 Punchline boost"
+          },
+          "e6Merrymake": {
+            "content": "Elation DMG dealt during Enhanced Basic ATK merrymakes by 50%.",
+            "text": "E6 Merrymake"
+          },
+          "e6ResPen": {
+            "content": "Elation DMG dealt during Enhanced Basic ATK merrymakes by 50%. When enemy targets enter combat, they are inflicted with \"Absolute Weakness\": Has All-Type Weakness, and All-Type Base RES is reduced to 0 (If Base RES is already at 0, then the corresponding Type RES decreases by 20%).",
+            "text": "E6 RES PEN"
+          },
+          "godmodePlayer": {
+            "content": "While in the \"Godmode Player\" state, Silver Wolf LV.999 is immune to Crowd Control debuffs, cannot use her Ultimate, and gains Enhanced Basic ATK and Enhanced Elation Skill. Deploys a Zone while in the \"Godmode Player\" state. While Silver Wolf LV.999 possesses \"Certified Banger,\" each time an ally target within the Zone consumes 1 Skill Point, there is a chance to trigger 1 time Silver Wolf LV.999's \"Top Loot Box\": Deal Imaginary Elation DMG equal to {{lootboxScaling}}% split evenly among all enemies. ::BR:: E1: Increases the DMG taken by enemy targets in the Zone by 20%.",
+            "text": "Godmode Player state"
+          },
+          "hiddenMmr": {
+            "content": "When gaining Punchline, Silver Wolf LV.999 gains an equal amount of \"Hidden MMR.\" Each point of \"Hidden MMR\" increases CRIT Rate by {{hiddenMmrCrStep}}%. After CRIT Rate increases to 100%, each remaining point of \"Hidden MMR\" switches to increasing CRIT DMG by {{hiddenMmrCdStep}}%.",
+            "text": "Hidden MMR"
+          },
+          "punchlineStacks": {
+            "content": "Select the number of punchline the team possesses. This is used to calculate the damage of Elation skills.",
+            "text": "Punchline stacks"
+          },
+          "spdToElation": {
+            "content": "When SPD is 160 or higher, increases this unit's Elation by 50%. For every 1 SPD exceeded, increases this unit's Elation by 2%. Up to a max of 100 excess SPD can be taken into account for this effect.",
+            "text": "SPD to Elation conversion"
           }
         }
       },
@@ -2691,6 +2850,42 @@ interface Resources {
           }
         }
       },
+      "TrailblazerElation": {
+        "Content": {
+          "atkToElation": {
+            "content": "For every 200 points of Trailblazer's ATK that exceeds 1000, increases this unit's Elation by 10%, up to a maximum increase of 60%.",
+            "text": "ATK to Elation conversion"
+          },
+          "certifiedBanger": {
+            "content": "When the Trailblazer holds \"Certified Banger,\" their Skill additionally deals {{skillAdditionalElationScaling}}% Lightning Elation DMG to all enemies.",
+            "text": "Certified Banger"
+          },
+          "certifiedBangerStacks": {
+            "content": "When the Trailblazer holds \"Certified Banger,\" their Skill additionally deals {{skillAdditionalElationScaling}}% Lightning Elation DMG to all enemies.",
+            "text": "Certified Banger stacks"
+          },
+          "e2UltElation": {
+            "content": "Ultimate additionally increases the Elation of a designated ally by 12%, lasting for 2 turns.",
+            "text": "E2 Ult Elation"
+          },
+          "e4Vulnerability": {
+            "content": "When using the Elation Skill, increases the DMG taken by enemy targets by 10% for 2 turns.",
+            "text": "E4 Vulnerability"
+          },
+          "e6CritDmg": {
+            "content": "When using Elation Skill, increases this unit's CRIT DMG by 100% for 3 turns.",
+            "text": "E6 Crit DMG"
+          },
+          "punchlineStacks": {
+            "content": "Select the number of punchline the team possesses. This is used to calculate the damage of Elation skills.",
+            "text": "Punchline stacks"
+          },
+          "ultCdBuff": {
+            "content": "Increases the CRIT DMG of a designated ally by 50% for 3 turns.",
+            "text": "Ult CD buff"
+          }
+        }
+      },
       "TrailblazerHarmony": {
         "Content": {
           "backupDancer": {
@@ -2836,6 +3031,46 @@ interface Resources {
           "skillExtraHits": {
             "content": "Deals Imaginary DMG equal to {{skillScaling}}% of Welt's ATK to a single enemy and further deals DMG 2 extra times, with each time dealing Imaginary DMG equal to {{skillScaling}}% of Welt's ATK to a random enemy.",
             "text": "Skill extra hits on target"
+          }
+        }
+      },
+      "WeltB1": {
+        "Content": {
+          "e1WeightlessAdditionalDmg": {
+            "content": "After using a Skill or Ultimate to hit a target in the \"Weightless\" state, deals 1 additional instance of Imaginary Additional DMG equal to 40% of the Ultimate's DMG multiplier. This effect can only be triggered once per target per attack.",
+            "text": "E1 Weightless Additional DMG"
+          },
+          "e4WeightlessResPen": {
+            "content": "Enemy targets in the \"Weightless\" state have their All-Type RES reduced by 30%.",
+            "text": "E4 RES PEN"
+          },
+          "e6SlowedCrCdBoost": {
+            "content": "When using a Skill or Ultimate to hit an enemy target in the Slow state, increases CRIT Rate by 30% and CRIT DMG by 60%.",
+            "text": "E6 Slowed CR/CD boost"
+          },
+          "ehrToAtkBoost": {
+            "content": "When Welt's Effect Hit Rate is greater than 40%, for every 10% that exceeds this value, increases ATK by 20%, up to a maximum increase of 80%.",
+            "text": "EHR to ATK boost"
+          },
+          "enemySlowed": {
+            "content": "When Welt attacks an enemy that is already Slowed, he additionally deals Imaginary Additional DMG equal to {{talentAdditionalScaling}}% of his ATK to the enemy.",
+            "text": "Enemy slowed"
+          },
+          "enemyWeightless": {
+            "content": "Enemy targets in the \"Weightless\" state have their DEF reduced by 40% and their SPD reduced by 5%. ::BR:: E1: After using a Skill or Ultimate to hit a target in the \"Weightless\" state, deals 1 additional instance of Imaginary Additional DMG equal to 40% of the Ultimate's DMG multiplier. This effect can only be triggered once per target per attack. ::BR:: E4: Enemy targets in the \"Weightless\" state have their All-Type RES reduced by 30%.",
+            "text": "Enemy Weightless"
+          },
+          "retributionDmgStacks": {
+            "content": "When ally targets attack targets under the \"Weightless\" state, their DMG dealt increases by 10%. This effect stacks up to 10 times and lasts for 2 turns.",
+            "text": "Retribution DMG stacks"
+          },
+          "skillExtraHits": {
+            "content": "Deals Imaginary DMG equal to {{skillScaling}}% of Welt's ATK to a single enemy and further deals DMG 2 extra times, with each time dealing Imaginary DMG equal to {{skillScaling}}% of Welt's ATK to a random enemy.",
+            "text": "Skill extra hits on target"
+          },
+          "traceAdditionalDmg": {
+            "content": "When Welt uses Basic ATK or Skill, additionally deals 1 extra instance of Additional DMG to the enemy target. The Additional DMG dealt when using Basic ATK is equal to 80% of Basic ATK DMG multiplier. The Additional DMG dealt when using Skill is equal to 120% of Skill DMG multiplier.",
+            "text": "Trace Additional DMG"
           }
         }
       },
@@ -4157,11 +4392,31 @@ interface Resources {
           }
         }
       },
+      "TomorrowTogether": {
+        "Content": {
+          "elationBuff": {
+            "content": "After the wearer uses their Ultimate, increases the Elation of all allies by {{elationBuff}}%, lasting for 1 turns.",
+            "text": "Elation buff"
+          }
+        }
+      },
       "UnderTheBlueSky": {
         "Content": {
           "defeatedEnemyCrBuff": {
             "content": "When the wearer defeats an enemy, the wearer's CRIT Rate increases by {{CritBuff}}% for 3 turns.",
             "text": "Defeated enemy CR buff"
+          }
+        }
+      },
+      "UntilTheFlowersBloomAgain": {
+        "Content": {
+          "maxEnergyErrConversion": {
+            "content": "Increases the wearer's Energy Regeneration Rate by {{baseErr}}%. When the wearer's Max Energy is greater than 120, for every 10 points of Max Energy that exceeds this amount, further increases Energy Regeneration Rate by 0.3%, up to a maximum of 360 points of excess Max Energy taken into account.",
+            "text": "Max Energy ERR buff"
+          },
+          "vulnerability": {
+            "content": "When the wearer uses an Elation Skill, increases the DMG received by enemy targets by {{vuln}}% for 2 turns.",
+            "text": "Elation Skill vulnerability"
           }
         }
       },
@@ -4202,6 +4457,14 @@ interface Resources {
           "extraDmgProc": {
             "content": "After the wearer uses Basic ATK or Skill, deals Additional DMG equal to {{Multiplier}}% of the wearer's ATK to a random enemy that has been attacked.",
             "text": "Additional DMG proc"
+          }
+        }
+      },
+      "WelcomeToTheCosmicCity": {
+        "Content": {
+          "elationDefPen": {
+            "content": "Elation DMG dealt ignores {{defShred}}% of the target's DEF.",
+            "text": "Elation DEF PEN"
           }
         }
       },
@@ -6356,6 +6619,14 @@ interface Resources {
     },
     "ExpandedDataPanel": {
       "BuffsAnalysisDisplay": {
+        "DamageFunctions": {
+          "Add": "Add",
+          "Break": "Break",
+          "Crit": "Crit",
+          "DoT": "DoT",
+          "Elation": "Elation",
+          "S.Break": "S.Break"
+        },
         "DefaultAction": "Default",
         "Sources": {
           "Basic": "Basic",
@@ -6401,7 +6672,7 @@ interface Resources {
               "DEF PEN": "DEF PEN",
               "DEF scaling": "DEF scaling",
               "DMG": "DMG",
-              "DMG boost": "DMG boost",
+              "DMG Boost": "DMG Boost",
               "Final DMG multiplier": "Final DMG multiplier",
               "Fixed Toughness DMG": "Fixed Toughness DMG",
               "HP scaling": "HP scaling",
@@ -6426,6 +6697,7 @@ interface Resources {
             "SuperBreak": "Super Break DMG type",
             "Ult": "Ult DMG type"
           },
+          "ElementalDmgBoost": "$t(gameData:Elements.{{element}}) $t(optimizerTab:ExpandedDataPanel.BuffsAnalysisDisplay.Stats.CompositeLabels.Suffix.DMG Boost)",
           "Misc": {
             "Additional DMG boost": "Additional DMG boost",
             "Base ATK": "Base ATK",
@@ -6440,6 +6712,7 @@ interface Resources {
             "Dot stacks": "Dot stacks",
             "Effect RES PEN": "Effect RES PEN",
             "Effective HP": "Effective HP",
+            "Elation": "Elation",
             "Elemental DMG": "Elemental DMG",
             "Enemy weakness broken": "Enemy weakness broken",
             "Heal ability type": "Heal ability type",
@@ -6470,7 +6743,6 @@ interface Resources {
             "Ult Additional DMG CR override": "Ult Additional DMG CR override",
             "Ult Outgoing Healing Boost": "Ult Outgoing Healing Boost"
           },
-          "ResPen": "$t(common:Elements.{{element}}) RES PEN",
           "Unconvertible": "Unconvertible  $t(common:Stats.{{stat}})"
         },
         "SummaryLabel": "BUFF TOTALS",
@@ -6481,15 +6753,23 @@ interface Resources {
       },
       "DamageSplits": {
         "Legend": {
-          "abilityDmg": "Ability",
-          "additionalDmg": "Additional",
-          "breakDmg": "Break",
-          "dotDmg": "Dot",
-          "jointDmg": "Joint",
-          "memoDmg": "Memo",
-          "superBreakDmg": "Super Break",
-          "trueDmg": "True"
+          "Additional": "Additional",
+          "Basic": "Basic",
+          "Break": "Break",
+          "DoT": "DoT",
+          "Elation": "Elation",
+          "Fua": "Fua",
+          "Memo": "Memo",
+          "Skill": "Skill",
+          "Super Break": "Super Break",
+          "True": "True",
+          "Ult": "Ult"
         },
+        "Mode": {
+          "Default": "Default",
+          "Rotation": "Rotation"
+        },
+        "PieTitle": "Combo Distribution",
         "Title": "Combo Breakdown",
         "TooltipText": {
           "abilityDmg": "Ability DMG",
@@ -6511,6 +6791,20 @@ interface Resources {
           "SKILL_DMG": "Skill",
           "ULT_DMG": "Ult"
         }
+      },
+      "DamageTags": {
+        "ADDITIONAL": "ADDITIONAL",
+        "ALL": "ALL",
+        "BASIC": "BASIC",
+        "BREAK": "BREAK",
+        "DOT": "DOT",
+        "ELATION": "ELATION",
+        "FUA": "FUA",
+        "MEMO": "MEMO",
+        "SKILL": "SKILL",
+        "SUPER_BREAK": "S.BREAK",
+        "ULT": "ULT",
+        "UNIQUE": "UNIQUE"
       },
       "SubstatUpgrades": {
         "ColumnHeaders": {
@@ -7146,6 +7440,20 @@ interface Resources {
       "Import": "Import"
     },
     "CopyScreenshot": "Copy screenshot",
+    "DPSScoreDisclaimer": {
+      "Body": {
+        "l1": "Combo DMG and DPS Score measure how much damage your build deals in a fixed ability rotation, specific to your current team setup.",
+        "l2": "Different teams, light cones, eidolons, or versions all affect action advance, energy, and other mechanics not captured by the fixed rotation, so scores across setups cannot be meaningfully compared. Each character has their own unique rotation and target length.",
+        "l3": "Within your current team, use Combo DMG to compare how different relics, main stats, and set effects impact your rotation damage. DPS Score compares your Combo DMG against simulated benchmarks with optimally distributed substats at the same speed, showing how close your relics are to the best possible build.",
+        "l4": "DPS Score benchmarks are generated to match your character's combat speed. Builds at different speeds are scored against fundamentally different benchmarks and can't be compared. This explains why a slower build might show higher Combo DMG but a lower DPS Score. Set the SPD benchmark in the sidebar to compare DPS Scores of builds at the same speed target."
+      },
+      "ButtonText": "Understood, hide warning",
+      "Confirmation": {
+        "Body": "I will not compare Combo DMG or DPS Score against different teams, light cones, eidolons, or versions.",
+        "Title": "Acknowledge and hide warning"
+      },
+      "Title": "Do NOT use Combo DMG or DPS Score to compare teams, light cones, or eidolons!"
+    },
     "Disclaimer": "Note: Combo DMG is meant to compare different relics relative to the selected team, and should <1>NOT</1> be used to compare different teams / LCs / eidolons!",
     "DisclaimerDescription": "Combo DMG is a tool to measure the damage of a single ability rotation within the context of a specific team. Changing the team / eidolons / light cones will change the duration of the rotation, how much energy is generated, uptime of buffs, etc. This means Combo DMG can NOT be used to determine which team is better, or which light cone is better, or measure the damage increase between eidolons. Combo DMG is only meant to compare different relics within a defined team and speed target.",
     "Header": {

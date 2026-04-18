@@ -1,3 +1,5 @@
+import { Divider } from '@mantine/core'
+import { type TFunction } from 'i18next'
 import { RECHARTS_TOOLTIP_WRAPPER_STYLE } from 'lib/constants/constantsUi'
 import {
   chartColor,
@@ -12,8 +14,10 @@ import {
 import type { ReactNode } from 'react'
 import {
   type CSSProperties,
+  Fragment,
   useMemo,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { LabelProps } from 'recharts'
 import {
   Bar,
@@ -33,11 +37,12 @@ type TooltipPayloadEntry = {
 
 const TOOLTIP_STYLE: CSSProperties = {
   display: 'flex',
-  flexDirection: 'column',
+  flexDirection: 'row',
   background: 'var(--layer-3)',
   border: '1px solid var(--border-default)',
   padding: 8,
   borderRadius: 'var(--radius-sm)',
+  gap: 8,
 }
 
 const DAMAGE_SPLITS_CHART_WIDTH = 730
@@ -66,7 +71,7 @@ type FlatRow = Record<string, number | string> & {
   total: number,
 }
 
-function flattenData(data: DamageSplitEntry[]): { rows: FlatRow[], bars: FlattenedBar[], legendItems: LegendItem[] } {
+function flattenData(data: DamageSplitEntry[], t: TFunction<'optimizerTab'>): { rows: FlatRow[], bars: FlattenedBar[], legendItems: LegendItem[] } {
   const bars: FlattenedBar[] = []
   const rows: FlatRow[] = []
   const seenDamageTypes = new Set<number>()
@@ -96,7 +101,7 @@ function flattenData(data: DamageSplitEntry[]): { rows: FlatRow[], bars: Flatten
         legendItems.push({
           damageType: seg.damageType,
           color,
-          label: decodeDamageTypeLabel(seg.damageType),
+          label: decodeDamageTypeLabel(seg.damageType, t),
         })
       }
     }
@@ -219,23 +224,31 @@ function dimNumberLeftTick(props: { x: string | number, y: string | number, payl
 function CustomTooltip({ active, payload, bars }: { active?: boolean, payload?: TooltipPayloadEntry[], bars: FlattenedBar[] }) {
   if (!active || !payload || payload.length === 0) return null
 
-  // Find the first non-zero payload entry
-  const entry = payload.find((p) => typeof p.value === 'number' && p.value > 0)
-  if (!entry) return null
-
-  const barDef = bars.find((b) => b.key === entry.dataKey)
-  if (!barDef) return null
+  const entries = payload.filter((p) => typeof p.value === 'number' && p.value > 0)
+  if (entries.length === 0) return null
 
   return (
     <div className='pre-font' style={TOOLTIP_STYLE}>
-      <span style={{ fontSize: 14, fontWeight: 'bold' }}>{barDef.label}</span>
-      <span>{localeNumberComma(Math.floor(entry.value as number))}</span>
+      {entries.map((entry, idx) => {
+        const barDef = bars.find((b) => b.key === entry.dataKey)
+        if (!barDef) return null
+        return (
+          <Fragment key={entry.dataKey}>
+            <span style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 14, fontWeight: 'bold' }}>{barDef.label}</div>
+              <div>{localeNumberComma(Math.floor(entry.value as number))}</div>
+            </span>
+            {(idx !== entries.length - 1) && <Divider orientation='vertical' />}
+          </Fragment>
+        )
+      })}
     </div>
   )
 }
 
 export function DamageSplitsChart({ data }: { data: DamageSplitEntry[] }) {
-  const { rows, bars, legendItems } = useMemo(() => flattenData(data), [data])
+  const { t } = useTranslation('optimizerTab')
+  const { rows, bars, legendItems } = useMemo(() => flattenData(data, t), [data, t])
 
   if (rows.length === 0) {
     return null
