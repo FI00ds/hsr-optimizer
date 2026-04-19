@@ -4,11 +4,11 @@ import {
   BuffDisplaySize,
   BuffsAnalysisDisplay,
 } from 'lib/characterPreview/buildAnalysis/BuffsAnalysisDisplay'
+import { ShowcaseSource } from 'lib/characterPreview/CharacterPreviewComponents'
 import type {
   PreviewRelics,
   ShowcaseMetadata,
 } from 'lib/characterPreview/characterPreviewController'
-import { ShowcaseSource } from 'lib/characterPreview/CharacterPreviewComponents'
 import { DPSScoreDisclaimer } from 'lib/characterPreview/DPSScoreDisclaimer'
 import {
   ScoringSelector,
@@ -18,6 +18,7 @@ import {
 import { DpsScoreGradeRuler } from 'lib/characterPreview/summary/DpsScoreGradeRuler'
 import { DpsScoreMainStatUpgradesTable } from 'lib/characterPreview/summary/DpsScoreMainStatUpgradesTable'
 import { DpsScoreSubstatUpgradesTable } from 'lib/characterPreview/summary/DpsScoreSubstatUpgradesTable'
+import { DpsScoreTeammateUpgradesTable } from 'lib/characterPreview/summary/DpsScoreTeammateUpgradesTable'
 import { EstimatedTbpRelicsDisplay } from 'lib/characterPreview/summary/EstimatedTbpRelicsDisplay'
 import { ElementToDamage } from 'lib/constants/constants'
 import { defaultGap } from 'lib/constants/constantsUi'
@@ -34,6 +35,7 @@ import { SuspenseNode } from 'lib/ui/SuspenseNode'
 import { numberToLocaleString } from 'lib/utils/i18nUtils'
 import {
   memo,
+  Suspense,
   useContext,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -335,6 +337,12 @@ export const CharacterScoringSummary = memo(function CharacterScoringSummary({
               relics={displayRelics}
             />
           </div>
+        </DeferCreate>
+
+        <DeferCreate>
+          <Suspense>
+            <DpsScoreTeammateUpgradesTable />
+          </Suspense>
         </DeferCreate>
 
         {/* Relic rarity */}

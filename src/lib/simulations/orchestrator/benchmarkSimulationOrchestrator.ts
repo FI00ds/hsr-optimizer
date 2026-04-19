@@ -47,7 +47,10 @@ import {
   spdRollsCap,
 } from 'lib/scoring/simScoringUtils'
 import { generatePartialSimulations } from 'lib/simulations/benchmarks/simulateBenchmarkBuild'
-import { generateStatImprovements } from 'lib/simulations/scoringUpgrades'
+import {
+  generateStatImprovements,
+  generateTeammateImprovements,
+} from 'lib/simulations/scoringUpgrades'
 import type { SimulationStatUpgrade } from 'lib/simulations/scoringUpgrades'
 import { runStatSimulations } from 'lib/simulations/statSimulation'
 import type {
@@ -107,6 +110,7 @@ export class BenchmarkSimulationOrchestrator {
   public substatUpgradeResults?: SimulationStatUpgrade[]
   public setUpgradeResults?: SimulationStatUpgrade[]
   public mainUpgradeResults?: SimulationStatUpgrade[]
+  public teammateOrnamentUpgradeResults?: SimulationStatUpgrade[]
 
   public percent?: number
   public simulationScore?: SimulationScore
@@ -525,6 +529,21 @@ export class BenchmarkSimulationOrchestrator {
     this.mainUpgradeResults = mainUpgradeResults
   }
 
+  public calculateTeammateUpgrades() {
+    const teamOrnamentUpgradeResults = generateTeammateImprovements(
+      this.originalSim!,
+      this.form!,
+      this.context!,
+      this.metadata,
+      benchmarkScoringParams,
+      this.baselineSimResult?.simScore!,
+      this.benchmarkSimResult?.simScore!,
+      this.perfectionSimResult?.simScore!,
+    )
+
+    this.teammateOrnamentUpgradeResults = teamOrnamentUpgradeResults
+  }
+
   public calculateResults() {
     this.simulationScore = {
       percent: this.percent!,
@@ -547,6 +566,7 @@ export class BenchmarkSimulationOrchestrator {
       substatUpgrades: this.substatUpgradeResults!,
       setUpgrades: this.setUpgradeResults!,
       mainUpgrades: this.mainUpgradeResults!,
+      teammateOrnamentUpgradeResults: this.teammateOrnamentUpgradeResults!,
 
       simulationForm: this.form!,
       simulationMetadata: this.metadata,

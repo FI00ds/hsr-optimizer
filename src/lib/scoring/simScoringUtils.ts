@@ -116,6 +116,7 @@ export type SimulationScore = {
   substatUpgrades: SimulationStatUpgrade[],
   setUpgrades: SimulationStatUpgrade[],
   mainUpgrades: SimulationStatUpgrade[],
+  teammateOrnamentUpgradeResults: SimulationStatUpgrade[],
 
   simulationForm: Form,
   simulationMetadata: SimulationMetadata,
