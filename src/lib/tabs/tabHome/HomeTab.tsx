@@ -220,7 +220,7 @@ function FadeSection({ children, className = '' }: FadeSectionProps) {
           observer.disconnect()
         }
       },
-      { threshold: 0 },
+      { threshold: 0, rootMargin: '100px' },
     )
 
     if (ref.current) {
