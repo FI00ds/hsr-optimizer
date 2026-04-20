@@ -26,6 +26,7 @@ import {
   pickBestSeed,
 } from 'lib/characterPreview/color/colorUtils'
 import {
+  buildCardBgPipelineConfig,
   resolveShowcaseColor,
   resolveShowcaseTheme,
 } from 'lib/characterPreview/color/showcaseColorService'
@@ -39,6 +40,7 @@ import {
   INSET_OPACITY,
   PORTRAIT_BLUR,
   PORTRAIT_BRIGHTNESS,
+  PORTRAIT_CONTRAST,
   PORTRAIT_SATURATE,
   SHADOW_BLUR,
   SHADOW_OPACITY,
@@ -89,7 +91,7 @@ import type {
   CustomImageConfig,
   CustomImagePayload,
 } from 'types/customImage'
-import type { ShowcaseTemporaryOptions } from 'types/metadata'
+import type { ShowcaseDisplayDimensionsOverride, ShowcaseTemporaryOptions } from 'types/metadata'
 import {
   ScoringSelector,
   SimScoringContextProvider,
@@ -121,14 +123,16 @@ interface CharacterPreviewPropsBase {
   forceDebug?: boolean
   /** Override debug visual config (for shared debug panel across multiple cards) */
   debugVisualConfig?: DebugVisualConfig
+  /** Editor mode overrides for live preview of display dimensions */
+  editorOverrides?: ShowcaseDisplayDimensionsOverride
 }
 
 type CharacterPreviewProps = CharacterPreviewPropsBase & (SavedBuildPreviewProps | InteractiveCharacterPreviewProps)
 
 globalThis.CARD_DEBUG = false
 
-function buildPortraitFilter(blur: number, brightness: number, saturate: number) {
-  return `blur(${blur}px) brightness(${brightness.toFixed(2)}) saturate(${saturate.toFixed(2)})`
+function buildPortraitFilter(blur: number, brightness: number, saturate: number, contrast: number) {
+  return `blur(${blur}px) brightness(${brightness.toFixed(2)}) saturate(${saturate.toFixed(2)}) contrast(${contrast.toFixed(2)})`
 }
 
 function buildShadow(x: number, y: number, blur: number, opacity: number) {
@@ -149,7 +153,7 @@ function ShowcaseBackgroundBlur({
 }: {
   portraitUrl: string,
   portraitToUse: CustomImageConfig | undefined,
-  displayDimensions: { charCenter: { x: number, y: number, z: number } },
+  displayDimensions: { charCenter: { x: number, y: number, z: number }, backgroundCenterOffset: { x: number, y: number, z: number } },
   portraitFilter: string,
   blendMode: 'screen' | 'normal',
 }) {
@@ -171,11 +175,13 @@ function ShowcaseBackgroundBlur({
       bgPos = 'center'
     }
   } else {
-    // Default portrait: pixel positioning using curated charCenter values
-    const bgZoom = displayDimensions.charCenter.z * 1.75
+    // Default portrait: pixel positioning using curated charCenter values + per-character offset
+    const bgZoom = Math.max(0.1, displayDimensions.charCenter.z * 1.75 + displayDimensions.backgroundCenterOffset.z)
     const bgScale = bgZoom / 2 * cardTotalW / 1024
+    const offsetX = displayDimensions.backgroundCenterOffset.x
+    const offsetY = displayDimensions.backgroundCenterOffset.y
     bgSize = `${cardTotalW * bgZoom}px auto`
-    bgPos = `${-displayDimensions.charCenter.x * bgScale + cardTotalW / 2}px ${-displayDimensions.charCenter.y * bgScale + parentH / 2}px`
+    bgPos = `${-displayDimensions.charCenter.x * bgScale + cardTotalW / 2 + offsetX}px ${-displayDimensions.charCenter.y * bgScale + parentH / 2 + offsetY}px`
   }
 
   return (
@@ -209,6 +215,7 @@ function resolveDebugVisualConfig(
     portraitBlur: config?.portraitBlur ?? presetFallback?.portraitBlur ?? PORTRAIT_BLUR,
     portraitBrightness: config?.portraitBrightness ?? presetFallback?.portraitBrightness ?? PORTRAIT_BRIGHTNESS,
     portraitSaturate: config?.portraitSaturate ?? presetFallback?.portraitSaturate ?? PORTRAIT_SATURATE,
+    portraitContrast: config?.portraitContrast ?? presetFallback?.portraitContrast ?? PORTRAIT_CONTRAST,
     cardBgAlpha: config?.cardBgAlpha ?? presetFallback?.cardBgAlpha ?? CARD_BG_ALPHA_DEFAULT,
     debugMaxC: config?.debugMaxC ?? presetFallback?.debugMaxC ?? DEFAULT_CONFIG.cardBg.maxC,
     debugMinC: config?.debugMinC ?? presetFallback?.debugMinC ?? DEFAULT_CONFIG.cardBg.minC,
@@ -231,6 +238,7 @@ export function CharacterPreview({
   character,
   forceDebug,
   debugVisualConfig,
+  editorOverrides,
   ...rest
 }: CharacterPreviewProps) {
   if (!character) {
@@ -253,7 +261,7 @@ export function CharacterPreview({
     return <CharacterPreviewWithDebug character={character} forceDebug={forceDebug} {...rest} />
   }
 
-  return <CharacterPreviewInner character={character} forceDebug={forceDebug} debugVisualConfig={debugVisualConfig} {...rest} />
+  return <CharacterPreviewInner character={character} forceDebug={forceDebug} debugVisualConfig={debugVisualConfig} editorOverrides={editorOverrides} {...rest} />
 }
 
 /** Wrapper that subscribes to debug store and renders panel - only used when CARD_DEBUG */
@@ -284,6 +292,7 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
   id,
   forceDebug,
   debugVisualConfig,
+  editorOverrides,
 }: CharacterPreviewInnerProps) {
   // Safe narrowing: ShowcaseTabCharacter is structurally compatible with Character for all
   // downstream usage. The source-aware branching in useCharacterPreviewState and getPreviewRelics
@@ -296,29 +305,24 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
   const presetFallback = getShowcasePreset(showcasePreset)
   const visual = resolveDebugVisualConfig(debugVisualConfig, presetFallback)
 
-  const colorPipelineConfig = useMemo<ColorPipelineConfig>(() => ({
-    ...DEFAULT_CONFIG,
-    cardBg: {
-      ...DEFAULT_CONFIG.cardBg,
-      maxC: visual.debugMaxC,
-      minC: visual.debugMinC,
-      chromaScale: visual.debugChromaScale,
-      targetL: visual.debugTargetL,
-      minL: visual.debugMinL,
-      maxL: visual.debugMaxL,
-    },
-  }), [visual.debugMaxC, visual.debugMinC, visual.debugChromaScale, visual.debugTargetL, visual.debugMinL, visual.debugMaxL])
+  const colorPipelineConfig = useMemo<ColorPipelineConfig>(
+    () => buildCardBgPipelineConfig(visual),
+    [visual.debugMaxC, visual.debugMinC, visual.debugChromaScale, visual.debugTargetL, visual.debugMinL, visual.debugMaxL],
+  )
 
   const state = useCharacterPreviewState(source, rawCharacter, savedBuildOverride)
 
   // Portrait filter with dark mode brightness offset
   const effectiveBrightness = visual.portraitBrightness + (state.darkMode ? DEFAULT_CONFIG.darkMode.brightnessOffset : 0)
-  const portraitFilter = buildPortraitFilter(visual.portraitBlur, effectiveBrightness, visual.portraitSaturate)
+  const portraitFilter = buildPortraitFilter(visual.portraitBlur, effectiveBrightness, visual.portraitSaturate, visual.portraitContrast)
 
   const { displayRelics, scoringResults } = state.previewRelics
 
   // Layout: forceDebug disables L2D, forces SUBSTAT_SCORE, hides analysis footer
-  const effectiveScoringType = forceDebug ? ScoringType.SUBSTAT_SCORE : state.storedScoringType
+  // editorOverrides.forceSimScoreLayout overrides to COMBAT_SCORE layout for preview
+  const effectiveScoringType = editorOverrides?.forceSimScoreLayout
+    ? ScoringType.COMBAT_SCORE
+    : (forceDebug ? ScoringType.SUBSTAT_SCORE : state.storedScoringType)
   // Cache-buster: state.scoringMetadata invalidates when scoring overrides change (SPD weight, buff priority)
   const _scoringMetadataCacheBuster = state.scoringMetadata
   const layout = useMemo(
@@ -331,13 +335,13 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
         savedBuildOverride,
         t,
       })
-      if (forceDebug) {
+      if (forceDebug && !editorOverrides?.forceSimScoreLayout) {
         return { ...baseLayout, displayDimensions: { ...baseLayout.displayDimensions, disableSpine: true } }
       }
       return baseLayout
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [character, state.teamSelection, effectiveScoringType, savedBuildOverride, _scoringMetadataCacheBuster, t, forceDebug],
+    [character, state.teamSelection, effectiveScoringType, savedBuildOverride, _scoringMetadataCacheBuster, t, forceDebug, editorOverrides?.forceSimScoreLayout],
   )
 
   // ===== Color + Theme (color-dependent, cheap) =====
@@ -407,9 +411,18 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
     scoringType,
     portraitUrl,
     portraitToUse,
-    displayDimensions,
+    displayDimensions: baseDisplayDimensions,
     artistName,
   } = layout
+
+  // Apply editor overrides for live preview editing
+  const displayDimensions = editorOverrides
+    ? {
+        ...baseDisplayDimensions,
+        charCenter: editorOverrides.charCenter ?? baseDisplayDimensions.charCenter,
+        backgroundCenterOffset: editorOverrides.backgroundCenterOffset ?? baseDisplayDimensions.backgroundCenterOffset,
+      }
+    : baseDisplayDimensions
 
   const scoredRelics = scoringResults.relics ?? EMPTY_SCORED
 

@@ -18,8 +18,12 @@ import {
 import i18next from 'i18next'
 import { ShowcaseSource } from 'lib/characterPreview/CharacterPreviewComponents'
 import { withAlpha } from 'lib/characterPreview/color/colorUtils'
-import { ShowcasePreset } from 'lib/characterPreview/debugVisualConfigStore'
 import {
+  getShowcasePreset,
+  ShowcasePreset,
+} from 'lib/characterPreview/debugVisualConfigStore'
+import {
+  buildCardBgPipelineConfig,
   DEFAULT_SHOWCASE_COLOR,
   resolveShowcaseTheme,
 } from 'lib/characterPreview/color/showcaseColorService'
@@ -230,7 +234,6 @@ const ScoringPanel = memo(function ScoringPanel({ characterId, scoringType }: {
             value={String(deprioritizeBuffs)}
             onChange={(value) => onDeprioritizeBuffsChange(value === 'true')}
           />
-          <HorizontalDivider />
         </>
       )}
 
@@ -245,7 +248,6 @@ const ScoringPanel = memo(function ScoringPanel({ characterId, scoringType }: {
             value={String(spdValue)}
             onChange={(value) => onSpdValueChange(Number(value))}
           />
-          <HorizontalDivider />
         </>
       )}
 
@@ -330,8 +332,11 @@ const CustomizationPanel = memo(function CustomizationPanel({
 
   function onColorDrag(newColor: string) {
     setLocalColor(newColor)
-    // Imperatively update CSS vars for instant card preview without a React re-render
-    const theme = resolveShowcaseTheme(newColor, showcaseDarkMode)
+    // Imperatively update CSS vars for instant card preview without a React re-render.
+    // Must use the preset-aware pipeline config so drag preview matches the committed render;
+    // otherwise a trailing onChange after onChangeEnd clobbers the correct value with a DEFAULT_CONFIG-processed one.
+    const pipelineConfig = buildCardBgPipelineConfig(getShowcasePreset(showcasePreset))
+    const theme = resolveShowcaseTheme(newColor, showcaseDarkMode, pipelineConfig)
     const el = document.getElementById(id)
     if (el) {
       el.style.setProperty('--showcase-card-bg', withAlpha(theme.cardBackgroundColor, cardBgAlpha))
