@@ -181,6 +181,7 @@ const teammateOptionsMap = new Map<string, TeammateOption>()
 const boolFields: IndexedField[] = []
 const intFields: IndexedField[] = []
 export const teammateRelicOptions: TeammateOption[] = []
+const teammateRelicOptionsSet = new Set<TeammateOption['value']>()
 export const teammateOrnamentOptions: TeammateOption[] = []
 export const setToId = Object.fromEntries(
   ALL_CONFIGS.map((c) => [c.id, c.info.ingameId]),
@@ -209,6 +210,7 @@ for (const config of setConfigRegistry.values()) {
       teammateOptionsMap.set(option.value, option)
       if (isRelic) {
         teammateRelicOptions.push(option)
+        teammateRelicOptionsSet.add(option.value)
       } else {
         teammateOrnamentOptions.push(option)
       }
@@ -291,6 +293,10 @@ export function setToConditionalKey(set: Sets): SetConditionalI18nKey {
 
 export function getTeammateOption(key: string): TeammateOption | undefined {
   return teammateOptionsMap.get(key)
+}
+
+export function isRelicOption(value: TeammateOption['value']): boolean {
+  return teammateRelicOptionsSet.has(value)
 }
 
 export function generateSetCombatWgsl(action: OptimizerAction, context: OptimizerContext): string {

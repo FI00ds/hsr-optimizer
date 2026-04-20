@@ -533,7 +533,6 @@ export class BenchmarkSimulationOrchestrator {
     const teamOrnamentUpgradeResults = generateTeammateImprovements(
       this.originalSim!,
       this.form!,
-      this.context!,
       this.metadata,
       benchmarkScoringParams,
       this.baselineSimResult?.simScore!,

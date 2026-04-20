@@ -93,8 +93,7 @@ interface Resources {
           "CombatScoreTBD": "Combat (TBD)",
           "NoneScore": "None",
           "StatScore": "Stat Score"
-        },
-        "Title": "Scoring algorithm:"
+        }
       },
       "ArtBy": "Art by {{artistName}}",
       "BuildAnalysis": {
@@ -254,6 +253,8 @@ interface Resources {
         "MainStatHeader": "Main stat upgrade comparisons",
         "MainStatUpgrade": "Main Stat Upgrade",
         "SubStatUpgrade": "Substat Upgrade",
+        "TeammateUpgrade": "Teammate Upgrade",
+        "TeammatesHeader": "Teammate relic upgrade comparisons",
         "UpgradedDpsScore": "Upgraded DPS Score"
       }
     },

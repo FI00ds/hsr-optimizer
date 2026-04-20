@@ -3,6 +3,7 @@ import {
   Parts,
   Stats,
 } from 'lib/constants/constants'
+import { generateContext } from 'lib/optimization/context/calculateContext'
 import { applyScoringFunction } from 'lib/scoring/simScoringUtils'
 import type {
   ScoringParams,
@@ -30,7 +31,7 @@ export type SimulationStatUpgrade = {
   // set and teammate used for teammateOrnamentUpgrades
   set?: string,
   teammate?: typeof teammateKeys[number],
-  // always present, tagged as optional purely for convenience
+  // not present for teammateOrnamentUpgrades
   percent?: number,
 }
 
@@ -138,7 +139,6 @@ export function generateStatImprovements(
 export function generateTeammateImprovements(
   originalSim: Simulation,
   simulationForm: Form,
-  context: OptimizerContext,
   metadata: SimulationMetadata,
   scoringParams: ScoringParams,
   baselineSimScore: number,
@@ -151,18 +151,27 @@ export function generateTeammateImprovements(
     teammateOrnamentOptions.forEach((ornament) => {
       if (simulationForm[teammateKey].teamOrnamentSet === ornament.value) return
       const originalSimClone = clone(originalSim)
-      const form = { ...simulationForm, [teammateKey]: { ...simulationForm[teammateKey], teammateOrnamentOptions: ornament } }
+      const form = {
+        ...simulationForm,
+        [teammateKey]: {
+          ...simulationForm[teammateKey],
+          teamOrnamentSet: ornament.value,
+        },
+        trace: true,
+      }
+      const context = generateContext(form)
       const upgradeResult = runStatSimulations([originalSimClone], form, context, {
         ...scoringParams,
         substatRollsModifier: (num: number) => num,
       })[0]
       applyScoringFunction(upgradeResult, metadata, true, true)
       const teammateOrnamentUpgrade = {
-        set: ornament,
+        set: ornament.value,
         teammate: teammateKey,
         simulation: originalSimClone,
         simulationResult: upgradeResult,
       }
+      teamOrnamentUpgradeResults.push(teammateOrnamentUpgrade)
     })
   })
 
@@ -172,11 +181,17 @@ export function generateTeammateImprovements(
   teamOrnamentUpgradeResults.forEach((result) => {
     const resultSimScore = result.simulationResult.simScore
     result.percent = resultSimScore > benchmarkSimScore
-      ? (resultSimScore - benchmarkSimScore) / maximumDelta
+      ? 1 + (resultSimScore - benchmarkSimScore) / maximumDelta
       : (resultSimScore - baselineSimScore) / benchmarkDelta
   })
 
-  teamOrnamentUpgradeResults.sort((a, b) => b.percent! - a.percent!)
+  teamOrnamentUpgradeResults.sort((a, b) => {
+    const simScoreDelta = b.simulationResult.simScore - a.simulationResult.simScore
+    if (simScoreDelta) return simScoreDelta
+    const setDelta = a.set!.localeCompare(b.set!)
+    if (setDelta) return setDelta
+    return -1
+  })
 
   return teamOrnamentUpgradeResults
 }
