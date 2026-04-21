@@ -9,7 +9,6 @@ import type { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 import { BasicStatsArrayCore } from 'lib/optimization/basicStatsArray'
 import type { OptimizerDisplayData } from 'lib/optimization/bufferPacker'
 import { generateContext } from 'lib/optimization/context/calculateContext'
-import { GlobalRegister } from 'lib/optimization/engine/config/keys'
 import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { RelicFilters } from 'lib/relics/relicFilters'
 import { teammateOrnamentOptions } from 'lib/sets/setConfigRegistry'
@@ -19,7 +18,6 @@ import { simulateBuild } from 'lib/simulations/simulateBuild'
 import { runStatSimulations } from 'lib/simulations/statSimulation'
 import { StatSimTypes } from 'lib/simulations/statSimulationTypes'
 import type {
-  RunStatSimulationsResult,
   SimulationRelicByPart,
   SimulationRequest,
 } from 'lib/simulations/statSimulationTypes'
