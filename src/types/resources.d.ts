@@ -6525,6 +6525,13 @@ interface Resources {
           "SHIELD_VALUE_P": "Δ% Shield",
           "Substat": "+1x Substat"
         }
+      },
+      "TeammateUpgrades": {
+        "ColumnHeaders": {
+          "COMBO_DMG": "Δ Combo DMG",
+          "COMBO_DMG_P": "Δ% Combo DMG",
+          "Ornaments": "Teammate Ornament set upgrade"
+        }
       }
     },
     "FormRowLabels": {

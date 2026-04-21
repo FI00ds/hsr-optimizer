@@ -15,11 +15,13 @@ import { memo } from 'react'
 import { useToggle } from 'lib/hooks/useToggle'
 import { GlobalRegister } from 'lib/optimization/engine/config/keys'
 import { Caret } from 'lib/ui/Caret'
+import { useTranslation } from 'react-i18next'
 import styles from './TeammateUpgrades.module.css'
 
 export const TeammateUpgrades = memo(function TeammateUpgrades({ analysis }: { analysis: OptimizerResultAnalysis }) {
   const groupedUpgrades = calculateTeammateUpgrades(analysis)
   const [showOptionRows, toggleOptionRows] = useToggle()
+  const { t } = useTranslation('optimizerTab', { keyPrefix: 'ExpandedDataPanel.TeammateUpgrades.ColumnHeaders' })
 
   const baseSimScore = analysis.newX.getGlobalRegisterValue(GlobalRegister.COMBO_DMG)
 
@@ -32,10 +34,10 @@ export const TeammateUpgrades = memo(function TeammateUpgrades({ analysis }: { a
         <Table.Tr>
           <Table.Th className={styles.setsHeader} onClick={toggleOptionRows}>
             <Caret active={showOptionRows} />
-            Teammate Ornament set upgrade
+            {t('Ornaments')}
           </Table.Th>
-          <Table.Th className={styles.columnHeader}>Δ% Combo DMG</Table.Th>
-          <Table.Th className={styles.columnHeader}>Δ Combo DMG</Table.Th>
+          <Table.Th className={styles.columnHeader}>{t('COMBO_DMG_P')}</Table.Th>
+          <Table.Th className={styles.columnHeader}>{t('COMBO_DMG')}</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
