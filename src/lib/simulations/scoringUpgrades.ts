@@ -141,9 +141,6 @@ export function generateTeammateImprovements(
   simulationForm: Form,
   metadata: SimulationMetadata,
   scoringParams: ScoringParams,
-  baselineSimScore: number,
-  benchmarkSimScore: number,
-  maximumSimScore: number,
 ): SimulationStatUpgrade[] {
   const teamOrnamentUpgradeResults: SimulationStatUpgrade[] = []
 
@@ -174,25 +171,6 @@ export function generateTeammateImprovements(
       teamOrnamentUpgradeResults.push(teammateOrnamentUpgrade)
     })
   })
-
-  const maximumDelta = maximumSimScore - benchmarkSimScore
-  const benchmarkDelta = benchmarkSimScore - baselineSimScore
-
-  teamOrnamentUpgradeResults.forEach((result) => {
-    const resultSimScore = result.simulationResult.simScore
-    result.percent = resultSimScore > benchmarkSimScore
-      ? 1 + (resultSimScore - benchmarkSimScore) / maximumDelta
-      : (resultSimScore - baselineSimScore) / benchmarkDelta
-  })
-
-  teamOrnamentUpgradeResults.sort((a, b) => {
-    const simScoreDelta = b.simulationResult.simScore - a.simulationResult.simScore
-    if (simScoreDelta) return simScoreDelta
-    const setDelta = a.set!.localeCompare(b.set!)
-    if (setDelta) return setDelta
-    return -1
-  })
-
   return teamOrnamentUpgradeResults
 }
 

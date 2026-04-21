@@ -1,5 +1,5 @@
 .upgradeTable {
-  width: 100%;
+  width: 80%;
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -15,13 +15,15 @@
 
 .columnHeader {
   text-align: center !important;
-  width: 110px;
+  width: 25%;
 }
 
 .setsHeader {
   text-align: center !important;
-  width: 100px;
   background-color: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  gap: 16px;
 }
 
 .centeredCell {
@@ -29,6 +31,6 @@
 }
 
 .iconRow {
-  margin-left: 3px;
+  margin-left: 8px;
   align-content: center;
 }

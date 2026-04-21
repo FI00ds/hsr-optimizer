@@ -535,9 +535,6 @@ export class BenchmarkSimulationOrchestrator {
       this.form!,
       this.metadata,
       benchmarkScoringParams,
-      this.baselineSimResult?.simScore!,
-      this.benchmarkSimResult?.simScore!,
-      this.perfectionSimResult?.simScore!,
     )
 
     this.teammateOrnamentUpgradeResults = teamOrnamentUpgradeResults

@@ -59,8 +59,20 @@ type StatUpgrade = {
   x: ComputedStatsContainer,
 }
 
-interface TeammateSetUpgrade {
+export interface TeammateSetUpgrade {
   ids: Set<CharacterId>
+  set: Set<TeammateOption['value']>
+  oldSet?: TeammateOption['value']
+  simScore: number
+}
+interface PreTeammateSetUpgrade {
+  id: CharacterId
+  set: TeammateOption['value']
+  oldSet?: TeammateOption['value']
+  simScore: number
+}
+interface PreGroupedTeammateSetUpgrade {
+  id: CharacterId
   set: Set<TeammateOption['value']>
   oldSet?: TeammateOption['value']
   simScore: number
@@ -70,50 +82,73 @@ const teammateKeys = ['teammate0', 'teammate1', 'teammate2'] as const
 export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
   const { relicSetIndex, ornamentSetIndex } = analysis.newRowData
 
-  const baseCombo = analysis.newX.getGlobalRegisterValue(GlobalRegister.COMBO_DMG)
-
   const baseRequest = analysis.request
   const relicSets = relicSetIndexToNames(relicSetIndex)
   const ornamentSets = ornamentSetIndexToName(ornamentSetIndex)
   const simulationRequest = convertRelicsToSimulation(analysis.newRelics, relicSets[0], relicSets[1], ornamentSets) as SimulationRequest
 
-  const results: Array<RunStatSimulationsResult> = []
+  const results: Array<PreTeammateSetUpgrade> = []
+
   teammateKeys.forEach((key) => {
     teammateOrnamentOptions.forEach((option) => {
       if (option.value === baseRequest[key].teamOrnamentSet) return
       const request = { ...baseRequest, [key]: { ...baseRequest[key], teamOrnamentSet: option.value } }
       const context = generateContext(request)
       const result = runStatSimulations(
-        [{ request: clone(simulationRequest), simType: StatSimTypes.SubstatRolls, key: `${key}__BR__${option.value}` }],
+        [{ request: clone(simulationRequest), simType: StatSimTypes.SubstatRolls, key: option.value }],
         request,
         context,
       )[0]
-      results.push(result)
+      results.push({
+        id: baseRequest[key].characterId,
+        set: option.value,
+        oldSet: baseRequest[key].teamOrnamentSet,
+        simScore: result.simScore,
+      })
     })
   })
+
   results.sort((a, b) => {
-    const simScoreDelta = b.simScore - a.simScore
-    return simScoreDelta || -1
+    // ensure results stay grouped by character
+    const idDiff = a.id.localeCompare(b.id)
+    if (idDiff) return idDiff
+    return b.simScore - a.simScore
   })
 
-  const groupedResults: Array<TeammateSetUpgrade> = []
-
+  // group with same character, the results are already grouped by character so no need to search the array
+  const preGroupedResults: Array<PreGroupedTeammateSetUpgrade> = []
   results.forEach((result) => {
-    const latestGroup = groupedResults.at(-1)
-    const [teammateKey, newSet] = result.key!.split('__BR__') as [typeof teammateKeys[number], TeammateOption['value']]
+    const latestGroup = preGroupedResults.at(-1)
     if (
       latestGroup
-      && latestGroup.oldSet === baseRequest[teammateKey].teamOrnamentSet
+      && latestGroup.id === result.id
       && latestGroup.simScore === result.simScore
     ) {
-      latestGroup.set.add(newSet)
-      latestGroup.ids.add(baseRequest[teammateKey].characterId)
+      latestGroup.set.add(result.set)
+    } else {
+      preGroupedResults.push({
+        ...result,
+        set: new Set([result.set]),
+      })
+    }
+  })
+
+  preGroupedResults.sort((a, b) => b.simScore - a.simScore)
+
+  const groupedResults: Array<TeammateSetUpgrade> = []
+  preGroupedResults.forEach((group) => {
+    const latestGroup = groupedResults.at(-1)
+    if (
+      latestGroup
+      && latestGroup.oldSet === group.oldSet
+      && latestGroup.set.symmetricDifference(group.set).size === 0
+      && latestGroup.simScore === group.simScore
+    ) {
+      latestGroup.ids.add(group.id)
     } else {
       groupedResults.push({
-        ids: new Set([baseRequest[teammateKey].characterId]),
-        set: new Set([newSet]),
-        oldSet: baseRequest[teammateKey].teamOrnamentSet,
-        simScore: result.simScore,
+        ...group,
+        ids: new Set([group.id]),
       })
     }
   })

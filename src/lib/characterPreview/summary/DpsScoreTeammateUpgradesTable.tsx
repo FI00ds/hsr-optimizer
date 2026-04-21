@@ -16,13 +16,13 @@ import type { SimulationStatUpgrade } from 'lib/simulations/scoringUpgrades'
 import {
   memo,
   useMemo,
-  useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CharacterId } from 'types/character'
 import type { Form } from 'types/form'
 
 import { iconSize } from 'lib/constants/constantsUi'
+import { useToggle } from 'lib/hooks/useToggle'
 import { Assets } from 'lib/rendering/assets'
 import {
   getTeammateOption,
@@ -34,7 +34,6 @@ import styles from './DpsScoreTeammateUpgradesTable.module.css'
 const emptyGroupedUpgrade: GroupedUpgrade = {
   ids: new Set(),
   set: new Set(),
-  simScore: 0,
   data: {
     damagePercentUpgrade: null,
     damageValueUpgrade: null,
@@ -51,7 +50,7 @@ export const DpsScoreTeammateUpgradesTable = memo(function DpsScoreTeammateUpgra
 
   const { t } = useTranslation('charactersTab', { keyPrefix: 'CharacterPreview.SubstatUpgradeComparisons' })
 
-  const [showOptionRows, setShowOptionRows] = useState(false)
+  const [showOptionRows, toggleOptionRows] = useToggle()
 
   const sharedCols = useMemo(() => sharedScoreUpgradeColumns(t), [t])
 
@@ -61,7 +60,7 @@ export const DpsScoreTeammateUpgradesTable = memo(function DpsScoreTeammateUpgra
         <Table.Th
           className={styles.headerCell}
           onClick={() => {
-            if (result) setShowOptionRows(!showOptionRows)
+            if (result) toggleOptionRows()
           }}
         >
           <Flex style={{ gap: 16, marginLeft: 8, cursor: result === null ? undefined : 'pointer' }}>
@@ -133,37 +132,69 @@ interface GroupedUpgrade {
   ids: Set<CharacterId>
   set: Set<string>
   oldSet?: string
-  simScore: number
   data: Record<DataIndex, number | null>
 }
 
+interface PreGroupedUpgrade {
+  id: CharacterId
+  set: Set<string>
+  oldSet?: string
+  simScore: number
+}
+
 function groupUpgrades(upgrades: Array<SimulationStatUpgrade>, form: Form, originalSimScore: number): Array<GroupedUpgrade> {
-  const groupedUpgrades: Array<GroupedUpgrade> = []
+  upgrades.sort((a, b) => {
+    const indexDiff = a.teammate!.localeCompare(b.teammate!)
+    return indexDiff || b.simulationResult.simScore - a.simulationResult.simScore
+  })
+
+  const preGroupedUpgrades: Array<PreGroupedUpgrade> = []
   upgrades.forEach((upgrade) => {
-    const key = isRelicOption(upgrade.set!) ? 'teamRelicSet' : 'teamOrnamentSet'
-    const simScore = upgrade.simulationResult.simScore
-    const previousUpgrade = groupedUpgrades.at(-1)
+    const latestGroup = preGroupedUpgrades.at(-1)
+    const id = form[upgrade.teammate!].characterId
     if (
-      simScore === previousUpgrade?.simScore
-      && form[upgrade.teammate!][key] === previousUpgrade.oldSet
+      latestGroup
+      && latestGroup.id === id
+      && latestGroup.simScore === upgrade.simulationResult.simScore
     ) {
-      previousUpgrade.ids.add(form[upgrade.teammate!].characterId)
-      previousUpgrade.set.add(upgrade.set!)
+      latestGroup.set.add(upgrade.set!)
     } else {
-      groupedUpgrades.push({
-        simScore,
+      preGroupedUpgrades.push({
+        id,
         set: new Set([upgrade.set!]),
-        ids: new Set([form[upgrade.teammate!].characterId]),
-        oldSet: form[upgrade.teammate!][key],
+        oldSet: form[upgrade.teammate!].teamOrnamentSet,
+        simScore: upgrade.simulationResult.simScore,
+      })
+    }
+  })
+
+  preGroupedUpgrades.sort((a, b) => b.simScore - a.simScore)
+
+  const groupedUpgrades: Array<GroupedUpgrade> = []
+  preGroupedUpgrades.forEach((group) => {
+    const latestGroup = groupedUpgrades.at(-1)
+    if (
+      latestGroup
+      && latestGroup.oldSet === group.oldSet
+      && latestGroup.set.symmetricDifference(group.set).size === 0
+      && latestGroup.data.damageValueUpgrade === group.simScore - originalSimScore
+    ) {
+      latestGroup.ids.add(group.id)
+    } else {
+      const { id, simScore, ...rest } = group
+      groupedUpgrades.push({
+        ...rest,
+        ids: new Set([group.id]),
         data: {
           scorePercentUpgrade: null,
           scoreValueUpgrade: null,
-          damageValueUpgrade: simScore - originalSimScore,
-          damagePercentUpgrade: 100 * (simScore - originalSimScore) / originalSimScore,
+          damageValueUpgrade: group.simScore - originalSimScore,
+          damagePercentUpgrade: 100 * (group.simScore - originalSimScore) / originalSimScore,
         },
       })
     }
   })
+
   return groupedUpgrades
 }
 
