@@ -15,6 +15,7 @@ import {
 import type { OptimizerResultAnalysis } from 'lib/tabs/tabOptimizer/analysis/expandedDataPanelController'
 import { StatsDiffCard } from 'lib/tabs/tabOptimizer/analysis/StatsDiffCard'
 import { DamageUpgrades } from 'lib/tabs/tabOptimizer/analysis/SubstatUpgrades'
+import { TeammateUpgrades } from 'lib/tabs/tabOptimizer/analysis/TeammateUpgrades'
 import { FilterContainer } from 'lib/tabs/tabOptimizer/optimizerForm/layout/FilterContainer'
 import { FormRow } from 'lib/tabs/tabOptimizer/optimizerForm/layout/FormRow'
 import { OptimizerMenuIds } from 'lib/tabs/tabOptimizer/optimizerForm/layout/optimizerMenuIds'
@@ -82,6 +83,7 @@ function AnalysisRender({ analysis }: { analysis: OptimizerResultAnalysis }) {
                 <DamageUpgrades analysis={analysis} />
               </div>
             </div>
+            <TeammateUpgrades analysis={analysis} />
           </div>
 
           <BuffsAnalysisDisplay perActionBuffGroups={analysis.perActionBuffGroups} context={analysis.context} />

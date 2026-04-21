@@ -167,7 +167,7 @@ function groupUpgrades(upgrades: Array<SimulationStatUpgrade>, form: Form, origi
   return groupedUpgrades
 }
 
-function TeammateSetImageWithTooltip({ value, removed }: { value: string, removed?: boolean }) {
+export function TeammateSetImageWithTooltip({ value, removed }: { value: string, removed?: boolean }) {
   const { t } = useTranslation('optimizerTab', { keyPrefix: 'TeammateCard' })
   const height = iconSize
   const width = iconSize

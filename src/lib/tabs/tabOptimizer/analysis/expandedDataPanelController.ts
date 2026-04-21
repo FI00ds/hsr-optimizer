@@ -9,15 +9,17 @@ import type { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 import { BasicStatsArrayCore } from 'lib/optimization/basicStatsArray'
 import type { OptimizerDisplayData } from 'lib/optimization/bufferPacker'
 import { generateContext } from 'lib/optimization/context/calculateContext'
+import { GlobalRegister } from 'lib/optimization/engine/config/keys'
 import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { RelicFilters } from 'lib/relics/relicFilters'
+import { teammateOrnamentOptions } from 'lib/sets/setConfigRegistry'
 import { aggregatePerActionBuffs } from 'lib/simulations/combatBuffsAnalysis'
 import type { PerActionBuffGroups } from 'lib/simulations/combatBuffsAnalysis'
 import { simulateBuild } from 'lib/simulations/simulateBuild'
 import { runStatSimulations } from 'lib/simulations/statSimulation'
 import { StatSimTypes } from 'lib/simulations/statSimulationTypes'
 import type {
-  Simulation,
+  RunStatSimulationsResult,
   SimulationRelicByPart,
   SimulationRequest,
 } from 'lib/simulations/statSimulationTypes'
@@ -35,6 +37,7 @@ import { clone } from 'lib/utils/objectUtils'
 import type { CharacterId } from 'types/character'
 import type { OptimizerForm } from 'types/form'
 import type { OptimizerContext } from 'types/optimizer'
+import { type TeammateOption } from 'types/setConfig'
 
 export type OptimizerResultAnalysis = {
   oldRowData: OptimizerDisplayData,
@@ -56,6 +59,68 @@ type StatUpgrade = {
   x: ComputedStatsContainer,
 }
 
+interface TeammateSetUpgrade {
+  ids: Set<CharacterId>
+  set: Set<TeammateOption['value']>
+  oldSet?: TeammateOption['value']
+  simScore: number
+}
+
+const teammateKeys = ['teammate0', 'teammate1', 'teammate2'] as const
+export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
+  const { relicSetIndex, ornamentSetIndex } = analysis.newRowData
+
+  const baseCombo = analysis.newX.getGlobalRegisterValue(GlobalRegister.COMBO_DMG)
+
+  const baseRequest = analysis.request
+  const relicSets = relicSetIndexToNames(relicSetIndex)
+  const ornamentSets = ornamentSetIndexToName(ornamentSetIndex)
+  const simulationRequest = convertRelicsToSimulation(analysis.newRelics, relicSets[0], relicSets[1], ornamentSets) as SimulationRequest
+
+  const results: Array<RunStatSimulationsResult> = []
+  teammateKeys.forEach((key) => {
+    teammateOrnamentOptions.forEach((option) => {
+      if (option.value === baseRequest[key].teamOrnamentSet) return
+      const request = { ...baseRequest, [key]: { ...baseRequest[key], teamOrnamentSet: option.value } }
+      const context = generateContext(request)
+      const result = runStatSimulations(
+        [{ request: clone(simulationRequest), simType: StatSimTypes.SubstatRolls, key: `${key}__BR__${option.value}` }],
+        request,
+        context,
+      )[0]
+      results.push(result)
+    })
+  })
+  results.sort((a, b) => {
+    const simScoreDelta = b.simScore - a.simScore
+    return simScoreDelta || -1
+  })
+
+  const groupedResults: Array<TeammateSetUpgrade> = []
+
+  results.forEach((result) => {
+    const latestGroup = groupedResults.at(-1)
+    const [teammateKey, newSet] = result.key!.split('__BR__') as [typeof teammateKeys[number], TeammateOption['value']]
+    if (
+      latestGroup
+      && latestGroup.oldSet === baseRequest[teammateKey].teamOrnamentSet
+      && latestGroup.simScore === result.simScore
+    ) {
+      latestGroup.set.add(newSet)
+      latestGroup.ids.add(baseRequest[teammateKey].characterId)
+    } else {
+      groupedResults.push({
+        ids: new Set([baseRequest[teammateKey].characterId]),
+        set: new Set([newSet]),
+        oldSet: baseRequest[teammateKey].teamOrnamentSet,
+        simScore: result.simScore,
+      })
+    }
+  })
+
+  return groupedResults
+}
+
 export function calculateStatUpgrades(analysis: OptimizerResultAnalysis) {
   const { relicSetIndex, ornamentSetIndex } = analysis.newRowData
 
@@ -71,7 +136,7 @@ export function calculateStatUpgrades(analysis: OptimizerResultAnalysis) {
     const upgradeSim = clone(simulationRequest)
     upgradeSim.stats[substat] = (upgradeSim.stats[substat] ?? 0) + 1.0
 
-    const simResult = runStatSimulations([{ request: upgradeSim, simType: StatSimTypes.SubstatRolls, key: substat } as Simulation], request, context)[0]
+    const simResult = runStatSimulations([{ request: upgradeSim, simType: StatSimTypes.SubstatRolls, key: substat }], request, context)[0]
     statUpgrades.push({
       stat: substat,
       simRequest: upgradeSim,
