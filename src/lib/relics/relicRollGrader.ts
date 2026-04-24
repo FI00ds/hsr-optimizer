@@ -70,28 +70,39 @@ export const RelicRollGrader = {
 
     const maxAddedRolls = Math.floor(relic.enhance / 3)
     const numSubstats = relic.substats.length
-    
+
+    // Memoized; many distributions query the same (i, totalRolls).
+    const splitCache: { rolls: StatRolls, error: number }[][] = []
+    for (let i = 0; i < numSubstats; i++) {
+      const substat = relic.substats[i]
+      const incrementOptions = SubStatValues[substat.stat][relic.grade as 5 | 4 | 3 | 2]
+      splitCache[i] = []
+      for (let totalRolls = 1; totalRolls <= maxAddedRolls + 1; totalRolls++) {
+        splitCache[i][totalRolls] = findBestRollSplit(substat.value, totalRolls, incrementOptions)
+      }
+    }
+
     let bestDistError = Infinity
     let bestDistResults: { addedRolls: number, rolls: StatRolls }[] | null = null
 
-    for (let budget = 0; budget <= maxAddedRolls; budget++) {
+    // Descending so ties favor the higher budget — well-formed relics always have
+    // floor(enhance/3) added rolls.
+    for (let budget = maxAddedRolls; budget >= 0; budget--) {
       const distributions = generateDistributions(budget, numSubstats)
-      
+
       for (const dist of distributions) {
         let distError = 0
         const distResults: { addedRolls: number, rolls: StatRolls }[] = []
-        
+
         for (let i = 0; i < numSubstats; i++) {
-          const substat = relic.substats[i]
-          const incrementOptions = SubStatValues[substat.stat][relic.grade as 5 | 4 | 3 | 2]
           const addedRolls = dist[i]
-          const totalRolls = addedRolls + 1
-          
-          const bestSplit = findBestRollSplit(substat.value, totalRolls, incrementOptions)
+          const bestSplit = splitCache[i][addedRolls + 1]
           distError += bestSplit.error
           distResults.push({ addedRolls, rolls: bestSplit.rolls })
         }
-        
+
+        // Without rounding, fp noise breaks tie resolution under strict <.
+        distError = precisionRound(distError)
         if (distError < bestDistError) {
           bestDistError = distError
           bestDistResults = distResults
