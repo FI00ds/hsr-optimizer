@@ -27,10 +27,8 @@ CharacterMenu:
       SortByScore: 캐릭터를 점수 순으로 정렬
       MoveToTop: 캐릭터를 최상단으로 이동
 SearchPlaceholder: 검색
-GridHeaders:
-  Icon: 아이콘
-  Priority: 우선순위
-  Character: 캐릭터
+GridDensityOptions:
+  default: 기본
 Messages:
   RemoveSuccess: 캐릭터를 삭제했습니다.
   UnequipSuccess: 유물을 제거했습니다.
@@ -83,7 +81,6 @@ CharacterPreview:
     SavedPortrait: 일러스트를 저장했습니다.
     RevertedPortrait: 일러스트를 초기화했습니다.
     NoSelectedCharacter: 선택된 캐릭터가 없습니다.
-    NoSelectedLightCone: 광추 선택되지 않음
   ScoreHeader:
     Title: 전투 시뮬레이션
     TitleBenchmark: '{{spd}} 속도 벤치마크'

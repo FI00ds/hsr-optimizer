@@ -9,6 +9,7 @@ import { Parts } from 'lib/constants/constants'
 import {
   relicCardH,
   relicCardW,
+  separatorColor,
 } from 'lib/constants/constantsUi'
 import { type RelicScoringResult } from 'lib/relics/scoring/relicScorer'
 import { Assets } from 'lib/rendering/assets'
@@ -57,6 +58,7 @@ const PLACEHOLDER_RELIC: Partial<Relic> = {
 
 export const RelicPreview = memo(function RelicPreview(props: {
   relic?: Relic | null,
+  part?: Parts,
   source?: ShowcaseSource,
   characterId?: CharacterId | null,
   score?: RelicScoringResult,
@@ -96,12 +98,8 @@ export const RelicPreview = memo(function RelicPreview(props: {
     if ((!relic.id && !characterId) || source === ShowcaseSource.SHOWCASE_TAB || source === ShowcaseSource.BUILDS_MODAL) return
 
     if (!relic.id && characterId) {
-      relic.equippedBy = characterId
-      relic.enhance = 15
-      relic.grade = 5
-      relic.part = props.relic?.part ?? Parts.Head
-      setSelectedRelic?.(relic)
-      setAddModalOpen?.(true, relic.part, relic)
+      const part = props.part ?? props.relic?.part ?? Parts.Head
+      setAddModalOpen?.(true, part, undefined)
     } else {
       setSelectedRelic?.(relic)
       setEditModalOpen?.(true, relic)
@@ -192,7 +190,7 @@ export const RelicPreview = memo(function RelicPreview(props: {
 })
 
 // CSS divider - lighter than Mantine Divider component
-const relicDividerStyle: React.CSSProperties = { margin: '6px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.10)' }
+const relicDividerStyle: React.CSSProperties = { margin: '6px 0', borderBottom: `1px solid ${separatorColor}` }
 
 function RelicDivider() {
   return <span style={relicDividerStyle} />

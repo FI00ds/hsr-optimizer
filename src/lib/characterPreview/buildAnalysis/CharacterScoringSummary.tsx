@@ -147,7 +147,7 @@ function BenchmarkDefaultLayout() {
               <div className={classes.sectionLabel} style={{ margin: '5px auto' }}>
                 {t('SimulationSets')}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: defaultGap }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
                 <div style={{ display: 'flex' }}>
                   <SuspenseNode
                     selector={(score: SimulationScore | null) =>
@@ -305,7 +305,7 @@ export const CharacterScoringSummary = memo(function CharacterScoringSummary({
         {/* Grade ruler */}
         <DeferCreate>
           <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 5, width: '100%' }}>
-            {source !== ShowcaseSource.SHOWCASE_TAB && <DPSScoreDisclaimer />}
+            <DPSScoreDisclaimer />
             <div className={classes.mainTitle}>
               <ColorizedTitleWithInfo
                 text={t('CharacterPreview.BuildAnalysis.Header')}

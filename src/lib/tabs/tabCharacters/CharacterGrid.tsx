@@ -6,6 +6,7 @@ import {
   DragOverlay,
   type DragStartEvent,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -47,7 +48,7 @@ import {
 } from 'lib/stores/character/characterStore'
 import { CharacterTabController } from 'lib/tabs/tabCharacters/characterTabController'
 import { useCharacterTabStore } from 'lib/tabs/tabCharacters/useCharacterTabStore'
-import { updateCharacter } from 'lib/tabs/tabOptimizer/optimizerForm/optimizerFormActions'
+import { switchToCharacter } from 'lib/tabs/tabOptimizer/optimizerForm/optimizerFormActions'
 import { showImageOnLoad } from 'lib/utils/frontendUtils'
 import { afterPaint } from 'lib/utils/frontendUtils'
 import {
@@ -109,11 +110,6 @@ const dropAnimationConfig: DropAnimation = {
   }),
 }
 
-// Progressive image loading: set src on the first visible rows immediately,
-// then trickle one-by-one to avoid concurrent requests competing for bandwidth.
-const INITIAL_LOAD_COUNT = 12
-const TRICKLE_DELAY = 50
-
 export function CharacterGrid() {
   const gridRef = useRef<HTMLDivElement>(null)
   const osRef = useCallback((instance: OverlayScrollbarsComponentRef<'div'> | null) => {
@@ -153,6 +149,7 @@ export function CharacterGrid() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
   )
 
   function handleDragStart(event: DragStartEvent) {
@@ -196,7 +193,7 @@ export function CharacterGrid() {
 
   const handleRowDoubleClick = useCallback((characterId: CharacterId) => {
     useGlobalStore.getState().setActiveKey(AppPages.OPTIMIZER)
-    updateCharacter(characterId)
+    switchToCharacter(characterId)
   }, [])
 
   const handleEdit = useCallback((characterId: CharacterId) => {
@@ -236,13 +233,12 @@ export function CharacterGrid() {
         onDragCancel={handleDragCancel}
       >
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-          {filteredCharacters.map((character, i) => (
+          {filteredCharacters.map((character) => (
             <SortableCharacterRow
               key={character.id}
               character={character}
               rank={rankMap.get(character.id) ?? 0}
               isFocused={character.id === displayFocus}
-              loadDelay={i < INITIAL_LOAD_COUNT ? 0 : (i - INITIAL_LOAD_COUNT + 1) * TRICKLE_DELAY}
               onClick={handleRowClick}
               onDoubleClick={handleRowDoubleClick}
               onEdit={handleEdit}
@@ -267,7 +263,6 @@ type CharacterRowProps = {
   character: Character,
   rank: number,
   isFocused: boolean,
-  loadDelay: number,
   onClick: (id: CharacterId) => void,
   onDoubleClick: (id: CharacterId) => void,
   onEdit: (id: CharacterId) => void,
@@ -275,27 +270,40 @@ type CharacterRowProps = {
 }
 
 const SortableCharacterRow = memo(
-  function SortableCharacterRow({ character, rank, isFocused, loadDelay, onClick, onDoubleClick, onEdit, onRemove }: CharacterRowProps) {
+  function SortableCharacterRow({ character, rank, isFocused, onClick, onDoubleClick, onEdit, onRemove }: CharacterRowProps) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
       id: character.id,
       animateLayoutChanges: () => false,
     })
     const scrollRef = useRef<HTMLDivElement>(null)
 
-    // Per-row staggered image loading — replaces parent-level trickle to avoid parent re-renders
-    const [loadImages, setLoadImages] = useState(loadDelay === 0)
-    useEffect(() => {
-      if (loadDelay === 0) return
-      const timer = setTimeout(() => setLoadImages(true), loadDelay)
-      return () => clearTimeout(timer)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []) // mount-only: delay is captured from initial render
+    // Load-once, gated on viewport intersection. Never reverts — keeps `src`
+    // set to avoid re-decode flashes on scroll or tab-switch.
+    const [loadImages, setLoadImages] = useState(false)
 
     useEffect(() => {
       if (isFocused) {
         scrollRef.current?.scrollIntoView({ block: 'nearest' })
       }
     }, [isFocused])
+
+    useEffect(() => {
+      const el = scrollRef.current
+      if (!el) return
+      const observer = new IntersectionObserver(
+        ([entry], obs) => {
+          if (entry.isIntersecting) {
+            setLoadImages(true)
+            obs.disconnect() // load-once — no point watching after src is set
+          }
+        },
+        { rootMargin: '500px 0px', threshold: 0 },
+      )
+      observer.observe(el)
+      return () => {
+        observer.disconnect()
+      }
+    }, [character.id])
 
     const mergedRef = useMergedRef(setNodeRef, scrollRef)
 
@@ -306,12 +314,13 @@ const SortableCharacterRow = memo(
       [showcaseColor],
     )
 
-    const style: React.CSSProperties = {
+    const rootStyle: React.CSSProperties = {
       transform: CSS.Translate.toString(transform),
       transition: transform ? transition : undefined,
-      backgroundColor,
       opacity: isDragging ? 0.4 : undefined,
     }
+
+    const frameStyle: React.CSSProperties = { backgroundColor }
 
     return (
       <div
@@ -319,19 +328,21 @@ const SortableCharacterRow = memo(
         className={classes.root}
         data-selected={isFocused}
         data-scrim-mode='frosted'
-        style={style}
+        style={rootStyle}
         onClick={() => onClick(character.id)}
         onDoubleClick={() => onDoubleClick(character.id)}
         {...attributes}
         {...listeners}
       >
-        <CharacterRowContent
-          character={character}
-          rank={rank}
-          loadImages={loadImages}
-          onEdit={onEdit}
-          onRemove={onRemove}
-        />
+        <div className={classes.frame} style={frameStyle}>
+          <CharacterRowContent
+            character={character}
+            rank={rank}
+            loadImages={loadImages || isFocused}
+            onEdit={onEdit}
+            onRemove={onRemove}
+          />
+        </div>
       </div>
     )
   },
@@ -350,9 +361,8 @@ function DragOverlayRow({ character, rank }: {
 }) {
   const showcaseColor = getCharacterConfig(character.id)?.display.showcaseColor
 
-  const style: React.CSSProperties = {
+  const frameStyle: React.CSSProperties = {
     backgroundColor: showcaseColor ? oklchCharacterListColor(showcaseColor, true, DEFAULT_CONFIG) : undefined,
-    cursor: 'grabbing',
   }
 
   return (
@@ -360,15 +370,17 @@ function DragOverlayRow({ character, rank }: {
       className={classes.root}
       data-dragging='true'
       data-scrim-mode='frosted'
-      style={style}
+      style={{ cursor: 'grabbing' }}
     >
-      <CharacterRowContent
-        character={character}
-        rank={rank}
-        loadImages={true}
-        onEdit={noop}
-        onRemove={noop}
-      />
+      <div className={classes.frame} style={frameStyle}>
+        <CharacterRowContent
+          character={character}
+          rank={rank}
+          loadImages={true}
+          onEdit={noop}
+          onRemove={noop}
+        />
+      </div>
     </div>
   )
 }
@@ -399,6 +411,7 @@ const CharacterRowContent = memo(function CharacterRowContent({ character, rank,
           alt=''
           draggable={false}
           decoding='async'
+          onLoad={showImageOnLoad}
           style={getCharacterConfig(character.id)?.display.gridPortraitOffset
             ? { marginTop: -(getCharacterConfig(character.id)?.display.gridPortraitOffset ?? 0) }
             : undefined}
@@ -439,7 +452,13 @@ const CharacterRowContent = memo(function CharacterRowContent({ character, rank,
         {/* Light cone icon */}
         {lightConeId && (
           <div className={classes.lcWrap} data-lc-style='shadow'>
-            <img src={loadImages ? Assets.getLightConeIconById(lightConeId) : undefined} alt='' draggable={false} decoding='async' onLoad={showImageOnLoad} />
+            <img
+              src={loadImages ? Assets.getLightConeIconById(lightConeId) : undefined}
+              alt=''
+              draggable={false}
+              decoding='async'
+              onLoad={showImageOnLoad}
+            />
           </div>
         )}
       </div>

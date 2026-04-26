@@ -26,12 +26,24 @@ import {
 } from 'lib/optimization/engine/config/keys'
 import { type ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import {
+  applySemiJoinReduction,
   bitpackBooleanArray,
+  computeValidPermutationCount,
   generateOrnamentSetSolutions,
   generateRelicSetSolutions,
 } from 'lib/optimization/relicSetSolver'
 import { SortOption } from 'lib/optimization/sortOptions'
-import { RelicFilters } from 'lib/relics/relicFilters'
+import {
+  type PartCountsBySet,
+  RelicFilters,
+  zeroCountsBySet,
+} from 'lib/relics/relicFilters'
+import {
+  OrnamentSetToIndex,
+  RelicSetToIndex,
+  type SetsOrnaments,
+  type SetsRelics,
+} from 'lib/sets/setConfigRegistry'
 import { logRegisters } from 'lib/simulations/registerLogger'
 import { simulateBuild } from 'lib/simulations/simulateBuild'
 import {
@@ -75,6 +87,17 @@ type OptimizerWorkerResult = {
 
 // Buffer pool managed by the optimizer
 const optimizerBuffers: ArrayBuffer[] = []
+
+function countRelicsBySet(relicsByPart: RelicsByPart): PartCountsBySet {
+  const out = zeroCountsBySet()
+  for (const r of relicsByPart.Head) out.Head[RelicSetToIndex[r.set as SetsRelics]]++
+  for (const r of relicsByPart.Hands) out.Hands[RelicSetToIndex[r.set as SetsRelics]]++
+  for (const r of relicsByPart.Body) out.Body[RelicSetToIndex[r.set as SetsRelics]]++
+  for (const r of relicsByPart.Feet) out.Feet[RelicSetToIndex[r.set as SetsRelics]]++
+  for (const r of relicsByPart.PlanarSphere) out.PlanarSphere[OrnamentSetToIndex[r.set as SetsOrnaments]]++
+  for (const r of relicsByPart.LinkRope) out.LinkRope[OrnamentSetToIndex[r.set as SetsOrnaments]]++
+  return out
+}
 
 function acquireBuffer(): ArrayBuffer {
   if (optimizerBuffers.length > 0) {
@@ -170,11 +193,18 @@ export const Optimizer = {
     }
     CANCEL = false
 
-    const [relics] = this.getFilteredRelics(request)
+    let [relics] = this.getFilteredRelics(request)
     RelicFilters.condenseRelicSubstatsForOptimizer(relics)
 
     const relicSetSolutions = generateRelicSetSolutions(request)
     const ornamentSetSolutions = generateOrnamentSetSolutions(request)
+
+    // Semi-join reduction: eliminate relics whose set can't participate in any valid tuple
+    const hasRelicFilter = (request.relicSets?.length ?? 0) > 0
+    const hasOrnamentFilter = (request.ornamentSets?.length ?? 0) > 0
+    if (hasRelicFilter || hasOrnamentFilter) {
+      relics = applySemiJoinReduction(relics, relicSetSolutions, ornamentSetSolutions)
+    }
 
     const sizes = {
       hSize: relics.Head.length,
@@ -188,8 +218,15 @@ export const Optimizer = {
     const permutations = sizes.hSize * sizes.gSize * sizes.bSize * sizes.fSize * sizes.pSize * sizes.lSize
     OptimizerTabController.setMetadata(sizes, relics)
 
-    console.log(`Optimization permutations: ${permutations}, blocksize: ${Constants.THREAD_BUFFER_LENGTH}`)
-    if (permutations == 0) {
+    // Valid permutations accounting for set constraints (may be less than naive slot-product)
+    const relicsBySet = countRelicsBySet(relics)
+    const validPermutations = computeValidPermutationCount(relicsBySet, relicSetSolutions, ornamentSetSolutions)
+    const progressScale = permutations > 0 ? validPermutations / permutations : 0
+    useOptimizerDisplayStore.getState().setPermutations(validPermutations)
+    useOptimizerDisplayStore.getState().setPermutationsNaive(permutations)
+
+    console.log(`Optimization permutations: ${permutations} (valid: ${validPermutations}), blocksize: ${Constants.THREAD_BUFFER_LENGTH}`)
+    if (permutations == 0 || validPermutations == 0) {
       useOptimizerDisplayStore.getState().setOptimizationInProgress(false)
       activateZeroPermutationsSuggestionsModal(request)
       OptimizerTabController.setRows([])
@@ -249,6 +286,7 @@ export const Optimizer = {
               request: request,
               relics: relics,
               permutations: permutations,
+              validPermutations: validPermutations,
               computeEngine: computeEngine,
               relicSetSolutions: relicSetSolutions,
               ornamentSetSolutions: ornamentSetSolutions,
@@ -277,6 +315,18 @@ export const Optimizer = {
 
       useOptimizerDisplayStore.getState().setOptimizerStartTime(Date.now())
       useOptimizerDisplayStore.getState().setOptimizerRunningEngine(COMPUTE_ENGINE_CPU)
+
+      function finalize() {
+        useOptimizerDisplayStore.getState().setOptimizationInProgress(false)
+        results = queueResults.toArray()
+        results.sort((a, b) => (b[gridSortColumn] as number) - (a[gridSortColumn] as number))
+        OptimizerTabController.setRows(results)
+        setSortColumn(gridSortColumn)
+        gridStore.optimizerGridApi()?.updateGridOptions({
+          datasource: OptimizerTabController.getDataSource({ colId: gridSortColumn, sort: 'desc' }),
+        })
+        resultsShown = true
+      }
 
       function dispatchNextRun() {
         if (CANCEL || nextRunIndex >= runs.length) return
@@ -326,9 +376,11 @@ export const Optimizer = {
           const resultArr = new Float32Array(result.buffer)
           BufferPacker.extractArrayToResults(resultArr, run.runSize, queueResults, taskInput.skip, gridSortColumn)
 
+          // Rescale searched count into valid-permutation space for progress display
           useOptimizerDisplayStore.setState({
             permutationsResults: queueResults.size(),
-            permutationsSearched: Math.min(permutations, searched),
+            permutationsSearched: Math.min(validPermutations, Math.round(searched * progressScale)),
+            optimizerProgress: searched / permutations,
             optimizerEndTime: Date.now(),
           })
 
@@ -337,15 +389,8 @@ export const Optimizer = {
           releaseRetryBuffer(taskInput, result.buffer)
 
           if ((inProgress === 0 && nextRunIndex >= runs.length) || CANCEL) {
-            useOptimizerDisplayStore.getState().setOptimizationInProgress(false)
-            results = queueResults.toArray()
-
-            OptimizerTabController.setRows(results)
-            setSortColumn(gridSortColumn)
-
-            gridStore.optimizerGridApi()?.updateGridOptions({ datasource: OptimizerTabController.getDataSource() })
+            finalize()
             console.log('Done', results.length)
-            resultsShown = true
             if (!results.length && !inProgress) activateZeroResultSuggestionsModal(request)
             return
           }
@@ -361,12 +406,7 @@ export const Optimizer = {
           releaseBuffer(BufferPacker.createFloatBuffer(Constants.THREAD_BUFFER_LENGTH))
 
           if (inProgress === 0 && nextRunIndex >= runs.length) {
-            useOptimizerDisplayStore.getState().setOptimizationInProgress(false)
-            results = queueResults.toArray()
-            OptimizerTabController.setRows(results)
-            setSortColumn(gridSortColumn)
-            gridStore.optimizerGridApi()?.updateGridOptions({ datasource: OptimizerTabController.getDataSource() })
-            resultsShown = true
+            finalize()
             if (!results.length) activateZeroResultSuggestionsModal(request)
             return
           }

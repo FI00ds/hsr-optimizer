@@ -21,11 +21,11 @@ import { CharacterMenu } from 'lib/tabs/tabCharacters/CharacterMenu'
 import { CharacterTabController } from 'lib/tabs/tabCharacters/characterTabController'
 import { FilterBar } from 'lib/tabs/tabCharacters/FilterBar'
 import { useCharacterTabStore } from 'lib/tabs/tabCharacters/useCharacterTabStore'
-import { useDeferReveal } from 'lib/ui/DeferredRender'
 import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
 } from 'react'
 import type {
@@ -38,11 +38,9 @@ import {
   defaultGap,
   parentH,
 } from 'lib/constants/constantsUi'
+import { useTranslation } from 'react-i18next'
 
-const densityOptions = [
-  { value: 'default', label: 'Default' },
-  { value: 'compact', label: 'Compact' },
-]
+const densityValues = ['default', 'compact'] as const
 
 export function CharacterTab() {
   // Only sync when optimizer focus changed — otherwise tab revisits stomp the user's selection.
@@ -62,7 +60,6 @@ export function CharacterTab() {
 
   const focusCharacter = useCharacterTabStore((s) => s.focusCharacter)
   const selectedCharacter = useCharacterStore((s) => focusCharacter ? s.charactersById[focusCharacter] : null) ?? null
-  const containerRef = useDeferReveal()
 
   const density = useGlobalStore((s) => s.savedSession.characterGridDensity)
   const preset = characterGridPresets[density]
@@ -87,9 +84,12 @@ export function CharacterTab() {
     }
   }, [])
 
+  const { t } = useTranslation('charactersTab', { keyPrefix: 'GridDensityOptions' })
+
+  const densityOptions = useMemo(() => densityValues.map((x) => ({ value: x, label: t(x) })), [t])
+
   return (
     <Flex
-      ref={containerRef}
       style={{
         height: '100%',
         marginBottom: 200,

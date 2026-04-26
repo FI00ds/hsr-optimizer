@@ -38,6 +38,11 @@ export type OptimizerDisplayState = {
   focusCharacterId: CharacterId | undefined,
   context: OptimizerContext | null,
   permutations: number,
+  // Naive slot-product: the size of the search index space the worker actually
+  // iterates, distinct from `permutations` which is the set-constrained valid count.
+  // Used to gate the ManyPermsModal (CPU-work warning), since runtime scales with
+  // the naive product regardless of how many valid set tuples exist.
+  permutationsNaive: number,
   permutationDetails: PermutationDetails,
   optimizationInProgress: boolean,
   optimizationId: string | null,
@@ -46,11 +51,13 @@ export type OptimizerDisplayState = {
   optimizerEndTime: number | null,
   permutationsSearched: number,
   permutationsResults: number,
+  optimizerProgress: number,
   optimizerBuild: Build | null,
   optimizerSelectedRowData: OptimizerDisplayDataStatSim | null,
   statSimulationDisplay: StatSimTypes,
   statSimulations: Simulation[],
   selectedStatSimulations: Simulation['key'][],
   characterSelectModalOpen: boolean,
+  lightConeSelectModalOpen: boolean,
   menuState: Record<string, boolean>,
 }

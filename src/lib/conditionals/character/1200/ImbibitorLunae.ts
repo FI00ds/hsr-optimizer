@@ -246,6 +246,7 @@ const simulation = (): SimulationMetadata => ({
   ],
   relicSets: [
     [Sets.MusketeerOfWildWheat, Sets.MusketeerOfWildWheat],
+    [Sets.GeniusOfBrilliantStars, Sets.GeniusOfBrilliantStars],
     [Sets.WastelanderOfBanditryDesert, Sets.WastelanderOfBanditryDesert],
     ...SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
   ],
@@ -328,7 +329,7 @@ const display = {
     y: 979,
     z: 1.05,
   },
-  showcaseColor: '#00b6d2',
+  showcaseColor: '#90bfd6',
 }
 
 export const ImbibitorLunae: CharacterConfig = {

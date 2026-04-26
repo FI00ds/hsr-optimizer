@@ -1,3 +1,4 @@
+import type { ShowcasePreset } from 'lib/characterPreview/debugVisualConfigStore'
 import type { AppPages } from 'lib/constants/appPages'
 import type {
   ComputeEngine,
@@ -40,7 +41,9 @@ export type GlobalSavedSession = {
   computeEngine: ComputeEngine,
   showcaseStandardMode: boolean,
   showcaseDarkMode: boolean,
+  showcasePreset: ShowcasePreset,
   showcaseUID: boolean,
+  showcaseL2D: boolean,
   showcasePreciseSpd: boolean,
   sidebarCollapsed: boolean,
   characterGridDensity: CharacterGridDensity,
@@ -52,6 +55,7 @@ export type UserSettings = {
   ExpandedInfoPanelPosition: string,
   ShowLocatorInRelicsModal: string,
   ShowComboDmgWarning: string,
+  NewCharacterDefaultRank: string,
 }
 
 // The JSON format we save to localstorage / save file

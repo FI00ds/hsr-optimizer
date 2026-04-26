@@ -564,12 +564,21 @@ const display = {
     y: 1230,
     z: 1.65,
   },
+  backgroundOffset: {
+    x: 0,
+    y: 500,
+  },
   spineCenter: {
     x: 971,
     y: 1215,
     z: 1.7,
   },
-  showcaseColor: '#a888f0',
+  backgroundCenterOffset: {
+    x: 144,
+    y: 384,
+    z: -0.5,
+  },
+  showcaseColor: '#301a66',
 }
 
 export function getCyreneAction(action: OptimizerAction) {

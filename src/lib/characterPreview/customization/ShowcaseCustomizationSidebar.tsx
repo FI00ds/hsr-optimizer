@@ -7,8 +7,10 @@ import {
 import {
   IconCamera,
   IconCheck,
+  IconCircleHalf2,
   IconDownload,
   IconMoon,
+  IconPalette,
   IconSettings,
   IconSun,
   IconX,
@@ -17,6 +19,11 @@ import i18next from 'i18next'
 import { ShowcaseSource } from 'lib/characterPreview/CharacterPreviewComponents'
 import { withAlpha } from 'lib/characterPreview/color/colorUtils'
 import {
+  getShowcasePreset,
+  ShowcasePreset,
+} from 'lib/characterPreview/debugVisualConfigStore'
+import {
+  buildCardBgPipelineConfig,
   DEFAULT_SHOWCASE_COLOR,
   resolveShowcaseTheme,
 } from 'lib/characterPreview/color/showcaseColorService'
@@ -45,6 +52,7 @@ import { useScoringMetadata } from 'lib/hooks/useScoringMetadata'
 import { useScreenshotAction } from 'lib/hooks/useScreenshotAction'
 import { Assets } from 'lib/rendering/assets'
 import { ScoringType } from 'lib/scoring/simScoringUtils'
+import { getGameMetadata } from 'lib/state/gameMetadata'
 import { SaveState } from 'lib/state/saveState'
 import { useGlobalStore } from 'lib/stores/app/appStore'
 import {
@@ -227,7 +235,6 @@ const ScoringPanel = memo(function ScoringPanel({ characterId, scoringType }: {
             value={String(deprioritizeBuffs)}
             onChange={(value) => onDeprioritizeBuffsChange(value === 'true')}
           />
-          <HorizontalDivider />
         </>
       )}
 
@@ -242,7 +249,6 @@ const ScoringPanel = memo(function ScoringPanel({ characterId, scoringType }: {
             value={String(spdValue)}
             onChange={(value) => onSpdValueChange(Number(value))}
           />
-          <HorizontalDivider />
         </>
       )}
 
@@ -314,7 +320,10 @@ const CustomizationPanel = memo(function CustomizationPanel({
 }) {
   const { t: tCustomization } = useTranslation('charactersTab', { keyPrefix: 'CharacterPreview.CustomizationSidebar' })
   const showcaseDarkMode = useGlobalStore((s) => s.savedSession.showcaseDarkMode)
+  const showcasePreset = useGlobalStore((s) => s.savedSession.showcasePreset)
   const showcaseUID = useGlobalStore((s) => s.savedSession.showcaseUID)
+  const showcaseL2D = useGlobalStore((s) => s.savedSession.showcaseL2D)
+  const disableSpine = getGameMetadata().characters[characterId]?.disableSpine ?? false
 
   // setState-during-render (React 19): syncs local drag color to external seedColor without an extra effect render.
   const [localColor, setLocalColor] = useState(seedColor)
@@ -326,8 +335,11 @@ const CustomizationPanel = memo(function CustomizationPanel({
 
   function onColorDrag(newColor: string) {
     setLocalColor(newColor)
-    // Imperatively update CSS vars for instant card preview without a React re-render
-    const theme = resolveShowcaseTheme(newColor, showcaseDarkMode)
+    // Imperatively update CSS vars for instant card preview without a React re-render.
+    // Must use the preset-aware pipeline config so drag preview matches the committed render;
+    // otherwise a trailing onChange after onChangeEnd clobbers the correct value with a DEFAULT_CONFIG-processed one.
+    const pipelineConfig = buildCardBgPipelineConfig(getShowcasePreset(showcasePreset))
+    const theme = resolveShowcaseTheme(newColor, showcaseDarkMode, pipelineConfig)
     const el = document.getElementById(id)
     if (el) {
       el.style.setProperty('--showcase-card-bg', withAlpha(theme.cardBackgroundColor, cardBgAlpha))
@@ -349,8 +361,18 @@ const CustomizationPanel = memo(function CustomizationPanel({
     SaveState.delayedSave()
   }
 
+  function onPresetChange(preset: ShowcasePreset) {
+    useGlobalStore.getState().setSavedSessionKey(SavedSessionKeys.showcasePreset, preset)
+    SaveState.delayedSave()
+  }
+
   function onShowUIDChange(showUID: boolean) {
     useGlobalStore.getState().setSavedSessionKey(SavedSessionKeys.showcaseUID, showUID)
+    SaveState.delayedSave()
+  }
+
+  function onShowL2DChange(showL2D: boolean) {
+    useGlobalStore.getState().setSavedSessionKey(SavedSessionKeys.showcaseL2D, showL2D)
     SaveState.delayedSave()
   }
 
@@ -378,8 +400,18 @@ const CustomizationPanel = memo(function CustomizationPanel({
 
       <SegmentedControl
         data={[
-          { value: 'false', label: <IconSun size={14} /> },
-          { value: 'true', label: <IconMoon size={14} /> },
+          { value: ShowcasePreset.SHINE, label: <IconPalette size={18} /> },
+          { value: ShowcasePreset.NATURAL, label: <IconCircleHalf2 size={18} /> },
+        ]}
+        fullWidth
+        value={showcasePreset}
+        onChange={(value) => onPresetChange(value as ShowcasePreset)}
+      />
+
+      <SegmentedControl
+        data={[
+          { value: 'false', label: <IconSun size={18} /> },
+          { value: 'true', label: <IconMoon size={18} /> },
         ]}
         fullWidth
         value={String(showcaseDarkMode)}
@@ -417,6 +449,21 @@ const CustomizationPanel = memo(function CustomizationPanel({
           />
         </>
       )}
+
+      <HorizontalDivider />
+      <HeaderText className={classes.headerCenteredMb} style={{ marginBottom: 1 }}>
+        {tCustomization('ShowL2D') /* Show Live2D */}
+      </HeaderText>
+      <SegmentedControl
+        data={[
+          { value: 'true', label: <IconCheck size={14} /> },
+          { value: 'false', label: <IconX size={14} /> },
+        ]}
+        fullWidth
+        disabled={disableSpine}
+        value={String(showcaseL2D)}
+        onChange={(value) => onShowL2DChange(value === 'true')}
+      />
     </Flex>
   )
 })

@@ -29,6 +29,7 @@ import {
   type RelicScoringResult,
 } from 'lib/relics/scoring/relicScorer'
 import { Assets } from 'lib/rendering/assets'
+import { DEFAULT_LC_IMAGE_OFFSET } from 'lib/rendering/lcImageTransform'
 import { ScoringType } from 'lib/scoring/simScoringUtils'
 import * as equipmentService from 'lib/services/equipmentService'
 import * as persistenceService from 'lib/services/persistenceService'
@@ -93,6 +94,7 @@ export type ShowcaseDisplayDimensions = {
   lcImageOffset: { x: number, y: number, s: number },
   charCenter: ImageCenter,
   spineCenter: ImageCenter,
+  backgroundCenterOffset: { x: number, y: number, z: number },
   disableSpine: boolean,
 }
 
@@ -165,12 +167,12 @@ export function getShowcaseDisplayDimensions(character: Character, simScore: boo
   const characterMeta = getGameMetadata().characters[character.id]
   const charCenter = characterMeta.imageCenter
   const spineCenter = characterMeta.spineCenter
+  const backgroundCenterOffset = characterMeta.backgroundCenterOffset
   const disableSpine = characterMeta.disableSpine
-  const defaultOffset = { x: 0, y: 0, s: 1.15 }
   // @ts-expect-error - Some APIs return empty light cone as '0'
   const lcImageOffset = (character.form.lightCone && character.form.lightCone !== '0' && getGameMetadata().lightCones[character.form.lightCone])
-    ? getGameMetadata().lightCones[character.form.lightCone].imageOffset ?? defaultOffset
-    : defaultOffset
+    ? getGameMetadata().lightCones[character.form.lightCone].imageOffset ?? DEFAULT_LC_IMAGE_OFFSET
+    : DEFAULT_LC_IMAGE_OFFSET
 
   let tempLcParentW = lcParentW
   let tempLcParentH = lcParentH
@@ -199,6 +201,7 @@ export function getShowcaseDisplayDimensions(character: Character, simScore: boo
     newLcMargin,
     charCenter,
     spineCenter,
+    backgroundCenterOffset,
     disableSpine,
     lcImageOffset,
   }

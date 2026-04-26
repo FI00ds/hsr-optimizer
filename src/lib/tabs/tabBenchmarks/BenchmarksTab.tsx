@@ -33,9 +33,11 @@ import {
 } from 'lib/hooks/useOpenClose'
 import { useCharacterModalStore } from 'lib/overlays/modals/characterModalStore'
 import { Assets } from 'lib/rendering/assets'
+import { DEFAULT_LC_IMAGE_OFFSET } from 'lib/rendering/lcImageTransform'
 import { StatSimTypes } from 'lib/simulations/statSimulationTypes'
 import { getGameMetadata } from 'lib/state/gameMetadata'
 import { BenchmarkResults } from 'lib/tabs/tabBenchmarks/BenchmarkResults'
+import { TeammatesSection } from 'lib/tabs/tabBenchmarks/TeammateCards'
 import { BenchmarkSetting } from 'lib/tabs/tabBenchmarks/BenchmarkSettings'
 import {
   applyTeamAwareSetConditionalPresetsToBenchmarkFormInstance,
@@ -187,7 +189,7 @@ function LeftPanel({ form }: { form: UseFormReturnType<BenchmarkForm> }) {
   const lightCone = form.values.lightCone ?? ''
 
   const lightConeMetadata = getGameMetadata().lightCones[lightCone]
-  const lcOffset = lightConeMetadata?.imageOffset ?? { x: 0, y: 0, s: 1.15 }
+  const lcOffset = lightConeMetadata?.imageOffset ?? DEFAULT_LC_IMAGE_OFFSET
 
   return (
     <Flex direction='column' gap={GAP}>
@@ -319,89 +321,5 @@ function SpdBenchmarkSetting({ form }: { form: UseFormReturnType<BenchmarkForm> 
         style={{ width: 80 }}
       />
     </Flex>
-  )
-}
-
-function TeammatesSection() {
-  const { t } = useTranslation('benchmarksTab', { keyPrefix: 'MiddlePanel' })
-  return (
-    <Flex direction='column'>
-      <HeaderText>{t('TeammatesHeader') /* Teammates */}</HeaderText>
-      <Flex justify='space-around'>
-        <Teammate index={0} />
-        <Teammate index={1} />
-        <Teammate index={2} />
-      </Flex>
-    </Flex>
-  )
-}
-
-function Teammate({ index }: { index: number }) {
-  const { t } = useTranslation('common')
-  const {
-    onCharacterModalOk,
-    setSelectedTeammateIndex,
-    teammate,
-  } = useBenchmarksTabStore(useShallow((s) => ({
-    onCharacterModalOk: s.onCharacterModalOk,
-    setSelectedTeammateIndex: s.setSelectedTeammateIndex,
-    teammate: [s.teammate0, s.teammate1, s.teammate2][index],
-  })))
-  const characterId = teammate?.characterId
-  const lightCone = teammate?.lightCone
-  const characterEidolon = teammate?.characterEidolon ?? 0
-  const lightConeSuperimposition = teammate?.lightConeSuperimposition ?? 1
-
-  return (
-    <div
-      className={`custom-grid ${teammateClasses.teammateCard}`}
-      style={{ cursor: 'pointer' }}
-      onClick={() => {
-        setSelectedTeammateIndex(index)
-        useCharacterModalStore.getState().openOverlay({
-          initialCharacter: teammate ? { form: teammate } : undefined,
-          onOk: onCharacterModalOk,
-          showSetSelection: true,
-        })
-      }}
-    >
-      <Flex direction='column' align='center'>
-        <img
-          src={Assets.getCharacterAvatarById(characterId)}
-          className={teammateClasses.teammateAvatar}
-        />
-
-        <OverlayText
-          text={t('EidolonNShort', { eidolon: characterEidolon })}
-          top={-12}
-        />
-
-        <div className={teammateClasses.iconWrapper}>
-          <img
-            src={Assets.getLightConeIconById(lightCone)}
-            className={styles.lcIcon}
-          />
-
-          {teammate && teammate.teamRelicSet && (
-            <img
-              className={teammateClasses.relicBadge}
-              src={Assets.getSetImage(teammate.teamRelicSet)}
-            />
-          )}
-
-          {teammate && teammate.teamOrnamentSet && (
-            <img
-              className={teammateClasses.ornamentBadge}
-              src={Assets.getSetImage(teammate.teamOrnamentSet)}
-            />
-          )}
-        </div>
-
-        <OverlayText
-          text={t('SuperimpositionNShort', { superimposition: lightConeSuperimposition })}
-          top={-18}
-        />
-      </Flex>
-    </div>
   )
 }

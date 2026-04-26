@@ -1,5 +1,8 @@
-import i18next from 'i18next'
-import { DAMAGE_TAG_ENTRIES } from 'lib/characterPreview/buffsAnalysis/abilityColors'
+import i18next, { type TFunction } from 'i18next'
+import {
+  type AbilityColorKey,
+  DAMAGE_TAG_ENTRIES,
+} from 'lib/characterPreview/buffsAnalysis/abilityColors'
 import { CardHeader } from 'lib/characterPreview/buffsAnalysis/BuffGroup'
 import {
   getSelectedActions,
@@ -19,12 +22,12 @@ import {
   OutputTag,
 } from 'lib/optimization/engine/config/tag'
 import { DamageFunctionType } from 'lib/optimization/engine/damage/damageCalculator'
-import type { AbilityKind } from 'lib/optimization/rotation/turnAbilityConfig'
 import { AbilityMeta } from 'lib/optimization/rotation/turnAbilityConfig'
 import {
   Fragment,
   useContext,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Hit } from 'types/hitConditionalTypes'
 import type {
   OptimizerAction,
@@ -51,7 +54,9 @@ const ELEMENT_I18N_KEYS: Partial<Record<ElementTag, ElementI18nKey>> = {
   [ElementTag.Imaginary]: 'Imaginary',
 }
 
-const FUNCTION_LABELS: Partial<Record<DamageFunctionType, string>> = {
+type DamageFunctionI18nKey = 'Crit' | 'DoT' | 'Break' | 'S.Break' | 'Add' | 'Elation'
+
+const FUNCTION_LABELS: Partial<Record<DamageFunctionType, DamageFunctionI18nKey>> = {
   [DamageFunctionType.Crit]: 'Crit',
   [DamageFunctionType.Dot]: 'DoT',
   [DamageFunctionType.Break]: 'Break',
@@ -75,7 +80,7 @@ function buildRows(hit: Hit): HitPropRow[] {
 
   const addElementRow = () => {
     const i18nKey = ELEMENT_I18N_KEYS[hit.damageElement]
-    if (i18nKey) rows.push({ value: i18next.t(`gameData:Elements.${i18nKey}`), label: 'Element' })
+    if (i18nKey) rows.push({ value: i18next.t(`gameData:Elements.${i18nKey}`), label: i18next.t('Element') })
   }
 
   switch (hit.damageFunctionType) {
@@ -134,6 +139,7 @@ function HitSubHeader({ label }: { label: string }) {
 
 function HitRow({ hit, isLastHit }: { hit: Hit, isLastHit: boolean }) {
   const options = useContext(DesignContext)
+  const { t } = useTranslation('optimizerTab', { keyPrefix: 'ExpandedDataPanel' })
   const onFilterChange = useContext(FilterChangeContext)
   const selectedFilter = useContext(FilterContext)
   const rowBase = getRowBaseStyle(options)
@@ -141,13 +147,15 @@ function HitRow({ hit, isLastHit }: { hit: Hit, isLastHit: boolean }) {
 
   const rows = buildRows(hit)
   const fnLabel = FUNCTION_LABELS[hit.damageFunctionType]
+    ? t(`BuffsAnalysisDisplay.DamageFunctions.${FUNCTION_LABELS[hit.damageFunctionType]!}`)
+    : undefined
 
   const tagPills = hit.outputTag === OutputTag.DAMAGE
     ? DAMAGE_TAG_ENTRIES
       .filter((e) => (hit.damageType & e.tag) !== 0)
       .map((e) => {
         const active = selectedFilter != null && (e.tag & selectedFilter) !== 0
-        return renderPill(String(e.tag), e.color, e.label, { onClick: () => onFilterChange?.(e.tag), active })
+        return renderPill(String(e.tag), e.color, t(`DamageTags.${e.key}`), { onClick: () => onFilterChange?.(e.tag), active })
       })
     : []
 
@@ -190,20 +198,23 @@ function HitRow({ hit, isLastHit }: { hit: Hit, isLastHit: boolean }) {
   )
 }
 
-function ActionHitGroup({ action, isLastAction }: {
+function ActionHitGroup({ action, isLastAction, t }: {
   action: OptimizerAction,
   isLastAction: boolean,
+  t: TFunction<'optimizerTab'>,
 }) {
   const hits = action.hits ?? []
   if (hits.length === 0) return null
 
-  const label = AbilityMeta[action.actionType as AbilityKind]?.label ?? action.actionType
+  const label = t(`ComboFilter.ComboOptions.${AbilityMeta[action.actionType].label}`)
 
   return (
     <>
       <CardHeader label={label} />
       {hits.map((hit, i) => {
         const fnLabel = FUNCTION_LABELS[hit.damageFunctionType]
+          ? t(`ExpandedDataPanel.BuffsAnalysisDisplay.DamageFunctions.${FUNCTION_LABELS[hit.damageFunctionType]!}`)
+          : undefined
         const subHeader = hits.length > 1 && fnLabel
           ? `${i + 1}. ${fnLabel}`
           : undefined
@@ -225,6 +236,7 @@ export function HitDefinitionRows({ context, selectedAction }: {
   context: OptimizerContext,
   selectedAction: number | null,
 }) {
+  const { t } = useTranslation('optimizerTab')
   const actions = getSelectedActions(context, selectedAction)
   if (!actions.length) return null
 
@@ -235,6 +247,7 @@ export function HitDefinitionRows({ context, selectedAction }: {
           key={actionIndex}
           action={action}
           isLastAction={actionIndex === actions.length - 1}
+          t={t}
         />
       ))}
     </>

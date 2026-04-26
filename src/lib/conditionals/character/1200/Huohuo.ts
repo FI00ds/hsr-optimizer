@@ -225,7 +225,8 @@ const display = {
     y: 975,
     z: 1.075,
   },
-  showcaseColor: '#294a4c',
+  disableSpine: true,
+  showcaseColor: '#8ebdaf',
 }
 
 export const Huohuo: CharacterConfig = {

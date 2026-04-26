@@ -448,7 +448,7 @@ const display = {
     y: 1100,
     z: 1,
   },
-  showcaseColor: '#a889f0',
+  showcaseColor: '#bba6e3',
 }
 
 export const Boothill: CharacterConfig = {

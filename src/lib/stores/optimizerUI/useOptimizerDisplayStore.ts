@@ -8,6 +8,7 @@ import type {
   OptimizerDisplayState,
   PermutationDetails,
 } from 'lib/stores/optimizerUI/optimizerUITypes'
+import { initialMenuState } from 'lib/tabs/tabOptimizer/optimizerForm/layout/optimizerMenuIds'
 import type {
   Build,
   CharacterId,
@@ -18,6 +19,7 @@ type OptimizerDisplayActions = {
   setFocusCharacterId: (id: CharacterId | undefined) => void,
   setContext: (ctx: OptimizerContext | null) => void,
   setPermutations: (n: number) => void,
+  setPermutationsNaive: (n: number) => void,
   setPermutationDetails: (details: PermutationDetails) => void,
   setOptimizationInProgress: (inProgress: boolean) => void,
   setOptimizationId: (id: string | null) => void,
@@ -26,6 +28,7 @@ type OptimizerDisplayActions = {
   setOptimizerEndTime: (time: number | null) => void,
   setPermutationsSearched: (n: number) => void,
   setPermutationsResults: (n: number) => void,
+  setOptimizerProgress: (n: number) => void,
   setOptimizerBuild: (build: Build | null) => void,
   setOptimizerSelectedRowData: (data: OptimizerDisplayDataStatSim | null) => void,
   setStatSimulationDisplay: (display: StatSimTypes) => void,
@@ -36,6 +39,7 @@ type OptimizerDisplayActions = {
   clearSimulations: () => void,
   setSelectedStatSimulations: (keys: Simulation['key'][]) => void,
   setCharacterSelectModalOpen: (open: boolean) => void,
+  setLightConeSelectModalOpen: (open: boolean) => void,
   setMenuState: (state: Record<string, boolean>) => void,
 }
 
@@ -45,6 +49,7 @@ const initialState: OptimizerDisplayState = {
   focusCharacterId: undefined,
   context: null,
   permutations: 0,
+  permutationsNaive: 0,
   permutationDetails: {
     Head: 0,
     Hands: 0,
@@ -66,13 +71,15 @@ const initialState: OptimizerDisplayState = {
   optimizerEndTime: null,
   permutationsSearched: 0,
   permutationsResults: 0,
+  optimizerProgress: 0,
   optimizerBuild: null,
   optimizerSelectedRowData: null,
   statSimulationDisplay: StatSimTypes.Disabled,
   statSimulations: [],
   selectedStatSimulations: [],
   characterSelectModalOpen: false,
-  menuState: {},
+  lightConeSelectModalOpen: false,
+  menuState: { ...initialMenuState },
 }
 
 export const useOptimizerDisplayStore = createTabAwareStore<OptimizerDisplayStore>((set) => ({
@@ -81,6 +88,7 @@ export const useOptimizerDisplayStore = createTabAwareStore<OptimizerDisplayStor
   setFocusCharacterId: (id) => set({ focusCharacterId: id }),
   setContext: (ctx) => set({ context: ctx }),
   setPermutations: (n) => set({ permutations: n }),
+  setPermutationsNaive: (n) => set({ permutationsNaive: n }),
   setPermutationDetails: (details) => set({ permutationDetails: details }),
   setOptimizationInProgress: (inProgress) => set({ optimizationInProgress: inProgress }),
   setOptimizationId: (id) => set({ optimizationId: id }),
@@ -89,6 +97,7 @@ export const useOptimizerDisplayStore = createTabAwareStore<OptimizerDisplayStor
   setOptimizerEndTime: (time) => set({ optimizerEndTime: time }),
   setPermutationsSearched: (n) => set({ permutationsSearched: n }),
   setPermutationsResults: (n) => set({ permutationsResults: n }),
+  setOptimizerProgress: (n) => set({ optimizerProgress: n }),
   setOptimizerBuild: (build) => set({ optimizerBuild: build }),
   setOptimizerSelectedRowData: (data) => set({ optimizerSelectedRowData: data }),
   setStatSimulationDisplay: (display) => set({ statSimulationDisplay: display }),
@@ -99,5 +108,6 @@ export const useOptimizerDisplayStore = createTabAwareStore<OptimizerDisplayStor
   clearSimulations: () => set({ statSimulations: [] }),
   setSelectedStatSimulations: (keys) => set({ selectedStatSimulations: keys }),
   setCharacterSelectModalOpen: (open) => set({ characterSelectModalOpen: open }),
+  setLightConeSelectModalOpen: (open) => set({ lightConeSelectModalOpen: open }),
   setMenuState: (menuState) => set({ menuState }),
 }))

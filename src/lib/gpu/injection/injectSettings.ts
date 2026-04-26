@@ -64,27 +64,17 @@ function generateRequest(request: Form) {
   wgsl += `const enemyWeaknessBroken: i32 = ${request.enemyWeaknessBroken ? 1 : 0};\n`
   wgsl += '\n'
 
-  // TODO: Refactor this to not duplicate res
-  // TODO: TEMPORARILY DISABLED - Extra combat buffs zeroed out (RES_PEN removed from resistance calc)
-  wgsl += `const enemyDamageResistance: f32 = ${(request.enemyElementalWeak ? 0 : request.enemyResistance) /* - request.combatBuffs.RES_PEN */};\n`
+  wgsl += `const enemyDamageResistance: f32 = ${request.enemyElementalWeak ? 0 : request.enemyResistance};\n`
   wgsl += '\n'
 
   // Filters
   for (const [key, value] of Object.entries(request)) {
     if ((key.startsWith('min') || key.startsWith('max'))) {
-      // Guard against undefined/NaN from missing form fields — emit 0 for min, MAX_INT for max.
       const n = Number(value)
       const isMin = key.startsWith('min')
       const safe = Number.isFinite(n) ? n : (isMin ? 0 : Constants.MAX_INT)
       wgsl += `const ${key}: f32 = ${safe};\n`
     }
-  }
-  wgsl += '\n'
-
-  // Buffs
-  // TODO: TEMPORARILY DISABLED - Extra combat buffs zeroed out
-  for (const [key] of Object.entries(request.combatBuffs)) {
-    wgsl += `const combatBuffs${key}: f32 = 0;\n`
   }
   wgsl += '\n'
 

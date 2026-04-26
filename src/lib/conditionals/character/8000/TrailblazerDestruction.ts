@@ -1,5 +1,5 @@
 import { Bronya } from 'lib/conditionals/character/1100/Bronya'
-import { Huohuo } from 'lib/conditionals/character/1200/Huohuo'
+import { HuohuoB1 } from 'lib/conditionals/character/1200/HuohuoB1'
 import { RuanMei } from 'lib/conditionals/character/1300/RuanMei'
 import {
   AbilityEidolon,
@@ -235,7 +235,7 @@ const simulation = (): SimulationMetadata => ({
       lightConeSuperimposition: 1,
     },
     {
-      characterId: Huohuo.id,
+      characterId: HuohuoB1.id,
       lightCone: NightOfFright.id,
       characterEidolon: 0,
       lightConeSuperimposition: 1,
@@ -290,7 +290,7 @@ const displayCaelus = {
     z: 1,
   },
   disableSpine: true,
-  showcaseColor: '#8295fb',
+  showcaseColor: '#8d9be0',
 }
 
 const displayStelle = {
@@ -300,7 +300,7 @@ const displayStelle = {
     z: 1,
   },
   disableSpine: true,
-  showcaseColor: '#8a93fa',
+  showcaseColor: '#8d9be0',
 }
 
 export const TrailblazerDestructionCaelus: CharacterConfig = {

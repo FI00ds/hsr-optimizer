@@ -11,12 +11,12 @@ import {
   TrailblazerElationStelle,
 } from 'lib/conditionals/character/8000/TrailblazerElation'
 import { ElationBrimmingWithBlessings } from 'lib/conditionals/lightcone/5star/ElationBrimmingWithBlessings'
-import { EncounterAtFloweringsComing } from 'lib/conditionals/lightcone/5star/EncounterAtFloweringsComing'
 import { InTheNameOfTheWorld } from 'lib/conditionals/lightcone/5star/InTheNameOfTheWorld'
 import { InTheNight } from 'lib/conditionals/lightcone/5star/InTheNight'
 import { NightOfFright } from 'lib/conditionals/lightcone/5star/NightOfFright'
 import { TheFinaleOfALie } from 'lib/conditionals/lightcone/5star/TheFinaleOfALie'
-import { WelcomeToTheCityOfStars } from 'lib/conditionals/lightcone/5star/WelcomeToTheCityOfStars'
+import { UntilTheFlowersBloomAgain } from 'lib/conditionals/lightcone/5star/UntilTheFlowersBloomAgain'
+import { WelcomeToTheCosmicCity } from 'lib/conditionals/lightcone/5star/WelcomeToTheCosmicCity'
 import { WhereaboutsShouldDreamsRest } from 'lib/conditionals/lightcone/5star/WhereaboutsShouldDreamsRest'
 import {
   AppPages,
@@ -65,8 +65,8 @@ export function presetCharacters(): Preset[] {
   const lc = (id: LightConeId) => Object.values(DBMetadata.lightCones).some((x) => x.id === id) ? id : null
 
   return [
-    { characterId: char(SilverWolfLv999.id), lightConeId: lc(WelcomeToTheCityOfStars.id) },
-    { characterId: char(Evanescia.id), lightConeId: lc(EncounterAtFloweringsComing.id) },
+    { characterId: char(SilverWolfLv999.id), lightConeId: lc(WelcomeToTheCosmicCity.id) },
+    { characterId: char(Evanescia.id), lightConeId: lc(UntilTheFlowersBloomAgain.id) },
     { characterId: char(TrailblazerElationStelle.id), lightConeId: lc(ElationBrimmingWithBlessings.id), characterEidolon: 6, lightConeSuperimposition: 5 },
     { characterId: char(TrailblazerElationCaelus.id), lightConeId: lc(ElationBrimmingWithBlessings.id), characterEidolon: 6, lightConeSuperimposition: 5 },
     { characterId: char(Ashveil.id), lightConeId: lc(TheFinaleOfALie.id) },
@@ -90,21 +90,21 @@ export function parseShowcaseUrlId(): string | null {
 }
 
 /**
- * Called once on mount — handles URL parameter and saved session auto-load.
- * URL parameter takes priority over saved session.
+ * Called on tab activation — handles URL parameter and saved session auto-load.
+ * Idempotent: skips fetch if already loading or if the same ID is already loaded.
  */
 export function initializeShowcaseOnMount(): void {
   const urlId = parseShowcaseUrlId()
-  const { savedSession, availableCharacters } = useShowcaseTabStore.getState()
+  const { savedSession, availableCharacters, loading } = useShowcaseTabStore.getState()
+
+  if (loading) return
 
   if (urlId) {
-    // URL parameter takes priority — load that profile
+    if (availableCharacters?.length && savedSession.scorerId === urlId) return
     submitForm({ scorerId: urlId }, { skipCooldown: true })
   } else if (!availableCharacters?.length && savedSession.scorerId) {
-    // No URL param, no data yet, but saved session has a UID — auto-load
     submitForm({ scorerId: savedSession.scorerId }, { skipCooldown: true })
   }
-  // Otherwise: stay on Landing screen, wait for user input
 }
 
 /**
@@ -131,15 +131,21 @@ export function syncShowcaseUrl(): void {
  * Keep: null characterId check.
  * Dropped: duplicate character restriction (users can simulate same character on multiple slots).
  */
-export function handleCharacterModalOk(form: CharacterModalForm): void {
+export function handleCharacterModalOk(form: CharacterModalForm): boolean {
   const t = i18next.getFixedT(null, 'relicScorerTab', 'Messages')
 
-  if (!form.characterId || !form.lightCone) {
-    return Message.error(t('NoCharacterSelected') /* No selected character */)
+  if (!form.characterId) {
+    Message.error(t('NoCharacterSelected'))
+    return false
+  }
+  if (!form.lightCone) {
+    Message.error(t('NoSelectedLightCone'))
+    return false
   }
 
   // Safe cast: after guards, characterId and lightCone are non-null
   useShowcaseTabStore.getState().applyCharacterOverride(form as ShowcaseTabCharacter['form'])
+  return true
 }
 
 /**

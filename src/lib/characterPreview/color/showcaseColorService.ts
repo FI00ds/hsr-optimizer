@@ -1,15 +1,19 @@
-import type { ColorPipelineConfig } from 'lib/characterPreview/color/colorPipelineConfig'
+import {
+  type ColorPipelineConfig,
+  DEFAULT_CONFIG,
+} from 'lib/characterPreview/color/colorPipelineConfig'
 import {
   oklchCardBackgroundColor,
   oklchCardBorderColor,
 } from 'lib/characterPreview/color/colorUtilsOklch'
+import type { DebugVisualConfig } from 'lib/characterPreview/debugVisualConfigStore'
 import { getCharacterConfig } from 'lib/conditionals/resolver/characterConfigRegistry'
 import { ShowcaseColorMode } from 'lib/constants/constants'
 import type { ShowcaseTheme } from 'lib/tabs/tabRelics/RelicPreview'
 import type { CharacterId } from 'types/character'
 import type { ShowcasePreferences } from 'types/metadata'
 
-const STANDARD_COLOR = '#799ef4'
+const STANDARD_COLOR = '#647bb0'
 export const DEFAULT_SHOWCASE_COLOR = '#2473e1'
 // Placeholder shown while the worker extracts a custom portrait's color.
 const CUSTOM_PORTRAIT_PENDING_COLOR = '#6b7280'
@@ -68,5 +72,20 @@ export function resolveShowcaseTheme(seedColor: string, darkMode: boolean, confi
   return {
     cardBackgroundColor: oklchCardBackgroundColor(seedColor, darkMode, config),
     cardBorderColor: oklchCardBorderColor(seedColor, darkMode, config),
+  }
+}
+
+export function buildCardBgPipelineConfig(visual: DebugVisualConfig): ColorPipelineConfig {
+  return {
+    ...DEFAULT_CONFIG,
+    cardBg: {
+      ...DEFAULT_CONFIG.cardBg,
+      maxC: visual.debugMaxC,
+      minC: visual.debugMinC,
+      chromaScale: visual.debugChromaScale,
+      targetL: visual.debugTargetL,
+      minL: visual.debugMinL,
+      maxL: visual.debugMaxL,
+    },
   }
 }
