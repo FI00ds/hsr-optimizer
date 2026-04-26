@@ -4,6 +4,8 @@ import {
   Constants,
   DEFAULT_STAT_DISPLAY,
 } from 'lib/constants/constants'
+import { SavedSessionKeys } from 'lib/constants/constantsSession'
+import { SettingOptions } from 'lib/constants/settingsConstants'
 import { Message } from 'lib/interactions/message'
 import { generateContext } from 'lib/optimization/context/calculateContext'
 import { getDefaultForm } from 'lib/optimization/defaultForm'
@@ -11,10 +13,16 @@ import {
   calculateCurrentlyEquippedRow,
   Optimizer,
 } from 'lib/optimization/optimizer'
+import {
+  computeValidPermutationCount,
+  generateOrnamentSetSolutions,
+  generateRelicSetSolutions,
+} from 'lib/optimization/relicSetSolver'
 import * as equipmentService from 'lib/services/equipmentService'
 import * as persistenceService from 'lib/services/persistenceService'
 import { getGameMetadata } from 'lib/state/gameMetadata'
 import { SaveState } from 'lib/state/saveState'
+import { useGlobalStore } from 'lib/stores/app/appStore'
 import {
   getCharacterById,
   useCharacterStore,
@@ -156,7 +164,7 @@ export function recalculatePermutations(): void {
   if (!state.characterId) return
 
   const request = displayToInternal(state)
-  const { counts, preCounts } = Optimizer.getFilteredRelicCounts(request)
+  const { counts, preCounts, countsBySet } = Optimizer.getFilteredRelicCounts(request)
 
   const permutationDetails = {
     Head: counts.Head,
@@ -173,9 +181,15 @@ export function recalculatePermutations(): void {
     LinkRopeTotal: preCounts.LinkRope,
   }
   useOptimizerDisplayStore.getState().setPermutationDetails(permutationDetails)
-  useOptimizerDisplayStore.getState().setPermutations(
-    counts.Head * counts.Hands * counts.Body * counts.Feet * counts.PlanarSphere * counts.LinkRope,
-  )
+
+  // Valid permutations accounting for set constraints
+  const relicSetSolutions = generateRelicSetSolutions(request)
+  const ornamentSetSolutions = generateOrnamentSetSolutions(request)
+  const validPermutations = computeValidPermutationCount(countsBySet, relicSetSolutions, ornamentSetSolutions)
+  const naivePermutations = counts.Head * counts.Hands * counts.Body * counts.Feet * counts.PlanarSphere * counts.LinkRope
+  useOptimizerDisplayStore.getState().setPermutations(validPermutations)
+  // Naive product drives the CPU-work warning. Runtime scales with the index space.
+  useOptimizerDisplayStore.getState().setPermutationsNaive(naivePermutations)
 }
 
 /**
@@ -205,6 +219,7 @@ let permutationRafId: number | null = null
 useOptimizerRequestStore.subscribe((state, prev) => {
   for (const key of PERMUTATION_KEYS) {
     if (state[key] !== prev[key]) {
+      if (useOptimizerDisplayStore.getState().optimizationInProgress) return
       if (permutationRafId != null) cancelAnimationFrame(permutationRafId)
       permutationRafId = requestAnimationFrame(() => {
         permutationRafId = null
@@ -358,22 +373,37 @@ export function updateCharacter(characterId: CharacterId): void {
   // Load form into store (replaces formToDisplay + setFieldsValue)
   useOptimizerRequestStore.getState().loadForm(form)
 
-  // Sync rank to character's current position in the list (saved rank may be stale if characters were reordered)
+  // Sync rank to character's current position in the list (saved rank may be stale if characters were reordered).
+  // Characters not yet in the store use the NewCharacterDefaultRank setting.
   const characters = useCharacterStore.getState().characters
   const currentRank = characters.findIndex((c) => c.id === characterId)
   if (currentRank >= 0) {
     useOptimizerRequestStore.getState().setRelicFilterField('rank', currentRank)
+  } else {
+    const defaultRank = useGlobalStore.getState().settings.NewCharacterDefaultRank
+    useOptimizerRequestStore.getState().setRelicFilterField('rank', defaultRank === SettingOptions.NewCharacterDefaultRank.Last ? characters.length : 0)
   }
 
   useOptimizerDisplayStore.getState().setFocusCharacterId(characterId)
   useOptimizerRequestStore.getState().setStatDisplay(form.statDisplay ?? DEFAULT_STAT_DISPLAY)
-  useOptimizerDisplayStore.getState().setStatSimulations(form.statSim?.simulations ?? [])
+  useOptimizerDisplayStore.getState().setStatSimulations((form.statSim?.simulations ?? []).filter((sim) => sim.request?.stats))
   useOptimizerDisplayStore.getState().setOptimizerSelectedRowData(null)
   gridStore.optimizerGridApi()?.deselectAll()
 
   const currentRequest = displayToInternal(useOptimizerRequestStore.getState())
   generateContext(currentRequest)
   calculateCurrentlyEquippedRow(currentRequest)
+}
+
+/**
+ * User-initiated character switch: loads form + persists session.
+ * Use this when the user actively selects a different character.
+ * For programmatic/initial load, use updateCharacter() directly.
+ */
+export function switchToCharacter(characterId: CharacterId): void {
+  updateCharacter(characterId)
+  useGlobalStore.getState().setSavedSessionKey(SavedSessionKeys.optimizerCharacterId, characterId)
+  SaveState.delayedSave()
 }
 
 /**
@@ -402,9 +432,9 @@ export function startOptimization(): void {
   OptimizerTabController.clearFilterModel()
 
   // Delay the DB save so it doesn't block the optimizer start with a characters tab re-render
-  requestIdleCallback(() => {
+  setTimeout(() => {
     persistenceService.upsertCharacterFromForm(form)
-  })
+  }, 0)
   SaveState.delayedSave()
 
   const optimizationId = uuid()

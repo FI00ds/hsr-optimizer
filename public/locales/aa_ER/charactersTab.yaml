@@ -27,14 +27,14 @@ CharacterMenu:
       SortByScore: crwdns39628:0crwdne39628:0
       MoveToTop: crwdns39630:0crwdne39630:0
 SearchPlaceholder: crwdns39632:0crwdne39632:0
-GridHeaders:
-  Icon: crwdns39634:0crwdne39634:0
-  Priority: crwdns39636:0crwdne39636:0
-  Character: crwdns39638:0crwdne39638:0
+GridDensityOptions:
+  default: crwdns46788:0crwdne46788:0
+  compact: crwdns46790:0crwdne46790:0
 Messages:
   RemoveSuccess: crwdns39640:0crwdne39640:0
   UnequipSuccess: crwdns39642:0crwdne39642:0
   NoSelectedCharacter: crwdns39644:0crwdne39644:0
+  NoSelectedLightCone: crwdns47126:0crwdne47126:0
   SwitchSuccess: 'crwdns39646:0$t(gameData:Characters.{{charId}}.Name)crwdne39646:0'
   SortByScoreWarning: crwdns39648:0crwdne39648:0
   SaveSuccess: 'crwdns39650:0{{name}}crwdne39650:0'
@@ -77,6 +77,7 @@ CharacterPreview:
       Standard: crwdns39662:0crwdne39662:0
     PaletteLabel: crwdns39664:0crwdne39664:0
     ShowUID: crwdns44572:0crwdne44572:0
+    ShowL2D: crwdns47124:0crwdne47124:0
   ArtBy: 'crwdns39666:0{{artistName}}crwdne39666:0'
   EditCharacter: crwdns39668:0crwdne39668:0
   EditPortrait: crwdns39670:0crwdne39670:0
@@ -86,7 +87,7 @@ CharacterPreview:
     SavedPortrait: crwdns39676:0crwdne39676:0
     RevertedPortrait: crwdns39678:0crwdne39678:0
     NoSelectedCharacter: crwdns39680:0crwdne39680:0
-    NoSelectedLightCone: crwdns45205:0crwdne45205:0
+    NoSelectedLightCone: crwdns47128:0crwdne47128:0
   ScoreHeader:
     Title: crwdns39682:0crwdne39682:0
     TitleBenchmark: 'crwdns44466:0{{spd}}crwdne44466:0'

@@ -27,10 +27,9 @@ CharacterMenu:
       SortByScore: 按评分排序所有角色
       MoveToTop: 将角色移至顶部
 SearchPlaceholder: 搜索
-GridHeaders:
-  Icon: 图标
-  Priority: 优先级
-  Character: 角色
+GridDensityOptions:
+  default: 默认
+  compact: 紧凑
 Messages:
   RemoveSuccess: 成功移除角色
   UnequipSuccess: 成功卸下角色遗器
@@ -77,6 +76,7 @@ CharacterPreview:
       Standard: 标准
     PaletteLabel: 头像色调
     ShowUID: 显示UID
+    ShowL2D: 显示 Live2D
   ArtBy: '{{artistName}}的作品'
   EditCharacter: 编辑角色
   EditPortrait: 编辑角色图像
@@ -86,7 +86,6 @@ CharacterPreview:
     SavedPortrait: 成功保存角色图像
     RevertedPortrait: 成功还原角色图像
     NoSelectedCharacter: 未选择角色
-    NoSelectedLightCone: 无选定光锥
   ScoreHeader:
     Title: 战斗模拟
     TitleBenchmark: '{{spd}}速度基准'

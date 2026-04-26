@@ -38,7 +38,6 @@ import {
   getSelectedCharacter,
   useShowcaseTabStore,
 } from 'lib/tabs/tabShowcase/useShowcaseTabStore'
-import { useDeferReveal } from 'lib/ui/DeferredRender'
 import { TooltipImage } from 'lib/ui/TooltipImage'
 import {
   startTransition,
@@ -65,33 +64,14 @@ export function ShowcaseTab() {
   const { isActiveRef, addActivationListener } = useContext(TabVisibilityContext)
 
   useEffect(() => {
-    if (isActiveRef.current) {
-      // Tab is active on mount — initialize immediately
-      initializeShowcaseOnMount()
-    } else {
-      // Tab mounted in background — defer until first activation
-      let initialized = false
-      return addActivationListener(() => {
-        if (!initialized) {
-          initialized = true
-          initializeShowcaseOnMount()
-        }
-      })
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (isActiveRef.current) initializeShowcaseOnMount()
+    return addActivationListener(() => initializeShowcaseOnMount())
+  }, [addActivationListener, isActiveRef])
 
   useEffect(() => addActivationListener(() => syncShowcaseUrl()), [addActivationListener])
 
-  const { t } = useTranslation('relicScorerTab')
-
   return (
     <Flex direction='column' align='center' style={{ flex: 1 }}>
-      {SHOWCASE_DOWNTIME && (
-        <h3 className={styles.downtimeWarning}>
-          {t('Header.DowntimeWarning', { game_version: DOWNTIME_VERSION })}
-        </h3>
-      )}
-
       {screen === ShowcaseScreen.Landing && <RedirectToHome />}
       {screen === ShowcaseScreen.Loading && <ShowcaseLoading />}
 
@@ -106,16 +86,25 @@ export function ShowcaseTab() {
 }
 
 function RedirectToHome() {
-  const savedScorerId = useShowcaseTabStore((s) => s.savedSession.scorerId)
+  const { isActiveRef, addActivationListener } = useContext(TabVisibilityContext)
 
   useEffect(() => {
-    // Don't redirect if there's a UID in the URL or a saved session —
-    // initializeShowcaseOnMount will handle transitioning to Loading
-    const urlId = parseShowcaseUrlId()
-    if (urlId || savedScorerId) return
+    const doRedirect = () => {
+      // Don't redirect if there's a UID in the URL or a saved session —
+      // initializeShowcaseOnMount will handle transitioning to Loading
+      const urlId = parseShowcaseUrlId()
+      const savedScorerId = useShowcaseTabStore.getState().savedSession.scorerId
+      if (urlId || savedScorerId) return
 
-    useGlobalStore.getState().setActiveKey(AppPages.HOME)
-  }, [savedScorerId])
+      useGlobalStore.getState().setActiveKey(AppPages.HOME)
+    }
+
+    // Re-run on every tab activation, not just first mount — this component
+    // stays mounted across tab switches (display:none), so dep-based re-fires
+    // would miss subsequent sidebar navigations back to Showcase.
+    if (isActiveRef.current) doRedirect()
+    return addActivationListener(doRedirect)
+  }, [addActivationListener, isActiveRef])
   return null
 }
 
@@ -129,12 +118,16 @@ function ShowcaseLoading() {
       <div className={styles.loadingText}>
         {t('Loading.FetchingShowcase', { scorerId: scorerId ?? '' })}
       </div>
+      {SHOWCASE_DOWNTIME && (
+        <h3 className={styles.downtimeWarning}>
+          {t('Header.DowntimeWarning', { game_version: DOWNTIME_VERSION })}
+        </h3>
+      )}
     </div>
   )
 }
 
 function ShowcaseLoaded() {
-  const containerRef = useDeferReveal()
   const selectedCharacter = useShowcaseTabStore((s) => s.availableCharacters?.[s.selectedIndex] ?? null)
 
   const { availableCharacters, selectedIndex, loading, sidebarOpen } = useShowcaseTabStore(
@@ -228,8 +221,13 @@ function ShowcaseLoaded() {
   ]
 
   return (
-    <Flex ref={containerRef} className={styles.outerWrapper} justify='space-around'>
+    <Flex className={styles.outerWrapper} justify='space-around'>
       <Flex direction='column' align='center' gap={8} className={styles.loadedContainer}>
+        {SHOWCASE_DOWNTIME && (
+          <h3 className={styles.downtimeWarning}>
+            {t('Header.DowntimeWarning', { game_version: DOWNTIME_VERSION })}
+          </h3>
+        )}
         {/* UID input row */}
         <Flex className={styles.formRow} justify='center' align='center' gap={10}>
           <TextInput

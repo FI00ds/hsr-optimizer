@@ -26,6 +26,7 @@ import {
   pickBestSeed,
 } from 'lib/characterPreview/color/colorUtils'
 import {
+  buildCardBgPipelineConfig,
   resolveShowcaseColor,
   resolveShowcaseTheme,
 } from 'lib/characterPreview/color/showcaseColorService'
@@ -39,12 +40,14 @@ import {
   INSET_OPACITY,
   PORTRAIT_BLUR,
   PORTRAIT_BRIGHTNESS,
+  PORTRAIT_CONTRAST,
   PORTRAIT_SATURATE,
   SHADOW_BLUR,
   SHADOW_OPACITY,
   SHADOW_X,
   SHADOW_Y,
   TEXT_SHADOW_DEFAULT,
+  getShowcasePreset,
   useDebugVisualConfigStore,
 } from 'lib/characterPreview/debugVisualConfigStore'
 import { ShowcaseBuildAnalysis } from 'lib/characterPreview/scoring/ShowcaseBuildAnalysis'
@@ -68,9 +71,9 @@ import type { RelicScoringResult } from 'lib/relics/scoring/types'
 import { Assets } from 'lib/rendering/assets'
 import { ScoringType } from 'lib/scoring/simScoringUtils'
 import { injectBenchmarkDebuggers } from 'lib/simulations/tests/simDebuggers'
+import { useGlobalStore } from 'lib/stores/app/appStore'
 import type { ShowcaseTabCharacter } from 'lib/tabs/tabShowcase/showcaseTabTypes'
 import { useShowcaseTabStore } from 'lib/tabs/tabShowcase/useShowcaseTabStore'
-import { DeferReveal } from 'lib/ui/DeferredRender'
 import {
   memo,
   useCallback,
@@ -87,7 +90,7 @@ import type {
   CustomImageConfig,
   CustomImagePayload,
 } from 'types/customImage'
-import type { ShowcaseTemporaryOptions } from 'types/metadata'
+import type { ShowcaseDisplayDimensionsOverride, ShowcaseTemporaryOptions } from 'types/metadata'
 import {
   ScoringSelector,
   SimScoringContextProvider,
@@ -119,14 +122,16 @@ interface CharacterPreviewPropsBase {
   forceDebug?: boolean
   /** Override debug visual config (for shared debug panel across multiple cards) */
   debugVisualConfig?: DebugVisualConfig
+  /** Editor mode overrides for live preview of display dimensions */
+  editorOverrides?: ShowcaseDisplayDimensionsOverride
 }
 
 type CharacterPreviewProps = CharacterPreviewPropsBase & (SavedBuildPreviewProps | InteractiveCharacterPreviewProps)
 
 globalThis.CARD_DEBUG = false
 
-function buildPortraitFilter(blur: number, brightness: number, saturate: number) {
-  return `blur(${blur}px) brightness(${brightness.toFixed(2)}) saturate(${saturate.toFixed(2)})`
+function buildPortraitFilter(blur: number, brightness: number, saturate: number, contrast: number) {
+  return `blur(${blur}px) brightness(${brightness.toFixed(2)}) saturate(${saturate.toFixed(2)}) contrast(${contrast.toFixed(2)})`
 }
 
 function buildShadow(x: number, y: number, blur: number, opacity: number) {
@@ -137,7 +142,16 @@ function buildInsetShadow(blur: number, opacity: number) {
   return `, inset rgba(255, 255, 255, ${opacity.toFixed(2)}) 0px 0px ${blur}px`
 }
 
-/** Blurred portrait background fill behind the card */
+/**
+ * Blurred portrait background fill behind the card.
+ *
+ * Uses an <img> element instead of CSS background-image because:
+ * 1. iOS Safari has bugs rendering CSS backgrounds in SVG foreignObject (used by snapdom)
+ * 2. The filter is on the img directly because Safari sometimes fails to paint
+ *    filtered imgs when the filter is on a parent element
+ * 3. translateZ(0) forces a GPU layer to prevent mobile browsers from culling
+ *    the element when the user zooms in and the element is partially off-screen
+ */
 function ShowcaseBackgroundBlur({
   portraitUrl,
   portraitToUse,
@@ -147,78 +161,109 @@ function ShowcaseBackgroundBlur({
 }: {
   portraitUrl: string,
   portraitToUse: CustomImageConfig | undefined,
-  displayDimensions: { charCenter: { x: number, y: number, z: number } },
+  displayDimensions: { charCenter: { x: number, y: number, z: number }, backgroundCenterOffset: { x: number, y: number, z: number } },
   portraitFilter: string,
   blendMode: 'screen' | 'normal',
 }) {
-  let bgSize: string
-  let bgPos: string
-
+  let imgStyle: React.CSSProperties
   if (portraitToUse) {
-    // Custom portrait: CSS cover guarantees no visible edges,
-    // percentage position centers on the crop focal point
+    // Custom portrait: "cover" behavior — object-fit:cover + object-position
     const crop = portraitToUse.customImageParams.croppedAreaPixels
     const origW = portraitToUse.originalDimensions.width
     const origH = portraitToUse.originalDimensions.height
-    bgSize = 'cover'
+    let objPos = 'center'
     if (origW > 0 && origH > 0) {
       const pctX = (crop.x + crop.width / 2) / origW * 100
       const pctY = (crop.y + crop.height / 2) / origH * 100
-      bgPos = `${pctX}% ${pctY}%`
-    } else {
-      bgPos = 'center'
+      objPos = `${pctX}% ${pctY}%`
+    }
+    imgStyle = {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      objectPosition: objPos,
     }
   } else {
-    // Default portrait: pixel positioning using curated charCenter values
-    const bgZoom = displayDimensions.charCenter.z * 1.75
+    // Default portrait: pixel width + computed top/left (height:auto preserves aspect)
+    const bgZoom = Math.max(0.1, displayDimensions.charCenter.z * 1.75 + displayDimensions.backgroundCenterOffset.z)
     const bgScale = bgZoom / 2 * cardTotalW / 1024
-    bgSize = `${cardTotalW * bgZoom}px auto`
-    bgPos = `${-displayDimensions.charCenter.x * bgScale + cardTotalW / 2}px ${-displayDimensions.charCenter.y * bgScale + parentH / 2}px`
+    const offsetX = displayDimensions.backgroundCenterOffset.x
+    const offsetY = displayDimensions.backgroundCenterOffset.y
+    const imgW = cardTotalW * bgZoom
+    const imgLeft = -displayDimensions.charCenter.x * bgScale + cardTotalW / 2 + offsetX
+    const imgTop = -displayDimensions.charCenter.y * bgScale + parentH / 2 + offsetY
+    imgStyle = {
+      position: 'absolute',
+      width: `${imgW}px`,
+      height: 'auto',
+      left: `${imgLeft}px`,
+      top: `${imgTop}px`,
+    }
   }
 
+  // Safari renders an <img> inside a parent with CSS `filter` unreliably
+  // (the img sometimes doesn't paint at all). Moving filter onto the img
+  // itself avoids that bug. Blend mode stays on the wrapper so it composites
+  // against the parent card background the same way the old CSS-bg did.
   return (
     <div
       data-portrait-bg
       style={{
-        backgroundImage: `url(${portraitUrl})`,
-        backgroundPosition: bgPos,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: bgSize,
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
         zIndex: 0,
-        filter: portraitFilter,
-        WebkitFilter: portraitFilter,
+        overflow: 'hidden',
         mixBlendMode: blendMode,
       }}
-    />
+    >
+      <img
+        src={portraitUrl}
+        style={{
+          ...imgStyle,
+          display: 'block',
+          filter: portraitFilter,
+          WebkitFilter: portraitFilter,
+          pointerEvents: 'none',
+          transform: 'translateZ(0)', // Force GPU layer - prevents mobile culling when zoomed
+        }}
+        alt=''
+        draggable={false}
+      />
+    </div>
   )
 }
 
 /** Resolve debug visual config with defaults - single source of truth for fallback values */
-function resolveDebugVisualConfig(config: DebugVisualConfig | undefined) {
+function resolveDebugVisualConfig(
+  config: DebugVisualConfig | undefined,
+  presetFallback?: DebugVisualConfig,
+) {
   return {
-    portraitBlur: config?.portraitBlur ?? PORTRAIT_BLUR,
-    portraitBrightness: config?.portraitBrightness ?? PORTRAIT_BRIGHTNESS,
-    portraitSaturate: config?.portraitSaturate ?? PORTRAIT_SATURATE,
-    cardBgAlpha: config?.cardBgAlpha ?? CARD_BG_ALPHA_DEFAULT,
-    debugMaxC: config?.debugMaxC ?? DEFAULT_CONFIG.cardBg.maxC,
-    debugMinC: config?.debugMinC ?? DEFAULT_CONFIG.cardBg.minC,
-    debugChromaScale: config?.debugChromaScale ?? DEFAULT_CONFIG.cardBg.chromaScale,
-    debugTargetL: config?.debugTargetL ?? DEFAULT_CONFIG.cardBg.targetL,
-    debugMinL: config?.debugMinL ?? DEFAULT_CONFIG.cardBg.minL,
-    debugMaxL: config?.debugMaxL ?? DEFAULT_CONFIG.cardBg.maxL,
-    blendMode: config?.blendMode ?? 'normal' as const,
-    shadowX: config?.shadowX ?? SHADOW_X,
-    shadowY: config?.shadowY ?? SHADOW_Y,
-    shadowBlur: config?.shadowBlur ?? SHADOW_BLUR,
-    shadowOpacity: config?.shadowOpacity ?? SHADOW_OPACITY,
-    insetBlur: config?.insetBlur ?? INSET_BLUR,
-    insetOpacity: config?.insetOpacity ?? INSET_OPACITY,
-    textShadow: config?.textShadow ?? TEXT_SHADOW_DEFAULT,
+    portraitBlur: config?.portraitBlur ?? presetFallback?.portraitBlur ?? PORTRAIT_BLUR,
+    portraitBrightness: config?.portraitBrightness ?? presetFallback?.portraitBrightness ?? PORTRAIT_BRIGHTNESS,
+    portraitSaturate: config?.portraitSaturate ?? presetFallback?.portraitSaturate ?? PORTRAIT_SATURATE,
+    portraitContrast: config?.portraitContrast ?? presetFallback?.portraitContrast ?? PORTRAIT_CONTRAST,
+    cardBgAlpha: config?.cardBgAlpha ?? presetFallback?.cardBgAlpha ?? CARD_BG_ALPHA_DEFAULT,
+    debugMaxC: config?.debugMaxC ?? presetFallback?.debugMaxC ?? DEFAULT_CONFIG.cardBg.maxC,
+    debugMinC: config?.debugMinC ?? presetFallback?.debugMinC ?? DEFAULT_CONFIG.cardBg.minC,
+    debugChromaScale: config?.debugChromaScale ?? presetFallback?.debugChromaScale ?? DEFAULT_CONFIG.cardBg.chromaScale,
+    debugTargetL: config?.debugTargetL ?? presetFallback?.debugTargetL ?? DEFAULT_CONFIG.cardBg.targetL,
+    debugMinL: config?.debugMinL ?? presetFallback?.debugMinL ?? DEFAULT_CONFIG.cardBg.minL,
+    debugMaxL: config?.debugMaxL ?? presetFallback?.debugMaxL ?? DEFAULT_CONFIG.cardBg.maxL,
+    blendMode: config?.blendMode ?? presetFallback?.blendMode ?? 'normal' as const,
+    shadowX: config?.shadowX ?? presetFallback?.shadowX ?? SHADOW_X,
+    shadowY: config?.shadowY ?? presetFallback?.shadowY ?? SHADOW_Y,
+    shadowBlur: config?.shadowBlur ?? presetFallback?.shadowBlur ?? SHADOW_BLUR,
+    shadowOpacity: config?.shadowOpacity ?? presetFallback?.shadowOpacity ?? SHADOW_OPACITY,
+    insetBlur: config?.insetBlur ?? presetFallback?.insetBlur ?? INSET_BLUR,
+    insetOpacity: config?.insetOpacity ?? presetFallback?.insetOpacity ?? INSET_OPACITY,
+    textShadow: config?.textShadow ?? presetFallback?.textShadow ?? TEXT_SHADOW_DEFAULT,
   }
 }
 
@@ -226,6 +271,7 @@ export function CharacterPreview({
   character,
   forceDebug,
   debugVisualConfig,
+  editorOverrides,
   ...rest
 }: CharacterPreviewProps) {
   if (!character) {
@@ -248,7 +294,7 @@ export function CharacterPreview({
     return <CharacterPreviewWithDebug character={character} forceDebug={forceDebug} {...rest} />
   }
 
-  return <CharacterPreviewInner character={character} forceDebug={forceDebug} debugVisualConfig={debugVisualConfig} {...rest} />
+  return <CharacterPreviewInner character={character} forceDebug={forceDebug} debugVisualConfig={debugVisualConfig} editorOverrides={editorOverrides} {...rest} />
 }
 
 /** Wrapper that subscribes to debug store and renders panel - only used when CARD_DEBUG */
@@ -279,39 +325,37 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
   id,
   forceDebug,
   debugVisualConfig,
+  editorOverrides,
 }: CharacterPreviewInnerProps) {
   // Safe narrowing: ShowcaseTabCharacter is structurally compatible with Character for all
   // downstream usage. The source-aware branching in useCharacterPreviewState and getPreviewRelics
   // handles the equipped field difference (Relic objects vs string IDs).
   const character = rawCharacter as Character
 
-  // Debug visual config with defaults
+  // Debug visual config with defaults — preset-aware (Satin/Gloss)
   const { t } = useTranslation('gameData')
-  const visual = resolveDebugVisualConfig(debugVisualConfig)
+  const showcasePreset = useGlobalStore((s) => s.savedSession.showcasePreset)
+  const presetFallback = getShowcasePreset(showcasePreset)
+  const visual = resolveDebugVisualConfig(debugVisualConfig, presetFallback)
 
-  const colorPipelineConfig = useMemo<ColorPipelineConfig>(() => ({
-    ...DEFAULT_CONFIG,
-    cardBg: {
-      ...DEFAULT_CONFIG.cardBg,
-      maxC: visual.debugMaxC,
-      minC: visual.debugMinC,
-      chromaScale: visual.debugChromaScale,
-      targetL: visual.debugTargetL,
-      minL: visual.debugMinL,
-      maxL: visual.debugMaxL,
-    },
-  }), [visual.debugMaxC, visual.debugMinC, visual.debugChromaScale, visual.debugTargetL, visual.debugMinL, visual.debugMaxL])
+  const colorPipelineConfig = useMemo<ColorPipelineConfig>(
+    () => buildCardBgPipelineConfig(visual),
+    [visual.debugMaxC, visual.debugMinC, visual.debugChromaScale, visual.debugTargetL, visual.debugMinL, visual.debugMaxL],
+  )
 
   const state = useCharacterPreviewState(source, rawCharacter, savedBuildOverride)
 
   // Portrait filter with dark mode brightness offset
   const effectiveBrightness = visual.portraitBrightness + (state.darkMode ? DEFAULT_CONFIG.darkMode.brightnessOffset : 0)
-  const portraitFilter = buildPortraitFilter(visual.portraitBlur, effectiveBrightness, visual.portraitSaturate)
+  const portraitFilter = buildPortraitFilter(visual.portraitBlur, effectiveBrightness, visual.portraitSaturate, visual.portraitContrast)
 
   const { displayRelics, scoringResults } = state.previewRelics
 
   // Layout: forceDebug disables L2D, forces SUBSTAT_SCORE, hides analysis footer
-  const effectiveScoringType = forceDebug ? ScoringType.SUBSTAT_SCORE : state.storedScoringType
+  // editorOverrides.forceSimScoreLayout overrides to COMBAT_SCORE layout for preview
+  const effectiveScoringType = editorOverrides?.forceSimScoreLayout
+    ? ScoringType.COMBAT_SCORE
+    : (forceDebug ? ScoringType.SUBSTAT_SCORE : state.storedScoringType)
   // Cache-buster: state.scoringMetadata invalidates when scoring overrides change (SPD weight, buff priority)
   const _scoringMetadataCacheBuster = state.scoringMetadata
   const layout = useMemo(
@@ -324,13 +368,13 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
         savedBuildOverride,
         t,
       })
-      if (forceDebug) {
+      if (forceDebug && !editorOverrides?.forceSimScoreLayout) {
         return { ...baseLayout, displayDimensions: { ...baseLayout.displayDimensions, disableSpine: true } }
       }
       return baseLayout
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [character, state.teamSelection, effectiveScoringType, savedBuildOverride, _scoringMetadataCacheBuster, t, forceDebug],
+    [character, state.teamSelection, effectiveScoringType, savedBuildOverride, _scoringMetadataCacheBuster, t, forceDebug, editorOverrides?.forceSimScoreLayout],
   )
 
   // ===== Color + Theme (color-dependent, cheap) =====
@@ -400,9 +444,18 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
     scoringType,
     portraitUrl,
     portraitToUse,
-    displayDimensions,
+    displayDimensions: baseDisplayDimensions,
     artistName,
   } = layout
+
+  // Apply editor overrides for live preview editing
+  const displayDimensions = editorOverrides
+    ? {
+        ...baseDisplayDimensions,
+        charCenter: editorOverrides.charCenter ?? baseDisplayDimensions.charCenter,
+        backgroundCenterOffset: editorOverrides.backgroundCenterOffset ?? baseDisplayDimensions.backgroundCenterOffset,
+      }
+    : baseDisplayDimensions
 
   const scoredRelics = scoringResults.relics ?? EMPTY_SCORED
 
@@ -600,14 +653,12 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
           Hidden in forceDebug mode. */
         }
         {source !== ShowcaseSource.BUILDS_MODAL && !forceDebug && (
-          <DeferReveal>
-            <ShowcaseBuildAnalysis
-              showcaseMetadata={showcaseMetadata}
-              scoringType={state.storedScoringType}
-              displayRelics={displayRelics}
-              source={source}
-            />
-          </DeferReveal>
+          <ShowcaseBuildAnalysis
+            showcaseMetadata={showcaseMetadata}
+            scoringType={state.storedScoringType}
+            displayRelics={displayRelics}
+            source={source}
+          />
         )}
       </div>
     </SimScoringContextProvider>

@@ -4,15 +4,15 @@ import { StatKey } from 'lib/optimization/engine/config/keys'
 import type { StatKeyValue } from 'lib/optimization/engine/config/keys'
 
 // Semver defined optimizer version
-export const CURRENT_OPTIMIZER_VERSION = 'v4.1.5'
+export const CURRENT_OPTIMIZER_VERSION = 'v4.2.5'
 
 // Represents the beta data content version, used for display but not for update notifications
-export const CURRENT_DATA_VERSION = '4.2v4'
+export const CURRENT_DATA_VERSION = '4.2v5'
 
 // Controls downtime messaging
 export const SHOWCASE_DOWNTIME = false
 export const RELIQUARY_DOWNTIME = false
-export const DOWNTIME_VERSION: string = '4.1'
+export const DOWNTIME_VERSION: string = '4.2'
 
 export const CharacterAnnouncementMessages: Record<string, string> = {
   '1506': `${CURRENT_DATA_VERSION} beta - Numbers may change.`,
@@ -586,6 +586,11 @@ export const CombatBuffs = {
   BE: {
     title: 'BE %',
     key: 'BE',
+    percent: true,
+  },
+  EHR: {
+    title: 'Effect Hit Rate %',
+    key: 'EHR',
     percent: true,
   },
   DMG_BOOST: {

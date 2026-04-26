@@ -3,7 +3,10 @@ import {
   AppPages,
   PageToRoute,
 } from 'lib/constants/appPages'
-import { CharacterConverter, type UnconvertedCharacter } from 'lib/importer/characterConverter'
+import {
+  CharacterConverter,
+  type UnconvertedCharacter,
+} from 'lib/importer/characterConverter'
 import { Message } from 'lib/interactions/message'
 import { Assets } from 'lib/rendering/assets'
 import { SaveState } from 'lib/state/saveState'
@@ -51,6 +54,9 @@ export function submitForm(form: ShowcaseTabForm, options?: { skipCooldown?: boo
     return
   }
 
+  setScorerId(id)
+  SaveState.delayedSave()
+
   startFetch()
   if (!options?.skipCooldown) {
     setLatestRefreshDate(new Date())
@@ -58,9 +64,6 @@ export function submitForm(form: ShowcaseTabForm, options?: { skipCooldown?: boo
       setLatestRefreshDate(null)
     }, THROTTLE_SECONDS * 1000)
   }
-
-  setScorerId(id)
-  SaveState.delayedSave()
 
   window.history.replaceState({ id: id }, `profile: ${id}`, PageToRoute[AppPages.SHOWCASE] + `?id=${id}`)
 
@@ -92,12 +95,6 @@ export function submitForm(form: ShowcaseTabForm, options?: { skipCooldown?: boo
           self,
         ) => self.map((x) => x.id).indexOf(value.id) === index)
       converted.forEach((x, index) => x.index = index)
-
-      // Preload portrait + avatar images
-      for (const char of converted) {
-        new Image().src = Assets.getCharacterPortraitById(char.id)
-        new Image().src = Assets.getCharacterAvatarById(char.id)
-      }
 
       // Set data immediately — ShowcaseLoaded mounts hidden behind the loading spinner
       const wasOnLoadingScreen = useShowcaseTabStore.getState().screen === ShowcaseScreen.Loading

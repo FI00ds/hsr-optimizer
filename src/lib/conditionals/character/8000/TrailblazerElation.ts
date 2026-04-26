@@ -1,5 +1,4 @@
-import i18next from 'i18next'
-import { Huohuo } from 'lib/conditionals/character/1200/Huohuo'
+import { HuohuoB1 } from 'lib/conditionals/character/1200/HuohuoB1'
 import { SilverWolfLv999 } from 'lib/conditionals/character/1500/SilverWolfLv999'
 import { Sparxie } from 'lib/conditionals/character/1500/Sparxie'
 import { getYaoguangAhaPunchlineValue } from 'lib/conditionals/character/1500/Yaoguang'
@@ -16,11 +15,10 @@ import {
 import { HitDefinitionBuilder } from 'lib/conditionals/hitDefinitionBuilder'
 import { DazzledByAFloweryWorld } from 'lib/conditionals/lightcone/5star/DazzledByAFloweryWorld'
 import { NightOfFright } from 'lib/conditionals/lightcone/5star/NightOfFright'
-import { WelcomeToTheCityOfStars } from 'lib/conditionals/lightcone/5star/WelcomeToTheCityOfStars'
+import { WelcomeToTheCosmicCity } from 'lib/conditionals/lightcone/5star/WelcomeToTheCosmicCity'
 import {
   ConditionalActivation,
   ConditionalType,
-  CURRENT_DATA_VERSION,
   Parts,
   Sets,
   Stats,
@@ -49,7 +47,11 @@ import {
   SPREAD_RELICS_4P_GENERAL_CONDITIONALS,
   SPREAD_RELICS_4P_SUPPORT,
 } from 'lib/scoring/scoringConstants'
-import { floorSafe } from 'lib/utils/mathUtils'
+import { wrappedFixedT } from 'lib/utils/i18nUtils'
+import {
+  floorSafe,
+  precisionRound,
+} from 'lib/utils/mathUtils'
 
 import type { Eidolon } from 'types/character'
 import type { CharacterConfig } from 'types/characterConfig'
@@ -73,8 +75,7 @@ export const TrailblazerElationAbilities: AbilityKind[] = [
 ]
 
 const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsController => {
-  const betaContent = i18next.t('BetaMessage', { ns: 'conditionals', Version: CURRENT_DATA_VERSION })
-  // const t = TsUtils.wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.TrailblazerElation')
+  const t = wrappedFixedT(withContent).get(null, 'conditionals', 'Characters.TrailblazerElation.Content')
   const { basic, skill, ult, talent, elationSkill } = AbilityEidolon.SKILL_TALENT_ELATION_SKILL_3_ULT_BASIC_ELATION_SKILL_5
   const {
     SOURCE_BASIC,
@@ -121,56 +122,60 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
     punchlineStacks: {
       id: 'punchlineStacks',
       formItem: 'slider',
-      text: 'Punchline stacks',
-      content: betaContent,
+      text: t('punchlineStacks.text'),
+      content: t('punchlineStacks.content'),
       min: 0,
       max: 100,
     },
     certifiedBanger: {
       id: 'certifiedBanger',
       formItem: 'switch',
-      text: 'Certified Banger',
-      content: betaContent,
+      text: t('certifiedBanger.text'),
+      content: t('certifiedBanger.content', {
+        skillAdditionalElationScaling: precisionRound(100 * talentSkillElationScaling),
+      }),
     },
     certifiedBangerStacks: {
       id: 'certifiedBangerStacks',
       formItem: 'slider',
-      text: 'Certified Banger stacks',
-      content: betaContent,
+      text: t('certifiedBangerStacks.text'),
+      content: t('certifiedBangerStacks.content', {
+        skillAdditionalElationScaling: precisionRound(100 * talentSkillElationScaling),
+      }),
       min: 0,
       max: 200,
     },
     ultCdBuff: {
       id: 'ultCdBuff',
       formItem: 'switch',
-      text: 'Ult CD buff',
-      content: betaContent,
+      text: t('ultCdBuff.text'),
+      content: t('ultCdBuff.content'),
     },
     atkToElation: {
       id: 'atkToElation',
       formItem: 'switch',
-      text: 'ATK to Elation conversion',
-      content: betaContent,
+      text: t('atkToElation.text'),
+      content: t('atkToElation.content'),
     },
     e2UltElation: {
       id: 'e2UltElation',
       formItem: 'switch',
-      text: 'E2 Ult Elation',
-      content: betaContent,
+      text: t('e2UltElation.text'),
+      content: t('e2UltElation.content'),
       disabled: e < 2,
     },
     e4Vulnerability: {
       id: 'e4Vulnerability',
       formItem: 'switch',
-      text: 'E4 Vulnerability',
-      content: betaContent,
+      text: t('e4Vulnerability.text'),
+      content: t('e4Vulnerability.content'),
       disabled: e < 4,
     },
     e6CritDmg: {
       id: 'e6CritDmg',
       formItem: 'switch',
-      text: 'E6 Crit DMG',
-      content: betaContent,
+      text: t('e6CritDmg.text'),
+      content: t('e6CritDmg.content'),
       disabled: e < 6,
     },
   }
@@ -367,7 +372,7 @@ const simulation = (): SimulationMetadata => ({
   teammates: [
     {
       characterId: SilverWolfLv999.id,
-      lightCone: WelcomeToTheCityOfStars.id,
+      lightCone: WelcomeToTheCosmicCity.id,
       characterEidolon: 0,
       lightConeSuperimposition: 1,
     },
@@ -378,7 +383,7 @@ const simulation = (): SimulationMetadata => ({
       lightConeSuperimposition: 1,
     },
     {
-      characterId: Huohuo.id,
+      characterId: HuohuoB1.id,
       lightCone: NightOfFright.id,
       characterEidolon: 0,
       lightConeSuperimposition: 1,
@@ -431,7 +436,7 @@ const display = {
     y: 1014,
     z: 1,
   },
-  showcaseColor: '#ac87ee',
+  showcaseColor: '#976be3',
 }
 
 export const TrailblazerElationCaelus: CharacterConfig = {

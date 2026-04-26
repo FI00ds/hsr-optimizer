@@ -27,14 +27,14 @@ CharacterMenu:
       SortByScore: Sort all characters by score
       MoveToTop: Move character to top
 SearchPlaceholder: Search
-GridHeaders:
-  Icon: Icon
-  Priority: Priority
-  Character: Character
+GridDensityOptions:
+  default: Default
+  compact: Compact
 Messages:
   RemoveSuccess: Successfully removed character
   UnequipSuccess: Successfully unequipped character
   NoSelectedCharacter: No selected character
+  NoSelectedLightCone: No selected light cone
   SwitchSuccess: 'Successfully switched relics with $t(gameData:Characters.{{charId}}.Name)'
   SortByScoreWarning: Are you sure you want to sort all characters? You will lose any custom rankings you have set.
   SaveSuccess: 'Successfully saved build: {{name}}'
@@ -77,6 +77,7 @@ CharacterPreview:
       Standard: Standard
     PaletteLabel: Portrait color palette
     ShowUID: Show UID
+    ShowL2D: Show Live2D
   ArtBy: 'Art by {{artistName}}'
   EditCharacter: Edit character
   EditPortrait: Edit portrait
@@ -86,7 +87,7 @@ CharacterPreview:
     SavedPortrait: Successfully saved portrait
     RevertedPortrait: Successfully reverted portrait
     NoSelectedCharacter: No selected character
-    NoSelectedLightCone: No Selected light cone
+    NoSelectedLightCone: No selected light cone
   ScoreHeader:
     Title: Combat Sim
     TitleBenchmark: '{{spd}} SPD Benchmark'

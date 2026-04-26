@@ -1,10 +1,11 @@
 import type {
-  Mutual} from 'lib/conditionals/conditionalUtils';
+  Mutual,
+} from 'lib/conditionals/conditionalUtils'
 import {
   AbilityEidolon,
   type Conditionals,
   type ContentDefinition,
-  createEnum
+  createEnum,
 } from 'lib/conditionals/conditionalUtils'
 import {
   dynamicStatConversionContainer,
@@ -139,7 +140,10 @@ const conditionals = (e: Eidolon, withContent: boolean): CharacterConditionalsCo
       id: 'teammateCDValue',
       formItem: 'slider',
       text: t('TeammateContent.teammateCDValue.text'),
-      content: t('TeammateContent.teammateCDValue.content'),
+      content: t('TeammateContent.teammateCDValue.content', {
+        skillCdBuffScaling: precisionRound(100 * skillCdBuffScaling),
+        skillCdBuffBase: precisionRound(100 * skillCdBuffBase),
+      }),
       min: 0,
       max: 3.50,
       percent: true,
@@ -324,7 +328,7 @@ const display = {
     y: 1050,
     z: 1,
   },
-  showcaseColor: '#7f96fb',
+  showcaseColor: '#3f62bf',
 }
 
 export const SparkleB1: CharacterConfig = {

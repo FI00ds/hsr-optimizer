@@ -1,4 +1,4 @@
-import { Huohuo } from 'lib/conditionals/character/1200/Huohuo'
+import { HuohuoB1 } from 'lib/conditionals/character/1200/HuohuoB1'
 import { Tingyun } from 'lib/conditionals/character/1200/Tingyun'
 import { Sunday } from 'lib/conditionals/character/1300/Sunday'
 import {
@@ -338,7 +338,7 @@ const simulation = (): SimulationMetadata => ({
       lightConeSuperimposition: 5,
     },
     {
-      characterId: Huohuo.id,
+      characterId: HuohuoB1.id,
       lightCone: NightOfFright.id,
       characterEidolon: 0,
       lightConeSuperimposition: 1,
@@ -394,6 +394,11 @@ const display = {
     x: 924,
     y: 944,
     z: 1.15,
+  },
+  backgroundCenterOffset: {
+    x: 277,
+    y: 213,
+    z: 0.5,
   },
   showcaseColor: '#8395fb',
 }

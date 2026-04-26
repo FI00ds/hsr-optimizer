@@ -27,10 +27,8 @@ CharacterMenu:
       SortByScore: Отсортировать персонажей по оценке сборки
       MoveToTop: Переместить персонажа на самый верх
 SearchPlaceholder: Поиск
-GridHeaders:
-  Icon: Иконка
-  Priority: Приор.
-  Character: Персонаж
+GridDensityOptions:
+  default: По-умолчанию
 Messages:
   RemoveSuccess: Персонаж успешно удален
   UnequipSuccess: Реликвии персонажа успешно сняты
@@ -85,7 +83,6 @@ CharacterPreview:
     SavedPortrait: Картинка успешно сохранён
     RevertedPortrait: Изображение успешно восстановлено
     NoSelectedCharacter: Нет выбранного персонажа
-    NoSelectedLightCone: Конус не выбран
   ScoreHeader:
     Title: Эффективность сборки
     TitleBenchmark: 'Эталонная СКР {{spd}}'

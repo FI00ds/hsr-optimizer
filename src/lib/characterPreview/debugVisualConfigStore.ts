@@ -7,6 +7,7 @@ export interface DebugVisualConfig {
   portraitBlur: number
   portraitBrightness: number
   portraitSaturate: number
+  portraitContrast: number
   cardBgAlpha: number
   debugMaxC: number
   debugMinC: number
@@ -34,6 +35,7 @@ export interface DebugVisualConfig {
 export const PORTRAIT_BLUR = 25
 export const PORTRAIT_BRIGHTNESS = 0.40
 export const PORTRAIT_SATURATE = 1.75
+export const PORTRAIT_CONTRAST = 1.00
 export const CARD_BG_ALPHA_DEFAULT = 0.40
 
 // Blend mode default
@@ -47,13 +49,12 @@ export const SHADOW_OPACITY = 0.75
 export const INSET_BLUR = 2
 export const INSET_OPACITY = 0.30
 
-// Text shadow default
-export const TEXT_SHADOW_DEFAULT = '1px 1px 0 rgba(0,0,0,0.3), -1px -1px 0 rgba(0,0,0,0.3), 1px -1px 0 rgba(0,0,0,0.3), -1px 1px 0 rgba(0,0,0,0.3)'
+// Text shadow default — Faint 0.20
+export const TEXT_SHADOW_DEFAULT = '1px 1px 0 rgba(0,0,0,0.2), -1px -1px 0 rgba(0,0,0,0.2), 1px -1px 0 rgba(0,0,0,0.2), -1px 1px 0 rgba(0,0,0,0.2)'
 
 // Text shadow presets for readability tuning
 export const TEXT_SHADOW_PRESETS: { label: string, value: string }[] = [
   { label: 'Default', value: TEXT_SHADOW_DEFAULT },
-  { label: 'Faint 0.20', value: '1px 1px 0 rgba(0,0,0,0.2), -1px -1px 0 rgba(0,0,0,0.2), 1px -1px 0 rgba(0,0,0,0.2), -1px 1px 0 rgba(0,0,0,0.2)' },
   { label: 'Subtle 0.30', value: '1px 1px 0 rgba(0,0,0,0.3), -1px -1px 0 rgba(0,0,0,0.3), 1px -1px 0 rgba(0,0,0,0.3), -1px 1px 0 rgba(0,0,0,0.3)' },
   { label: 'Light 0.40', value: '1px 1px 0 rgba(0,0,0,0.4), -1px -1px 0 rgba(0,0,0,0.4), 1px -1px 0 rgba(0,0,0,0.4), -1px 1px 0 rgba(0,0,0,0.4)' },
   { label: 'Medium 0.60', value: '1px 1px 0 rgba(0,0,0,0.6), -1px -1px 0 rgba(0,0,0,0.6), 1px -1px 0 rgba(0,0,0,0.6), -1px 1px 0 rgba(0,0,0,0.6)' },
@@ -79,10 +80,68 @@ export const TEXT_SHADOW_PRESETS: { label: string, value: string }[] = [
   { label: 'None', value: 'none' },
 ]
 
+// ============================================================
+// User-facing showcase visual presets — toggled from the sidebar
+// ============================================================
+
+export enum ShowcasePreset {
+  SHINE = 'shine',
+  NATURAL = 'natural',
+}
+
+export const SHINE_PRESET: DebugVisualConfig = {
+  portraitBlur: 40,
+  portraitBrightness: 0.40,
+  portraitSaturate: 1.50,
+  portraitContrast: 1.25,
+  cardBgAlpha: 0.35,
+  debugMaxC: 0.07,
+  debugMinC: 0.04,
+  debugChromaScale: 1.00,
+  debugTargetL: 0.40,
+  debugMinL: 0.00,
+  debugMaxL: 0.50,
+  blendMode: 'screen',
+  shadowX: 1.00,
+  shadowY: 1.00,
+  shadowBlur: 5.00,
+  shadowOpacity: 0.75,
+  insetBlur: 2.00,
+  insetOpacity: 0.30,
+  textShadow: TEXT_SHADOW_DEFAULT,
+}
+
+export const NATURAL_PRESET: DebugVisualConfig = {
+  portraitBlur: 46,
+  portraitBrightness: 0.50,
+  portraitSaturate: 1.75,
+  portraitContrast: 0.85,
+  cardBgAlpha: 0.15,
+  debugMaxC: 0.06,
+  debugMinC: 0.04,
+  debugChromaScale: 1.00,
+  debugTargetL: 0.34,
+  debugMinL: 0.08,
+  debugMaxL: 0.63,
+  blendMode: 'normal',
+  shadowX: 1.00,
+  shadowY: 1.00,
+  shadowBlur: 5.00,
+  shadowOpacity: 0.75,
+  insetBlur: 2.00,
+  insetOpacity: 0.30,
+  textShadow: TEXT_SHADOW_DEFAULT,
+}
+
+export function getShowcasePreset(name: ShowcasePreset): DebugVisualConfig {
+  return name === ShowcasePreset.SHINE ? SHINE_PRESET : NATURAL_PRESET
+}
+
 interface DebugVisualConfigStore extends DebugVisualConfig {
   setPortraitBlur: (v: number) => void
   setPortraitBrightness: (v: number) => void
   setPortraitSaturate: (v: number) => void
+  setPortraitContrast: (v: number) => void
   setCardBgAlpha: (v: number) => void
   setDebugMaxC: (v: number) => void
   setDebugMinC: (v: number) => void
@@ -105,6 +164,7 @@ export const useDebugVisualConfigStore = create<DebugVisualConfigStore>((set) =>
   portraitBlur: PORTRAIT_BLUR,
   portraitBrightness: PORTRAIT_BRIGHTNESS,
   portraitSaturate: PORTRAIT_SATURATE,
+  portraitContrast: PORTRAIT_CONTRAST,
   cardBgAlpha: CARD_BG_ALPHA_DEFAULT,
   debugMaxC: DEFAULT_CONFIG.cardBg.maxC,
   debugMinC: DEFAULT_CONFIG.cardBg.minC,
@@ -124,6 +184,7 @@ export const useDebugVisualConfigStore = create<DebugVisualConfigStore>((set) =>
   setPortraitBlur: (v) => set({ portraitBlur: v }),
   setPortraitBrightness: (v) => set({ portraitBrightness: v }),
   setPortraitSaturate: (v) => set({ portraitSaturate: v }),
+  setPortraitContrast: (v) => set({ portraitContrast: v }),
   setCardBgAlpha: (v) => set({ cardBgAlpha: v }),
   setDebugMaxC: (v) => set({ debugMaxC: v }),
   setDebugMinC: (v) => set({ debugMinC: v }),
@@ -148,6 +209,7 @@ export function getDebugVisualConfig(): DebugVisualConfig {
     portraitBlur: s.portraitBlur,
     portraitBrightness: s.portraitBrightness,
     portraitSaturate: s.portraitSaturate,
+    portraitContrast: s.portraitContrast,
     cardBgAlpha: s.cardBgAlpha,
     debugMaxC: s.debugMaxC,
     debugMinC: s.debugMinC,

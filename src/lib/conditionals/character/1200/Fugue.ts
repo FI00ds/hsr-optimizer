@@ -1,5 +1,5 @@
 import { Lingsha } from 'lib/conditionals/character/1200/Lingsha'
-import { Firefly } from 'lib/conditionals/character/1300/Firefly'
+import { FireflyB1 } from 'lib/conditionals/character/1300/FireflyB1'
 import { TheDahlia } from 'lib/conditionals/character/1300/TheDahlia'
 import {
   AbilityEidolon,
@@ -318,7 +318,7 @@ const simulation = (): SimulationMetadata => ({
   ],
   teammates: [
     {
-      characterId: Firefly.id,
+      characterId: FireflyB1.id,
       lightCone: WhereaboutsShouldDreamsRest.id,
       characterEidolon: 0,
       lightConeSuperimposition: 1,
@@ -380,7 +380,7 @@ const display = {
     y: 1125,
     z: 1.15,
   },
-  showcaseColor: '#d777c2',
+  showcaseColor: '#f2c2e8',
 }
 
 export const Fugue: CharacterConfig = {

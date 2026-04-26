@@ -27,10 +27,8 @@ CharacterMenu:
       SortByScore: Sắp xếp nhân vật theo điểm
       MoveToTop: Đưa nhân vật lên đầu
 SearchPlaceholder: Tìm Kiếm
-GridHeaders:
-  Icon: Ảnh
-  Priority: Ưu tiên
-  Character: Nhân vật
+GridDensityOptions:
+  default: Mặc định
 Messages:
   RemoveSuccess: Xóa nhân vật thành công
   UnequipSuccess: Gỡ đồ nhân vật thành công
@@ -80,7 +78,6 @@ CharacterPreview:
     SavedPortrait: Thêm ảnh mới thành công
     RevertedPortrait: Đưa ảnh về ban đầu thành công
     NoSelectedCharacter: Không nhân vật nào được chọn
-    NoSelectedLightCone: Không nón ánh sáng nào được chọn
   ScoreHeader:
     Title: Giả lập combat
     TitleBenchmark: '{{spd}} Mốc chuẩn SPD'

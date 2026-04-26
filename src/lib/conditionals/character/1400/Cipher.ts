@@ -552,7 +552,12 @@ const display = {
     y: 876,
     z: 1.05,
   },
-  showcaseColor: '#958ff7',
+  backgroundCenterOffset: {
+    x: 95,
+    y: 364,
+    z: 0.17,
+  },
+  showcaseColor: '#896ed4',
 }
 
 export const Cipher: CharacterConfig = {
