@@ -116,12 +116,21 @@ export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
   // group with same character, the results are already grouped by character so no need to search the array
   const preGroupedResults: Array<PreGroupedTeammateSetUpgrade> = []
   results.forEach((result) => {
-    const latestGroup = preGroupedResults.at(-1)
+    let latestGroup = preGroupedResults.at(-1)
     if (
       latestGroup
       && latestGroup.id === result.id
       && latestGroup.simScore === result.simScore
     ) {
+      latestGroup.set.add(result.set)
+      return
+    }
+    // special case needed for the "no-op" set changes
+    latestGroup = preGroupedResults.at(-2)
+    if(
+      latestGroup
+      && latestGroup.id === result.id
+      && latestGroup.simScore === result.simScore){
       latestGroup.set.add(result.set)
     } else {
       preGroupedResults.push({

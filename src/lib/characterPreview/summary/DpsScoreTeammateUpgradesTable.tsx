@@ -172,7 +172,18 @@ function groupUpgrades(upgrades: Array<SimulationStatUpgrade>, form: Form, origi
 
   const groupedUpgrades: Array<GroupedUpgrade> = []
   preGroupedUpgrades.forEach((group) => {
-    const latestGroup = groupedUpgrades.at(-1)
+    let latestGroup = groupedUpgrades.at(-1)
+    if (
+      latestGroup
+      && latestGroup.oldSet === group.oldSet
+      && latestGroup.set.symmetricDifference(group.set).size === 0
+      && latestGroup.data.damageValueUpgrade === group.simScore - originalSimScore
+    ) {
+      latestGroup.ids.add(group.id)
+      return
+    } 
+    // special case needed for the "no-op" set changes
+    latestGroup = groupedUpgrades.at(-2)
     if (
       latestGroup
       && latestGroup.oldSet === group.oldSet
