@@ -24,6 +24,7 @@ interface ShowcaseBuildAnalysisProps {
   showcaseMetadata: ShowcaseMetadata
   displayRelics: PreviewRelics
   source: ShowcaseSource
+  onScoringTypeChange?: (type: ScoringType) => void
 }
 
 export const ShowcaseBuildAnalysis = memo(function ShowcaseBuildAnalysis({
@@ -31,6 +32,7 @@ export const ShowcaseBuildAnalysis = memo(function ShowcaseBuildAnalysis({
   showcaseMetadata,
   displayRelics,
   source,
+  onScoringTypeChange,
 }: ShowcaseBuildAnalysisProps) {
   const { t } = useTranslation(['charactersTab', 'modals', 'common'])
 
@@ -59,9 +61,10 @@ export const ShowcaseBuildAnalysis = memo(function ShowcaseBuildAnalysis({
 
   const handleScoringTypeChange = useCallback((selection: string) => {
     const value = Number(selection) as ScoringType
+    onScoringTypeChange?.(value)
     useGlobalStore.getState().setSavedSessionKey(SavedSessionKeys.scoringType, value)
     SaveState.delayedSave()
-  }, [])
+  }, [onScoringTypeChange])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 1000 }}>

@@ -36,6 +36,7 @@ import { DebugSliderPanel } from 'lib/characterPreview/DebugSliderPanel'
 import {
   CARD_BG_ALPHA_DEFAULT,
   type DebugVisualConfig,
+  getShowcasePreset,
   INSET_BLUR,
   INSET_OPACITY,
   PORTRAIT_BLUR,
@@ -47,7 +48,6 @@ import {
   SHADOW_X,
   SHADOW_Y,
   TEXT_SHADOW_DEFAULT,
-  getShowcasePreset,
   useDebugVisualConfigStore,
 } from 'lib/characterPreview/debugVisualConfigStore'
 import { ShowcaseBuildAnalysis } from 'lib/characterPreview/scoring/ShowcaseBuildAnalysis'
@@ -79,6 +79,8 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
+  useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -90,7 +92,10 @@ import type {
   CustomImageConfig,
   CustomImagePayload,
 } from 'types/customImage'
-import type { ShowcaseDisplayDimensionsOverride, ShowcaseTemporaryOptions } from 'types/metadata'
+import type {
+  ShowcaseDisplayDimensionsOverride,
+  ShowcaseTemporaryOptions,
+} from 'types/metadata'
 import {
   ScoringSelector,
   SimScoringContextProvider,
@@ -294,7 +299,9 @@ export function CharacterPreview({
     return <CharacterPreviewWithDebug character={character} forceDebug={forceDebug} {...rest} />
   }
 
-  return <CharacterPreviewInner character={character} forceDebug={forceDebug} debugVisualConfig={debugVisualConfig} editorOverrides={editorOverrides} {...rest} />
+  return (
+    <CharacterPreviewInner character={character} forceDebug={forceDebug} debugVisualConfig={debugVisualConfig} editorOverrides={editorOverrides} {...rest} />
+  )
 }
 
 /** Wrapper that subscribes to debug store and renders panel - only used when CARD_DEBUG */
@@ -330,7 +337,19 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
   // Safe narrowing: ShowcaseTabCharacter is structurally compatible with Character for all
   // downstream usage. The source-aware branching in useCharacterPreviewState and getPreviewRelics
   // handles the equipped field difference (Relic objects vs string IDs).
-  const character = rawCharacter as Character
+  const character = useMemo(() => {
+    return !savedBuildOverride
+      ? rawCharacter as Character
+      : {
+        ...rawCharacter,
+        form: {
+          ...rawCharacter.form,
+          characterEidolon: savedBuildOverride.characterEidolon,
+          lightCone: savedBuildOverride.lightCone,
+          lightConeSuperimposition: savedBuildOverride.lightConeSuperimposition,
+        },
+      } as Character
+  }, [rawCharacter, savedBuildOverride])
 
   // Debug visual config with defaults — preset-aware (Satin/Gloss)
   const { t } = useTranslation('gameData')
@@ -351,11 +370,19 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
 
   const { displayRelics, scoringResults } = state.previewRelics
 
+  // Resets to COMBAT_SCORE on character switch; resolveScoringType downgrades if no sim.
+  const [localScoringType, setLocalScoringType] = useState(ScoringType.COMBAT_SCORE)
+  const prevCharIdRef = useRef(character.id)
+  if (prevCharIdRef.current !== character.id) {
+    prevCharIdRef.current = character.id
+    setLocalScoringType(ScoringType.COMBAT_SCORE)
+  }
+
   // Layout: forceDebug disables L2D, forces SUBSTAT_SCORE, hides analysis footer
   // editorOverrides.forceSimScoreLayout overrides to COMBAT_SCORE layout for preview
   const effectiveScoringType = editorOverrides?.forceSimScoreLayout
     ? ScoringType.COMBAT_SCORE
-    : (forceDebug ? ScoringType.SUBSTAT_SCORE : state.storedScoringType)
+    : (forceDebug ? ScoringType.SUBSTAT_SCORE : localScoringType)
   // Cache-buster: state.scoringMetadata invalidates when scoring overrides change (SPD weight, buff priority)
   const _scoringMetadataCacheBuster = state.scoringMetadata
   const layout = useMemo(
@@ -374,7 +401,16 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
       return baseLayout
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [character, state.teamSelection, effectiveScoringType, savedBuildOverride, _scoringMetadataCacheBuster, t, forceDebug, editorOverrides?.forceSimScoreLayout],
+    [
+      character,
+      state.teamSelection,
+      effectiveScoringType,
+      savedBuildOverride,
+      _scoringMetadataCacheBuster,
+      t,
+      forceDebug,
+      editorOverrides?.forceSimScoreLayout,
+    ],
   )
 
   // ===== Color + Theme (color-dependent, cheap) =====
@@ -451,10 +487,10 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
   // Apply editor overrides for live preview editing
   const displayDimensions = editorOverrides
     ? {
-        ...baseDisplayDimensions,
-        charCenter: editorOverrides.charCenter ?? baseDisplayDimensions.charCenter,
-        backgroundCenterOffset: editorOverrides.backgroundCenterOffset ?? baseDisplayDimensions.backgroundCenterOffset,
-      }
+      ...baseDisplayDimensions,
+      charCenter: editorOverrides.charCenter ?? baseDisplayDimensions.charCenter,
+      backgroundCenterOffset: editorOverrides.backgroundCenterOffset ?? baseDisplayDimensions.backgroundCenterOffset,
+    }
     : baseDisplayDimensions
 
   const scoredRelics = scoringResults.relics ?? EMPTY_SCORED
@@ -506,6 +542,7 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
             '--showcase-card-border': derivedShowcaseTheme.cardBorderColor,
             '--showcase-shadow': buildShadow(visual.shadowX, visual.shadowY, visual.shadowBlur, visual.shadowOpacity),
             '--showcase-shadow-inset': buildInsetShadow(visual.insetBlur, visual.insetOpacity),
+            'fontFamily': 'var(--font-showcase)',
             'color': 'rgba(225, 225, 225, 1)',
             'textShadow': visual.textShadow,
             'position': 'relative',
@@ -647,17 +684,13 @@ const CharacterPreviewInner = memo(function CharacterPreviewInner({
           simulationMetadata={layout.simulationMetadata}
         />
 
-        {
-          /* Showcase analysis footer — uses storedScoringType (user's preference) not resolved scoringType,
-          so the SegmentedControl reflects their selection even when combat score is unavailable.
-          Hidden in forceDebug mode. */
-        }
         {source !== ShowcaseSource.BUILDS_MODAL && !forceDebug && (
           <ShowcaseBuildAnalysis
             showcaseMetadata={showcaseMetadata}
-            scoringType={state.storedScoringType}
+            scoringType={scoringType}
             displayRelics={displayRelics}
             source={source}
+            onScoringTypeChange={setLocalScoringType}
           />
         )}
       </div>
