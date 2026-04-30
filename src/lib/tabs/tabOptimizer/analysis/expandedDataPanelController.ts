@@ -9,6 +9,7 @@ import type { SingleRelicByPart } from 'lib/gpu/webgpuTypes'
 import { BasicStatsArrayCore } from 'lib/optimization/basicStatsArray'
 import type { OptimizerDisplayData } from 'lib/optimization/bufferPacker'
 import { generateContext } from 'lib/optimization/context/calculateContext'
+import { GlobalRegister } from 'lib/optimization/engine/config/keys'
 import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import { RelicFilters } from 'lib/relics/relicFilters'
 import { teammateOrnamentOptions } from 'lib/sets/setConfigRegistry'
@@ -77,13 +78,10 @@ interface PreGroupedTeammateSetUpgrade {
 }
 
 const teammateKeys = ['teammate0', 'teammate1', 'teammate2'] as const
-export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
-  const { relicSetIndex, ornamentSetIndex } = analysis.newRowData
 
+export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
   const baseRequest = analysis.request
-  const relicSets = relicSetIndexToNames(relicSetIndex)
-  const ornamentSets = ornamentSetIndexToName(ornamentSetIndex)
-  const simulationRequest = convertRelicsToSimulation(analysis.newRelics, relicSets[0], relicSets[1], ornamentSets) as SimulationRequest
+  const relics = analysis.newRelics as unknown as SimulationRelicByPart
 
   const results: Array<PreTeammateSetUpgrade> = []
 
@@ -92,16 +90,12 @@ export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
       if (option.value === baseRequest[key].teamOrnamentSet) return
       const request = { ...baseRequest, [key]: { ...baseRequest[key], teamOrnamentSet: option.value } }
       const context = generateContext(request)
-      const result = runStatSimulations(
-        [{ request: clone(simulationRequest), simType: StatSimTypes.SubstatRolls, key: option.value }],
-        request,
-        context,
-      )[0]
+      const { x } = simulateBuild(relics, context, new BasicStatsArrayCore(true), null, true)
       results.push({
         id: baseRequest[key].characterId,
         set: option.value,
         oldSet: baseRequest[key].teamOrnamentSet,
-        simScore: result.simScore,
+        simScore: x.getGlobalRegisterValue(GlobalRegister.COMBO_DMG),
       })
     })
   })
@@ -127,10 +121,11 @@ export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
     }
     // special case needed for the "no-op" set changes
     latestGroup = preGroupedResults.at(-2)
-    if(
+    if (
       latestGroup
       && latestGroup.id === result.id
-      && latestGroup.simScore === result.simScore){
+      && latestGroup.simScore === result.simScore
+    ) {
       latestGroup.set.add(result.set)
     } else {
       preGroupedResults.push({
