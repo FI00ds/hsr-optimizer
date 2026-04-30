@@ -102,7 +102,7 @@ export type RunStatSimulationsResult = {
 
 export type SimulationRelic = {
   set: string,
-  condensedStats: [number, number][],
+  condensedStats?: [number, number][],
 }
 
 export type SimulationRelicByPart = {

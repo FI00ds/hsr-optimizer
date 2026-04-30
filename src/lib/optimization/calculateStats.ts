@@ -363,22 +363,22 @@ export function calculateRelicStats(
   linkRope: SimulationRelic,
 ) {
   const a = c.a
-  for (const condensedStat of head.condensedStats) {
+  for (const condensedStat of head.condensedStats ?? []) {
     a[condensedStat[0]] += condensedStat[1]
   }
-  for (const condensedStat of hands.condensedStats) {
+  for (const condensedStat of hands.condensedStats ?? []) {
     a[condensedStat[0]] += condensedStat[1]
   }
-  for (const condensedStat of body.condensedStats) {
+  for (const condensedStat of body.condensedStats ?? []) {
     a[condensedStat[0]] += condensedStat[1]
   }
-  for (const condensedStat of feet.condensedStats) {
+  for (const condensedStat of feet.condensedStats ?? []) {
     a[condensedStat[0]] += condensedStat[1]
   }
-  for (const condensedStat of planarSphere.condensedStats) {
+  for (const condensedStat of planarSphere.condensedStats ?? []) {
     a[condensedStat[0]] += condensedStat[1]
   }
-  for (const condensedStat of linkRope.condensedStats) {
+  for (const condensedStat of linkRope.condensedStats ?? []) {
     a[condensedStat[0]] += condensedStat[1]
   }
 }

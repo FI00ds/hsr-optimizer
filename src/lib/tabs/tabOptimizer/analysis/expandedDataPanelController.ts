@@ -81,7 +81,7 @@ const teammateKeys = ['teammate0', 'teammate1', 'teammate2'] as const
 
 export function calculateTeammateUpgrades(analysis: OptimizerResultAnalysis) {
   const baseRequest = analysis.request
-  const relics = analysis.newRelics as unknown as SimulationRelicByPart
+  const relics = analysis.newRelics as SimulationRelicByPart
 
   const results: Array<PreTeammateSetUpgrade> = []
 
@@ -205,9 +205,9 @@ export function generateAnalysisData(
     return null
   }
 
-  const { x: oldX } = simulateBuild(oldRelics as unknown as SimulationRelicByPart, contextOld, null)
+  const { x: oldX } = simulateBuild(oldRelics as SimulationRelicByPart, contextOld, null)
   const { x: newX, actionBuffSnapshots, rotationBuffSteps } = simulateBuild(
-    newRelics as unknown as SimulationRelicByPart,
+    newRelics as SimulationRelicByPart,
     contextNew,
     new BasicStatsArrayCore(true),
     null,
