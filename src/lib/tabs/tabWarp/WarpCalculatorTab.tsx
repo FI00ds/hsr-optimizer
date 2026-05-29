@@ -22,7 +22,7 @@ import { ActionIcon, Badge, Button, Divider, Flex, NumberInput, Paper, Segmented
 import { useForm } from '@mantine/form'
 import type { UseFormReturnType } from '@mantine/form'
 import chroma from 'chroma-js'
-import i18next from 'i18next'
+import i18next, { type TFunction } from 'i18next'
 import { DEFAULT_CONFIG } from 'lib/characterPreview/color/colorPipelineConfig'
 import { oklchCharacterListColor } from 'lib/characterPreview/color/colorUtilsOklch'
 import { getCharacterConfig } from 'lib/conditionals/resolver/characterConfigRegistry'
@@ -69,7 +69,7 @@ export function WarpCalculatorTab() {
         url='https://github.com/fribbels/hsr-optimizer/blob/main/docs/guides/en/warp-planner.md'
       />
 
-      <WarpPlanner/>
+      <WarpPlanner />
     </Flex>
   )
 }
@@ -192,7 +192,7 @@ function WarpPlanner() {
                       hideControls
                       leftSection={
                         <Flex align='center' justify='center' w='100%' h='60%' pl={2} style={{ borderRight: '1px solid #444' }}>
-                          <img src={Assets.getJade()} style={{ height: 24 }}/>
+                          <img src={Assets.getJade()} style={{ height: 24 }} />
                         </Flex>
                       }
                       leftSectionWidth={34}
@@ -227,7 +227,7 @@ function WarpPlanner() {
                       hideControls
                       leftSection={
                         <Flex align='center' justify='center' w='100%' h='60%' pl={2} style={{ borderRight: '1px solid #444' }}>
-                          <img src={Assets.getPass()} style={{ height: 24 }}/>
+                          <img src={Assets.getPass()} style={{ height: 24 }} />
                         </Flex>
                       }
                       leftSectionWidth={34}
@@ -244,7 +244,7 @@ function WarpPlanner() {
                   <Select
                     leftSection={
                       <Flex align='center' justify='center' w='100%' h='60%' pl={2} style={{ borderRight: '1px solid #444' }}>
-                        <img src={Assets.getStarlight()} style={{ height: 24 }}/>
+                        <img src={Assets.getStarlight()} style={{ height: 24 }} />
                       </Flex>
                     }
                     leftSectionWidth={34}
@@ -275,33 +275,33 @@ function WarpPlanner() {
                     renderOption={(option) => (
                       <Flex align='center' gap={4}>
                         <span>{option.label}</span>
-                        <img src={Assets.getPass()} style={{ height: 16 }}/>
+                        <img src={Assets.getPass()} style={{ height: 16 }} />
                       </Flex>
                     )}
                   />
                 </Flex>
 
-                <Flex flex={1}/>
+                <Flex flex={1} />
               </Flex>
             </Flex>
           </Flex>
 
-          <VerticalDivider width={30}/>
+          <VerticalDivider width={30} />
 
           <Flex direction="column" flex={1} justify='space-between'>
             <Flex direction="column">
               <Title>{t('Character')/* Character */}</Title>
-              <PityInputs banner='Character' form={form}/>
+              <PityInputs banner='Character' form={form} />
             </Flex>
 
             <Flex direction="column">
               <Title>{t('LightCone')/* Light Cone */}</Title>
-              <PityInputs banner='LightCone' form={form}/>
+              <PityInputs banner='LightCone' form={form} />
             </Flex>
           </Flex>
         </Flex>
 
-        <WarpSummary enriched={warpResult.request}/>
+        <WarpSummary enriched={warpResult.request} />
       </Paper>
 
       <DndContext
@@ -356,23 +356,23 @@ function WarpSummary(props: { enriched: EnrichedWarpRequest }) {
       label={
         <Flex align='center' gap={4} style={{ fontSize: 16 }}>
           {localeNumberComma(enriched.totalJade)}
-          <img style={{ height: 16 }} src={Assets.getJade()}/>
+          <img style={{ height: 16 }} src={Assets.getJade()} />
           <span>+</span>
           {localeNumberComma(enriched.passes)}
-          <img style={{ height: 16 }} src={Assets.getPass()}/>
+          <img style={{ height: 16 }} src={Assets.getPass()} />
           {enriched.additionalPasses > 0 && (
             <>
               <span>+</span>
               {localeNumberComma(enriched.additionalPasses)}
-              <img style={{ height: 16 }} src={Assets.getPass()}/>
+              <img style={{ height: 16 }} src={Assets.getPass()} />
             </>
           )}
           <span>+</span>
           {localeNumberComma(enriched.totalStarlight)}
-          <img style={{ height: 16 }} src={Assets.getStarlight()}/>
+          <img style={{ height: 16 }} src={Assets.getStarlight()} />
           <span>=</span>
           {localeNumberComma(enriched.warps)}
-          <img style={{ height: 16 }} src={Assets.getPass()}/>
+          <img style={{ height: 16 }} src={Assets.getPass()} />
         </Flex>
       }
       labelPosition='center'
@@ -424,7 +424,6 @@ function WarpTargetCard(props: {
   const canRemove = form.getValues().targets.length > 1
   const hasMilestoneResults = Object.keys(targetResult.milestoneResults).length > 0
   const hasCharacter = target.characterId != null
-  const [characterSelectOpen, setCharacterSelectOpen] = useState(false)
 
   return (
     <Paper className={classes.targetCard} data-dragging={isDragging || undefined} data-empty={!hasCharacter || undefined} data-target-id={target.id} p={0} withBorder>
@@ -432,148 +431,169 @@ function WarpTargetCard(props: {
         <WarpCharacterHeader
           target={target}
           rank={index + 1}
-          onClick={() => setCharacterSelectOpen(true)}
           dragHandleRef={dragHandleRef}
           dragHandleProps={dragHandleProps}
+          form={form}
+          t={t}
         />
       ) : (
         <WarpEmptyTargetHeader
-          rank={index + 1}
+          target={target}
+          index={index}
           dragHandleRef={dragHandleRef}
           dragHandleProps={dragHandleProps}
+          form={form}
+          t={t}
         />
       )}
 
-      <Tooltip label={t('RemoveTarget')/* Remove target */} disabled={!canRemove}>
-        <ActionIcon
-          className={classes.targetRemoveButton}
-          variant='default'
-          size={30}
-          disabled={!canRemove}
-          aria-label={t('RemoveTarget')}
-          onClick={() => removeTarget(form, index)}
-        >
-          <IconTrash size={16} />
-        </ActionIcon>
-      </Tooltip>
-
-      <Flex className={classes.targetControls} direction='column' gap={12}>
-        <Flex gap={12} align='flex-end'>
-          <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
-            <HeaderText>{t('Character')/* Character */}</HeaderText>
-            <CharacterSelect
-              value={target.characterId}
-              onChange={(characterId) => updateTarget(form, index, getCharacterSelectionPatch(characterId))}
-              opened={characterSelectOpen}
-              onOpenChange={setCharacterSelectOpen}
-            />
-          </Flex>
-
-          <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
-            <HeaderText>{t('TargetEidolon')/* Eidolon target */}</HeaderText>
-            <Select
-              data={generateEidolonLevelOptions()}
-              value={String(target.targetEidolonLevel)}
-              onChange={(value) => {
-                if (value != null) updateTarget(form, index, { targetEidolonLevel: Number(value) as EidolonLevel })
-              }}
-            />
-          </Flex>
-
-          <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
-            <HeaderText>{t('TargetLightCone')/* Light cone target */}</HeaderText>
-            <Select
-              data={generateSuperimpositionLevelOptions()}
-              value={String(target.targetSuperimpositionLevel)}
-              onChange={(value) => {
-                if (value != null) updateTarget(form, index, { targetSuperimpositionLevel: Number(value) as SuperimpositionLevel })
-              }}
-            />
-          </Flex>
-
-          <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
-            <HeaderText>{t('Strategy')/* Strategy */}</HeaderText>
-            <Select
-              data={generateStrategyOptions()}
-              value={String(target.strategy)}
-              onChange={(value) => {
-                if (value != null) updateTarget(form, index, { strategy: Number(value) as WarpStrategy })
-              }}
-            />
-          </Flex>
-        </Flex>
-
-        <Flex gap={12} align='flex-end'>
-          <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControlWide}>
-            <HeaderText>{t('CurrentEidolon')/* Current eidolon */}</HeaderText>
-            <Select
-              data={generateEidolonLevelOptions()}
-              value={String(target.currentEidolonLevel)}
-              onChange={(value) => {
-                if (value != null) updateTarget(form, index, { currentEidolonLevel: Number(value) as EidolonLevel })
-              }}
-            />
-          </Flex>
-
-          <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControlWide}>
-            <HeaderText>{t('CurrentSuperimposition')/* Current superimposition */}</HeaderText>
-            <Select
-              data={generateSuperimpositionLevelOptions()}
-              value={String(target.currentSuperimpositionLevel)}
-              onChange={(value) => {
-                if (value != null) updateTarget(form, index, { currentSuperimpositionLevel: Number(value) as SuperimpositionLevel })
-              }}
-            />
-          </Flex>
-        </Flex>
-
-      </Flex>
-
       {hasMilestoneResults && (
         <div className={classes.targetTableWrap}>
-          <WarpResultsTable milestoneResults={targetResult.milestoneResults} request={request}/>
+          <WarpResultsTable milestoneResults={targetResult.milestoneResults} request={request} />
         </div>
       )}
     </Paper>
   )
 }
 
+function WarpTargetControls(props: {
+  target: WarpTarget,
+  form: UseFormReturnType<WarpRequest>,
+  index: number,
+  t: TFunction<"warpCalculatorTab", "SectionTitles">
+  withBg?: boolean
+  prefix?: ReactNode
+}) {
+  const { target, form, index, t, withBg = true } = props
+  return (
+    <Flex rowGap={4} columnGap={12} align='flex-end' wrap='wrap' className={withBg ? classes.targetControls : undefined} >
+      {props.prefix}
+      <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
+        <HeaderText>{t('CurrentEidolon')/* Current eidolon */}</HeaderText>
+        <Select
+          data={generateEidolonLevelOptions()}
+          value={String(target.currentEidolonLevel)}
+          onChange={(value) => {
+            if (value != null) updateTarget(form, index, { currentEidolonLevel: Number(value) as EidolonLevel })
+          }}
+        />
+      </Flex>
+
+      <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
+        <HeaderText>{t('TargetEidolon')/* Eidolon target */}</HeaderText>
+        <Select
+          data={generateEidolonLevelOptions()}
+          value={String(target.targetEidolonLevel)}
+          onChange={(value) => {
+            if (value != null) updateTarget(form, index, { targetEidolonLevel: Number(value) as EidolonLevel })
+          }}
+        />
+      </Flex>
+
+      <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
+        <HeaderText>{t('CurrentSuperimposition')/* Current superimposition */}</HeaderText>
+        <Select
+          data={generateSuperimpositionLevelOptions()}
+          value={String(target.currentSuperimpositionLevel)}
+          onChange={(value) => {
+            if (value != null) updateTarget(form, index, { currentSuperimpositionLevel: Number(value) as SuperimpositionLevel })
+          }}
+        />
+      </Flex>
+
+      <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
+        <HeaderText>{t('TargetLightCone')/* Light cone target */}</HeaderText>
+        <Select
+          data={generateSuperimpositionLevelOptions()}
+          value={String(target.targetSuperimpositionLevel)}
+          onChange={(value) => {
+            if (value != null) updateTarget(form, index, { targetSuperimpositionLevel: Number(value) as SuperimpositionLevel })
+          }}
+        />
+      </Flex>
+
+      <Flex direction='column' gap={HEADER_LABEL_GAP} className={classes.targetControl}>
+        <HeaderText>{t('Strategy')/* Strategy */}</HeaderText>
+        <Select
+          data={generateStrategyOptions()}
+          value={String(target.strategy)}
+          onChange={(value) => {
+            if (value != null) updateTarget(form, index, { strategy: Number(value) as WarpStrategy })
+          }}
+        />
+      </Flex>
+    </Flex>
+  )
+}
+
 function WarpEmptyTargetHeader(props: {
-  rank: number,
+  target: WarpTarget,
+  form: UseFormReturnType<WarpRequest>,
+  index: number,
   dragHandleRef?: (node: HTMLDivElement | null) => void,
   dragHandleProps?: HTMLAttributes<HTMLDivElement>,
+  t: TFunction<"warpCalculatorTab", "SectionTitles">
 }) {
-  const { dragHandleProps, dragHandleRef, rank } = props
+  const { dragHandleProps, dragHandleRef, index, form, target, t } = props
+
+  const [selectOpen, setSelectOpen] = useState(false)
+
+  const disabled = form.getValues().targets.length <= 1
 
   return (
-    <div
-      ref={dragHandleRef}
-      className={classes.targetEmptyHeader}
-      {...dragHandleProps}
-      aria-label={`Reorder target ${rank}`}
-    >
-      <span className={classes.targetEmptyRank}>{rank}</span>
-      <IconGripVertical className={classes.targetEmptyGrip} size={16} aria-hidden='true' />
-    </div>
+    <>
+      <div
+        ref={dragHandleRef}
+        className={classes.targetEmptyHeader}
+        {...dragHandleProps}
+        aria-label={`Reorder target ${index + 1}`}
+      >
+        <span className={classes.targetEmptyRank}>{index + 1}</span>
+        <IconGripVertical className={classes.targetEmptyGrip} size={16} aria-hidden='true' />
+
+        <CharacterSelect
+          value={target.characterId}
+          onChange={(characterId) => updateTarget(form, index, getCharacterSelectionPatch(characterId))}
+          opened={selectOpen}
+          onOpenChange={setSelectOpen}
+        />
+
+        <Tooltip label={t('RemoveTarget')/* Remove target */} disabled={disabled}>
+          <ActionIcon
+            style={{ marginLeft: 'auto', marginRight: 0 }}
+            variant='default'
+            size={30}
+            disabled={disabled}
+            aria-label={t('RemoveTarget')}
+            onClick={() => removeTarget(form, index)}
+          >
+            <IconTrash size={16} />
+          </ActionIcon>
+        </Tooltip>
+      </div>
+      <WarpTargetControls target={target} form={form} index={index} t={t} />
+    </>
   )
 }
 
 function WarpCharacterHeader(props: {
   target: WarpTarget,
+  form: UseFormReturnType<WarpRequest>,
   rank: number,
-  onClick: () => void,
   dragHandleRef?: (node: HTMLDivElement | null) => void,
   dragHandleProps?: HTMLAttributes<HTMLDivElement>,
+  t: TFunction<"warpCalculatorTab", "SectionTitles">
 }) {
-  const { t } = useTranslation('common')
+  const { t: tCommon } = useTranslation('common')
   const { t: tGameData } = useTranslation('gameData', { keyPrefix: 'Characters' })
-  const { dragHandleProps, dragHandleRef, target, rank, onClick } = props
+  const [selectOpen, setSelectOpen] = useState(false)
+  const { dragHandleProps, dragHandleRef, target, rank, form, t } = props
   const characterId = target.characterId
   const characterConfig = characterId ? getCharacterConfig(characterId) : undefined
   const showcaseColor = characterConfig?.display.showcaseColor
   const signatureLightConeId = characterConfig?.defaultLightCone
   const longName = characterId ? tGameData(`${characterId}.LongName`) as string : ''
-  const characterName = characterId ? longName.includes('(') ? longName : tGameData(`${characterId}.Name`) : t('Character_one')
+  const characterName = characterId ? longName.includes('(') ? longName : tGameData(`${characterId}.Name`) : tCommon('Character_one')
   const targetParts = {
     eidolon: target.targetEidolonLevel === EidolonLevel.NONE ? null : target.targetEidolonLevel,
     superimposition: target.targetSuperimpositionLevel === SuperimpositionLevel.NONE ? null : target.targetSuperimpositionLevel,
@@ -583,8 +603,11 @@ function WarpCharacterHeader(props: {
     backgroundColor: showcaseColor ? oklchCharacterListColor(showcaseColor, true, DEFAULT_CONFIG) : undefined,
   }
 
+  const canRemove = form.getValues().targets.length > 1
+
   return (
-    <div
+    <Flex
+      gap={16}
       ref={dragHandleRef}
       className={`${characterClasses.root} ${classes.targetCharacterHeader}`}
       data-character-id={characterId ?? undefined}
@@ -593,64 +616,75 @@ function WarpCharacterHeader(props: {
       {...dragHandleProps}
       role='button'
       tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onClick()
-        }
-      }}
     >
-      <div className={characterClasses.frame} style={frameStyle}>
-        {characterId && (
-          <div className={characterClasses.portraitBg}>
+      <CharacterSelect
+        selectStyle={{ display: 'none' }}
+        value={target.characterId}
+        onChange={(characterId) => updateTarget(form, rank - 1, getCharacterSelectionPatch(characterId))}
+        opened={selectOpen}
+        onOpenChange={setSelectOpen}
+      />
+      <span className={characterClasses.rankGripSlot}>
+        <span className={characterClasses.rank}>{rank}</span>
+      </span>
+      <Flex direction={'row'} flex={5}>
+        <WarpTargetControls target={target} form={form} index={rank - 1} t={t} withBg={false} prefix={
+          <Flex className={characterClasses.info} data-name-shadow='true' style={{ alignItems: 'center' }} direction={'column'}>
+            <div className={characterClasses.name}>{characterName}</div>
+            <div className={characterClasses.subtitle}>
+              {targetParts.eidolon != null && (
+                <div className={characterClasses.subtitleBadge}>{tCommon('EidolonNShort', { eidolon: targetParts.eidolon })}</div>
+              )}
+              {targetParts.superimposition != null && (
+                <div className={characterClasses.subtitleBadge}>{tCommon('SuperimpositionNShort', { superimposition: targetParts.superimposition })}</div>
+              )}
+            </div>
+          </Flex>
+        } />
+      </Flex>
+      <Flex flex={2}>
+        <img
+          onClick={() => setSelectOpen(!selectOpen)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              setSelectOpen(true)
+            }
+          }}
+          src={Assets.getCharacterPreviewById(characterId ?? undefined)}
+          alt=''
+          draggable={false}
+          decoding='async'
+          onLoad={showImageOnLoad}
+          style={characterConfig?.display.gridPortraitOffset
+            ? { marginTop: -(characterConfig.display.gridPortraitOffset ?? 0) }
+            : undefined}
+        />
+        {signatureLightConeId && (
+          <div className={characterClasses.lcWrap} data-lc-style='shadow'>
             <img
-              src={Assets.getCharacterPreviewById(characterId)}
+              src={Assets.getLightConeIconById(signatureLightConeId)}
               alt=''
               draggable={false}
               decoding='async'
               onLoad={showImageOnLoad}
-              style={characterConfig?.display.gridPortraitOffset
-                ? { marginTop: -(characterConfig.display.gridPortraitOffset ?? 0) }
-                : undefined}
             />
           </div>
         )}
-
-        <div className={characterClasses.scrim} data-scrim-mode='frosted' />
-        {signatureLightConeId && <div className={characterClasses.lcStrip} />}
-
-        <div className={characterClasses.inner}>
-          <div className={characterClasses.rankGripSlot}>
-            <span className={characterClasses.rank}>{rank}</span>
-          </div>
-
-          <div className={characterClasses.info} data-name-shadow='true'>
-            <div className={characterClasses.name}>{characterName}</div>
-            <div className={characterClasses.subtitle}>
-              {targetParts.eidolon != null && (
-                <span className={characterClasses.subtitleBadge}>{t('EidolonNShort', { eidolon: targetParts.eidolon })}</span>
-              )}
-              {targetParts.superimposition != null && (
-                <span className={characterClasses.subtitleBadge}>{t('SuperimpositionNShort', { superimposition: targetParts.superimposition })}</span>
-              )}
-            </div>
-          </div>
-
-          {signatureLightConeId && (
-            <div className={characterClasses.lcWrap} data-lc-style='shadow'>
-              <img
-                src={Assets.getLightConeIconById(signatureLightConeId)}
-                alt=''
-                draggable={false}
-                decoding='async'
-                onLoad={showImageOnLoad}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+      </Flex>
+      <Tooltip label={t('RemoveTarget')/* Remove target */} disabled={!canRemove}>
+        <ActionIcon
+          style={{ marginLeft: 'auto', marginRight: 16, marginTop: 8 }}
+          variant='default'
+          size={30}
+          disabled={!canRemove}
+          aria-label={t('RemoveTarget')}
+          onClick={() => removeTarget(form, rank - 1)}
+        >
+          <IconTrash size={16} />
+        </ActionIcon>
+      </Tooltip>
+    </Flex>
   )
 }
 
@@ -674,7 +708,7 @@ function WarpResultsTable(props: { milestoneResults: Record<string, WarpMileston
                 values={{ ticketCount: localeNumberComma(request.warps) }}
               >
                 Success chance with [[ticketCount]]
-                <img style={{ height: 18 }} src={Assets.getPass()}/>
+                <img style={{ height: 18 }} src={Assets.getPass()} />
               </Trans>
             </Flex>
           </Table.Th>
@@ -682,7 +716,7 @@ function WarpResultsTable(props: { milestoneResults: Record<string, WarpMileston
             <Flex justify='center' align='center' gap={5}>
               <Trans t={t} i18nKey='ColumnTitles.Average'>
                 Average # of
-                <img style={{ height: 18 }} src={Assets.getPass()}/>
+                <img style={{ height: 18 }} src={Assets.getPass()} />
                 required
               </Trans>
             </Flex>
@@ -719,7 +753,7 @@ function WarpResultsTable(props: { milestoneResults: Record<string, WarpMileston
             <Table.Td style={{ textAlign: 'center' }}>
               <Flex align='center' justify='center' gap={HEADER_LABEL_GAP}>
                 {`${Math.ceil(record.warps)}`}
-                <img style={{ height: 16 }} src={Assets.getPass()}/>
+                <img style={{ height: 16 }} src={Assets.getPass()} />
               </Flex>
             </Table.Td>
           </Table.Tr>
@@ -759,8 +793,8 @@ function PityInputs(props: { banner: string, form: UseFormReturnType<WarpRequest
         <SegmentedControl
           fullWidth
           data={[
-            { label: <IconCheck size={18}/>, value: 'true' },
-            { label: <IconX size={18}/>, value: 'false' },
+            { label: <IconCheck size={18} />, value: 'true' },
+            { label: <IconX size={18} />, value: 'false' },
           ]}
           value={String(form.getValues()[guaranteedField] ?? false)}
           onChange={(val) => form.setFieldValue(guaranteedField, (val === 'true') as never)}

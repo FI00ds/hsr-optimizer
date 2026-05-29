@@ -75,13 +75,6 @@
   box-shadow: var(--shadow-card);
 }
 
-.targetRemoveButton {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 5;
-}
-
 .targetCharacterHeader {
   width: 100%;
   cursor: grab;
@@ -89,7 +82,7 @@
   touch-action: none;
 }
 
-.targetCard[data-dragging='true'] .targetCharacterHeader {
+.targetCard[data-dragging='true'] :is(.targetCharacterHeader, .targetEmptyHeader) {
   cursor: grabbing;
 }
 
@@ -98,16 +91,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 54px 0 18px;
+  padding: 0 16px 0 16px;
   cursor: grab;
   touch-action: none;
   border-bottom: 1px solid color-mix(in srgb, var(--primary) 24%, transparent);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--layer-2) 92%, black), color-mix(in srgb, var(--layer-1) 78%, var(--primary)));
-}
-
-.targetCard[data-dragging='true'] .targetEmptyHeader {
-  cursor: grabbing;
 }
 
 .targetEmptyRank {
@@ -136,11 +125,6 @@
 
 .targetControl {
   min-width: 145px;
-  flex: 1;
-}
-
-.targetControlWide {
-  min-width: 220px;
   flex: 1;
 }
 
