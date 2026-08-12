@@ -1,50 +1,34 @@
-import { CombatBuffs } from 'lib/constants/constants'
 import { Source } from 'lib/optimization/buffSource'
 import {
-  type AKeyValue,
-  StatKey,
-} from 'lib/optimization/engine/config/keys'
-import { TargetTag } from 'lib/optimization/engine/config/tag'
+  ALL_DAMAGE_TAGS,
+  TargetTag,
+} from 'lib/optimization/engine/config/tag'
 import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
-import type { Form } from 'types/form'
-
-const COMBAT_BUFF_KEY_TO_STAT_KEY: Record<string, AKeyValue> = {
-  ATK: StatKey.ATK,
-  ATK_P: StatKey.ATK_P,
-  HP: StatKey.HP,
-  HP_P: StatKey.HP_P,
-  DEF: StatKey.DEF,
-  DEF_P: StatKey.DEF_P,
-  CR: StatKey.CR,
-  CD: StatKey.CD,
-  SPD: StatKey.SPD,
-  SPD_P: StatKey.SPD_P,
-  BE: StatKey.BE,
-  BOOST: StatKey.BOOST,
-  DEF_PEN: StatKey.DEF_PEN,
-  RES_PEN: StatKey.RES_PEN,
-  EFFECT_RES_PEN: StatKey.EFFECT_RES_PEN,
-  VULNERABILITY: StatKey.VULNERABILITY,
-  BREAK_EFFICIENCY: StatKey.BREAK_EFFICIENCY_BOOST,
-  EHR: StatKey.EHR,
-}
-
-const EXTRA_COMBAT_BUFF_SOURCE = Source.EXTRA_COMBAT_BUFFS
-const COMBAT_BUFFS_ENTRIES = Object.values(CombatBuffs)
+import {
+  CombatBuffType,
+  type Form,
+} from 'types/form'
+import {
+  OptimizerAction,
+  OptimizerContext,
+} from 'types/optimizer'
 
 export function precomputeExtraCombatBuffs(x: ComputedStatsContainer, request: Form): void {
-  const buffs = request.combatBuffs
-  if (!buffs) return
+  request.combatBuffs.forEach((buff) => {
+    if (buff.type !== CombatBuffType.StatBuff) return
+    const config = x.damageType(buff.damageTag ?? ALL_DAMAGE_TAGS)
+      .targets(buff.targetTag ?? TargetTag.FullTeam)
+      .source(Source.EXTRA_COMBAT_BUFFS)
+    x.buff(buff.statKey, buff.value, config)
+  })
+}
 
-  const config = x.targets(TargetTag.FullTeam).source(EXTRA_COMBAT_BUFF_SOURCE)
-
-  for (const entry of COMBAT_BUFFS_ENTRIES) {
-    const value = buffs[entry.key]
-    if (!value) continue
-
-    const statKey = COMBAT_BUFF_KEY_TO_STAT_KEY[entry.key]
-    if (statKey == null) continue
-
-    x.buff(statKey, value, config)
-  }
+export function precomputeExtraActionModifiers(request: Form, context: OptimizerContext) {
+  request.combatBuffs.forEach((buff) => {
+    if (buff.type !== CombatBuffType.ActionModifier) return
+    const modify = (action: OptimizerAction, context: OptimizerContext) => {
+      // TODO:
+    }
+    context.actionModifiers.push({ modify })
+  })
 }

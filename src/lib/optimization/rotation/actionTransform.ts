@@ -20,7 +20,10 @@ import {
   precomputeConditionals,
   transformConditionals,
 } from 'lib/optimization/rotation/comboStateTransform'
-import { precomputeExtraCombatBuffs } from 'lib/optimization/rotation/precomputeExtraCombatBuffs'
+import {
+  precomputeExtraActionModifiers,
+  precomputeExtraCombatBuffs,
+} from 'lib/optimization/rotation/precomputeExtraCombatBuffs'
 import { type TurnAbilityName } from 'lib/optimization/rotation/turnAbilityConfig'
 import { clone } from 'lib/utils/objectUtils'
 import { type CharacterConditionalsController } from 'types/conditionals'
@@ -41,6 +44,7 @@ import {
 export function newTransformStateActions(comboState: ComboState, request: Form, context: OptimizerContext) {
   const { comboTurnAbilities } = getComboTypeAbilities(request)
   calculateActionDeclarations(request, context)
+  precomputeExtraActionModifiers(request, context)
 
   // ========== PHASE 1: STRUCTURE DEFINITION ==========
 
@@ -57,6 +61,8 @@ export function newTransformStateActions(comboState: ComboState, request: Form, 
     }
 
     for (const modifier of context.actionModifiers) {
+      // modifiers coming from external combat buffs don't have the metadata needed to create the ModifierContext (self)
+      // however this parameter is not used by the `modify` fnuction they provide so this is not an issue
       const self = buildModifierContext(action, modifier)
       modifier.modify(action, context, self)
     }
@@ -82,6 +88,8 @@ export function newTransformStateActions(comboState: ComboState, request: Form, 
       action.hits = actionDef.hits as Hit[]
 
       for (const modifier of context.actionModifiers) {
+        // modifiers coming from external combat buffs don't have the metadata needed to create the ModifierContext (self)
+        // however this parameter is not used by the `modify` fnuction they provide so this is not an issue
         const self = buildModifierContext(action, modifier)
         modifier.modify(action, context, self)
       }

@@ -6,7 +6,6 @@ import type {
   SetsOrnaments,
   SetsRelics,
 } from 'lib/sets/setConfigRegistry'
-import type { SimulationRequest } from 'lib/simulations/statSimulationTypes'
 import { blankSimRequest } from 'lib/simulations/utils/requestUtils'
 import { createTabAwareStore } from 'lib/stores/infrastructure/createTabAwareStore'
 import {
@@ -33,12 +32,16 @@ import {
   type TeammateState,
 } from 'lib/stores/optimizerForm/optimizerFormTypes'
 import { type SetFilters } from 'lib/stores/optimizerForm/setFilterTypes'
+import { uuid } from 'lib/utils/miscUtils'
 import {
   type CharacterId,
   type Eidolon,
 } from 'types/character'
 import { type ConditionalValueMap } from 'types/conditionals'
-import { type Form } from 'types/form'
+import {
+  CombatBuff,
+  type Form,
+} from 'types/form'
 import {
   type LightConeId,
   type SuperImpositionLevel,
@@ -55,7 +58,9 @@ type OptimizerRequestActions = {
   // Simple setters (Task 8)
   setStatFilter: (key: keyof StatFilterState, value: number | undefined) => void,
   setRatingFilter: (key: keyof RatingFilterState, value: number | undefined) => void,
-  setCombatBuff: (key: string, value: number) => void,
+  addCombatBuff: (buff: CombatBuff) => void,
+  removeCombatBuff: (id: string) => void,
+  clearCombatBuffs: () => void,
   setEnemyField: <K extends keyof EnemyConfigFields>(key: K, value: EnemyConfigFields[K]) => void,
   setStatDisplay: (display: StatDisplay) => void,
   setMemoDisplay: (display: MemoDisplay) => void,
@@ -113,10 +118,19 @@ export const useOptimizerRequestStore = createTabAwareStore<OptimizerRequestStor
       ratingFilters: { ...state.ratingFilters, [key]: value },
     })),
 
-  setCombatBuff: (key, value) =>
-    set((state) => ({
-      combatBuffs: { ...state.combatBuffs, [key]: value },
-    })),
+  addCombatBuff: (buff) =>
+    set((state) => {
+      state.combatBuffs.set(uuid(), buff)
+      return { combatBuffs: new Map(state.combatBuffs) }
+    }),
+
+  removeCombatBuff: (id) =>
+    set((state) => {
+      state.combatBuffs.delete(id)
+      return { combatBuffs: new Map(state.combatBuffs) }
+    }),
+
+  clearCombatBuffs: () => set({ combatBuffs: new Map() }),
 
   setEnemyField: (key, value) => set({ [key]: value }),
 

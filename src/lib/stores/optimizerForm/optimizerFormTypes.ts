@@ -9,7 +9,10 @@ import {
   type Eidolon,
 } from 'types/character'
 import { type ConditionalValueMap } from 'types/conditionals'
-import { type Form } from 'types/form'
+import {
+  CombatBuff,
+  type Form,
+} from 'types/form'
 import {
   type LightConeId,
   type SuperImpositionLevel,
@@ -190,7 +193,7 @@ export type OptimizerRequestState = {
   weights: ScoringMetadata['stats'],
 
   // ── Combat Buffs ──
-  combatBuffs: Record<string, number>,
+  combatBuffs: Map<string, CombatBuff>,
 
   // ── Display Preferences (saved per build but only affect UI rendering) ──
   statDisplay: StatDisplay,

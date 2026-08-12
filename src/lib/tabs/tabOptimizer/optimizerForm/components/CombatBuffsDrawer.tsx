@@ -3,18 +3,25 @@ import {
   Drawer,
   Flex,
 } from '@mantine/core'
-import { CombatBuffs } from 'lib/constants/constants'
 import { defaultGap } from 'lib/constants/constantsUi'
 import {
   OpenCloseIDs,
   useOpenClose,
 } from 'lib/hooks/useOpenClose'
-import { createDefaultCombatBuffs } from 'lib/stores/optimizerForm/optimizerFormDefaults'
 import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerRequestStore'
 import { InputNumberStyled } from 'lib/tabs/tabOptimizer/optimizerForm/components/InputNumberStyled'
 import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid/optimizerGridColumns'
-import { useMemo } from 'react'
+import {
+  useCallback,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  type CombatBuff,
+  CombatBuffType,
+  type CombatStatBuff,
+} from 'types/form'
+import { useShallow } from 'zustand/react/shallow'
 
 export function CombatBuffsDrawer() {
   const { close: closeBuffsDrawer, isOpen: isOpenBuffsDrawer } = useOpenClose(OpenCloseIDs.COMBAT_BUFFS_DRAWER)
@@ -36,39 +43,82 @@ export function CombatBuffsDrawer() {
 function CombatBuffsDrawerContent() {
   const { t } = useTranslation('optimizerTab', { keyPrefix: 'CombatBuffs' })
 
-  const combatBuffsList = useMemo(() => {
-    return Object.values(CombatBuffs).map((x) => <CombatBuff title={t(`${x.key}` as never)} name={x.key} key={x.key} />)
-  }, [t])
+  const { clearCombatBuffs, addCombatBuff, removeCombatBuff, combatBuffs } = useOptimizerRequestStore(useShallow((s) => ({
+    clearCombatBuffs: s.clearCombatBuffs,
+    addCombatBuff: s.addCombatBuff,
+    removeCombatBuff: s.removeCombatBuff,
+    combatBuffs: s.combatBuffs,
+  })))
 
   return (
     <Flex direction='column' gap={defaultGap}>
-      <Flex direction='column' gap={optimizerTabDefaultGap}>
-        {combatBuffsList}
-      </Flex>
       <Button
         fullWidth
         variant='default'
-        onClick={() => useOptimizerRequestStore.setState({ combatBuffs: createDefaultCombatBuffs() })}
+        onClick={clearCombatBuffs}
       >
         {t('Clear')}
       </Button>
+      <Flex direction='column' gap={optimizerTabDefaultGap}>
+        <BuffBuilder addBuff={addCombatBuff} />
+        {combatBuffs
+          .entries()
+          .map(([id, buff]) => (
+            <BuffPanel
+              key={id}
+              id={id}
+              buff={buff}
+              addBuff={addCombatBuff}
+              removeBuff={removeCombatBuff}
+            />
+          ))}
+      </Flex>
     </Flex>
   )
 }
 
-function CombatBuff({ title, name }: { title: string, name: string }) {
-  const value = useOptimizerRequestStore((s) => s.combatBuffs[name])
+function validateStatBuff(
+  stat: CombatStatBuff['statKey'] | undefined,
+  value: CombatStatBuff['value'] | undefined,
+): boolean {
+  return stat != undefined && value != undefined
+}
 
-  return (
-    <Flex justify='space-between'>
-      <div>
-        {title}
-      </div>
-      <InputNumberStyled
-        hideControls
-        value={value || ''}
-        onChange={(val: number | string) => useOptimizerRequestStore.getState().setCombatBuff(name, typeof val === 'number' ? val : 0)}
-      />
-    </Flex>
-  )
+function BuffBuilder({
+  addBuff,
+}: {
+  addBuff(buff: CombatBuff): void,
+}) {
+  const [mode, setMode] = useState<CombatBuffType>(CombatBuffType.StatBuff)
+
+  // stat buff state
+  const [stat, setStat] = useState<CombatStatBuff['statKey'] | undefined>()
+  const [value, setValue] = useState<CombatStatBuff['value'] | undefined>()
+  const [damageTag, setDamageTag] = useState<CombatStatBuff['damageTag'] | undefined>()
+  const [targetTag, setTargetTag] = useState<CombatStatBuff['targetTag'] | undefined>()
+
+  // action modifier state
+
+  const addClicked = (() => {})()
+  switch (mode) {
+    case CombatBuffType.StatBuff:
+      return <></>
+    case CombatBuffType.ActionModifier:
+      return <></>
+  }
+}
+
+function BuffPanel({
+  id,
+  buff,
+  addBuff,
+  removeBuff,
+}: {
+  id: string,
+  buff: CombatBuff,
+  addBuff(buff: CombatBuff): void,
+  removeBuff(key: string): void,
+}) {
+  const remove = useCallback(() => removeBuff(id), [removeBuff, id])
+  return <></>
 }

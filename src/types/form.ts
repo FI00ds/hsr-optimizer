@@ -11,6 +11,14 @@ import type {
   Eidolon,
 } from 'types/character'
 
+import {
+  AKeyValue,
+  HitAKeyValue,
+} from 'lib/optimization/engine/config/keys'
+import {
+  DamageTag,
+  TargetTag,
+} from 'lib/optimization/engine/config/tag'
 import type {
   SetsOrnaments,
   SetsRelics,
@@ -30,6 +38,10 @@ import type {
   MemoDisplay,
   StatDisplay,
 } from 'types/store'
+import {
+  OptimizerAction,
+  OptimizerContext,
+} from './optimizer'
 
 export type Teammate = {
   characterId: CharacterId,
@@ -93,9 +105,7 @@ export type Form =
 
     weights: ScoringMetadata['stats'],
 
-    combatBuffs: {
-      [key: string]: number,
-    },
+    combatBuffs: Map<string, CombatBuff>,
 
     // Optimizer additional data
     statSim?: {
@@ -128,6 +138,26 @@ export type Form =
   // Min / Max
   & StatFilters
   & RatingFilters
+
+export type CombatBuff = CombatStatBuff | CombatActionModifier
+
+export interface CombatStatBuff {
+  targetTag?: TargetTag
+  damageTag?: DamageTag
+  statKey: HitAKeyValue
+  value: number
+  type: CombatBuffType.StatBuff
+}
+
+export interface CombatActionModifier {
+  // modify(action: OptimizerAction, context: OptimizerContext): void
+  type: CombatBuffType.ActionModifier
+}
+
+export enum CombatBuffType {
+  StatBuff,
+  ActionModifier,
+}
 
 export type RelicSetFilters = Array<[pieces: string] | [pieces: string, set: SetsRelics] | [pieces: string, set1: SetsRelics, set2: SetsRelics]>
 export type OrnamentSetFilters = Array<SetsOrnaments>
