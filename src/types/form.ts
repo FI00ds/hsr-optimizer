@@ -105,7 +105,7 @@ export type Form =
 
     weights: ScoringMetadata['stats'],
 
-    combatBuffs: Map<string, CombatBuff>,
+    combatBuffs: Record<string, CombatBuff>,
 
     // Optimizer additional data
     statSim?: {

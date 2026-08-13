@@ -1,0 +1,135 @@
+import { AKey } from 'lib/optimization/engine/config/keys'
+import { uuid } from 'lib/utils/miscUtils'
+import {
+  type CombatBuff,
+  CombatBuffType,
+  type CombatStatBuff,
+} from 'types/form'
+import type { HsrOptimizerSaveFormat } from 'types/store'
+
+const MIGRATION_KEY = 'COMBAT_BUFFS'
+
+export function migrateCombatBuffs(saveData: HsrOptimizerSaveFormat) {
+  saveData.characters.forEach((character) => {
+    if (saveData.completedMigrations?.[MIGRATION_KEY]) return
+
+    const newBuffs: Record<string, CombatBuff> = {}
+    ;(Object.entries(character.form.combatBuffs as unknown as OldCombatBuffs) as Array<[keyof OldCombatBuffs, OldCombatBuffs[keyof OldCombatBuffs]]>)
+      .map(([key, value]) => {
+        if (!value) return
+
+        const migratedEntry = migrateBuffEntry(key, value)
+        if (!migratedEntry) return
+
+        newBuffs[uuid()] = migratedEntry
+      })
+    character.form = { ...character.form, combatBuffs: newBuffs }
+  })
+  saveData.completedMigrations
+    ? saveData.completedMigrations[MIGRATION_KEY] = 1
+    : saveData.completedMigrations = { [MIGRATION_KEY]: 1 }
+}
+
+function migrateBuffEntry<K extends keyof OldCombatBuffs>(key: K, value: OldCombatBuffs[K]): CombatStatBuff | undefined {
+  if (value) {
+    return {
+      statKey: AKey[key],
+      value,
+      type: CombatBuffType.StatBuff,
+    }
+  }
+}
+
+type OldCombatBuffs = Record<typeof oldCombatBuffs[keyof typeof oldCombatBuffs]['key'], number>
+const oldCombatBuffs = {
+  ATK: {
+    title: 'ATK',
+    key: 'ATK',
+    percent: false,
+  },
+  ATK_P: {
+    title: 'ATK %',
+    key: 'ATK_P',
+    percent: true,
+  },
+  HP: {
+    title: 'HP',
+    key: 'HP',
+    percent: false,
+  },
+  HP_P: {
+    title: 'HP %',
+    key: 'HP_P',
+    percent: true,
+  },
+  DEF: {
+    title: 'DEF',
+    key: 'DEF',
+    percent: false,
+  },
+  DEF_P: {
+    title: 'DEF %',
+    key: 'DEF_P',
+    percent: true,
+  },
+  CR: {
+    title: 'Crit Rate %',
+    key: 'CR',
+    percent: true,
+  },
+  CD: {
+    title: 'Crit Dmg %',
+    key: 'CD',
+    percent: true,
+  },
+  SPD: {
+    title: 'SPD',
+    key: 'SPD',
+    percent: false,
+  },
+  SPD_P: {
+    title: 'SPD %',
+    key: 'SPD_P',
+    percent: true,
+  },
+  BE: {
+    title: 'BE %',
+    key: 'BE',
+    percent: true,
+  },
+  EHR: {
+    title: 'Effect Hit Rate %',
+    key: 'EHR',
+    percent: true,
+  },
+  BOOST: {
+    title: 'Dmg Boost %',
+    key: 'BOOST',
+    percent: true,
+  },
+  DEF_PEN: {
+    title: 'Def Pen %',
+    key: 'DEF_PEN',
+    percent: true,
+  },
+  RES_PEN: {
+    title: 'Dmg RES PEN %',
+    key: 'RES_PEN',
+    percent: true,
+  },
+  EFFECT_RES_PEN: {
+    title: 'Effect RES PEN %',
+    key: 'EFFECT_RES_PEN',
+    percent: true,
+  },
+  VULNERABILITY: {
+    title: 'Vulnerability %',
+    key: 'VULNERABILITY',
+    percent: true,
+  },
+  BREAK_EFFICIENCY: {
+    title: 'Break Efficiency %',
+    key: 'BREAK_EFFICIENCY',
+    percent: true,
+  },
+} as const

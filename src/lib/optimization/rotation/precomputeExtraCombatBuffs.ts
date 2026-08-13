@@ -14,7 +14,7 @@ import {
 } from 'types/optimizer'
 
 export function precomputeExtraCombatBuffs(x: ComputedStatsContainer, request: Form): void {
-  request.combatBuffs.forEach((buff) => {
+  Object.values(request.combatBuffs).forEach((buff) => {
     if (buff.type !== CombatBuffType.StatBuff) return
     const config = x.damageType(buff.damageTag ?? ALL_DAMAGE_TAGS)
       .targets(buff.targetTag ?? TargetTag.FullTeam)
@@ -24,7 +24,7 @@ export function precomputeExtraCombatBuffs(x: ComputedStatsContainer, request: F
 }
 
 export function precomputeExtraActionModifiers(request: Form, context: OptimizerContext) {
-  request.combatBuffs.forEach((buff) => {
+  Object.values(request.combatBuffs).forEach((buff) => {
     if (buff.type !== CombatBuffType.ActionModifier) return
     const modify = (action: OptimizerAction, context: OptimizerContext) => {
       // TODO:

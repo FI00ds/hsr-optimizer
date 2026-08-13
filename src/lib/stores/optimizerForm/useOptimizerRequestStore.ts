@@ -120,17 +120,16 @@ export const useOptimizerRequestStore = createTabAwareStore<OptimizerRequestStor
 
   addCombatBuff: (buff) =>
     set((state) => {
-      state.combatBuffs.set(uuid(), buff)
-      return { combatBuffs: new Map(state.combatBuffs) }
+      return { combatBuffs: { ...state.combatBuffs, [uuid()]: buff } }
     }),
 
   removeCombatBuff: (id) =>
     set((state) => {
-      state.combatBuffs.delete(id)
-      return { combatBuffs: new Map(state.combatBuffs) }
+      const { id: remove, ...keep } = state.combatBuffs
+      return { combatBuffs: keep }
     }),
 
-  clearCombatBuffs: () => set({ combatBuffs: new Map() }),
+  clearCombatBuffs: () => set({ combatBuffs: {} }),
 
   setEnemyField: (key, value) => set({ [key]: value }),
 

@@ -193,7 +193,7 @@ export type OptimizerRequestState = {
   weights: ScoringMetadata['stats'],
 
   // ── Combat Buffs ──
-  combatBuffs: Map<string, CombatBuff>,
+  combatBuffs: Record<string, CombatBuff>,
 
   // ── Display Preferences (saved per build but only affect UI rendering) ──
   statDisplay: StatDisplay,
