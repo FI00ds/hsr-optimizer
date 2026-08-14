@@ -1,8 +1,5 @@
 import { Source } from 'lib/optimization/buffSource'
-import {
-  ALL_DAMAGE_TAGS,
-  TargetTag,
-} from 'lib/optimization/engine/config/tag'
+import { TargetTag } from 'lib/optimization/engine/config/tag'
 import type { ComputedStatsContainer } from 'lib/optimization/engine/container/computedStatsContainer'
 import {
   CombatBuffType,
@@ -12,14 +9,25 @@ import {
   OptimizerAction,
   OptimizerContext,
 } from 'types/optimizer'
+import { isHitAKey } from '../engine/config/keys'
 
 export function precomputeExtraCombatBuffs(x: ComputedStatsContainer, request: Form): void {
   Object.values(request.combatBuffs).forEach((buff) => {
     if (buff.type !== CombatBuffType.StatBuff) return
-    const config = x.damageType(buff.damageTag ?? ALL_DAMAGE_TAGS)
-      .targets(buff.targetTag ?? TargetTag.FullTeam)
-      .source(Source.EXTRA_COMBAT_BUFFS)
-    x.buff(buff.statKey, buff.value, config)
+
+    const { statKey, value, targetTag, damageTag } = buff
+    if (damageTag && isHitAKey(statKey)) {
+      const config = x
+        .damageType(damageTag)
+        .targets(targetTag ?? TargetTag.FullTeam)
+        .source(Source.EXTRA_COMBAT_BUFFS)
+      x.buff(statKey, value, config)
+    } else {
+      const config = x
+        .targets(targetTag ?? TargetTag.FullTeam)
+        .source(Source.EXTRA_COMBAT_BUFFS)
+      x.buff(statKey, value, config)
+    }
   })
 }
 
