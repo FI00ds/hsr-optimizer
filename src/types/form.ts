@@ -143,7 +143,7 @@ export type CombatBuff = CombatStatBuff | CombatActionModifier
 
 export interface CombatStatBuff {
   targetTag?: TargetTag
-  damageTag?: DamageTag
+  damageTags: DamageTag[]
   statKey: AKeyValue
   value: number
   type: CombatBuffType.StatBuff

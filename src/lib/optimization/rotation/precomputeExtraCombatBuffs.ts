@@ -15,10 +15,10 @@ export function precomputeExtraCombatBuffs(x: ComputedStatsContainer, request: F
   Object.values(request.combatBuffs).forEach((buff) => {
     if (buff.type !== CombatBuffType.StatBuff) return
 
-    const { statKey, value, targetTag, damageTag } = buff
-    if (damageTag && isHitAKey(statKey)) {
+    const { statKey, value, targetTag, damageTags } = buff
+    if (damageTags.length && isHitAKey(statKey)) {
       const config = x
-        .damageType(damageTag)
+        .damageType(damageTags.reduce((acc, cur) => acc |= cur))
         .targets(targetTag ?? TargetTag.FullTeam)
         .source(Source.EXTRA_COMBAT_BUFFS)
       x.buff(statKey, value, config)
