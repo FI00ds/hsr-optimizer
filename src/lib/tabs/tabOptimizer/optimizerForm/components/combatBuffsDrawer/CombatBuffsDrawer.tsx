@@ -2,16 +2,11 @@ import {
   Button,
   Drawer,
   Flex,
-  MultiSelect,
   NumberInput,
-  Popover,
   SegmentedControl,
   SegmentedControlItem,
   Select,
-  Text,
 } from '@mantine/core'
-import { DAMAGE_TAG_ENTRY_BY_TAG } from 'lib/characterPreview/buffsAnalysis/abilityColors'
-import { renderPill } from 'lib/characterPreview/buffsAnalysis/buffUtils'
 import { defaultGap } from 'lib/constants/constantsUi'
 import {
   OpenCloseIDs,
@@ -21,10 +16,7 @@ import {
   isFlatStat,
   isHitAKey,
 } from 'lib/optimization/engine/config/keys'
-import {
-  DamageTag,
-  TargetTag,
-} from 'lib/optimization/engine/config/tag'
+import { TargetTag } from 'lib/optimization/engine/config/tag'
 import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerRequestStore'
 import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid/optimizerGridColumns'
 import {
@@ -40,8 +32,8 @@ import {
 } from 'types/form'
 import { useShallow } from 'zustand/react/shallow'
 
-import { useDisclosure } from '@mantine/hooks'
-import classes from './CombatBuffsDrawer.module.css'
+import { DamageTagSelect } from './damageTagSelect'
+import { TargetTagSelect } from './targetTagSelect'
 
 export function CombatBuffsDrawer() {
   const { close: closeBuffsDrawer, isOpen: isOpenBuffsDrawer } = useOpenClose(OpenCloseIDs.COMBAT_BUFFS_DRAWER)
@@ -130,35 +122,13 @@ function StatBuffBuilder({
 }: {
   addBuff(buff: CombatBuff): void,
 }) {
-  const { t } = useTranslation('optimizerTab', { keyPrefix: 'ExpandedDataPanel.DamageTags' })
-
   const [stat, setStat] = useState<CombatStatBuff['statKey'] | undefined>()
   // string used rather than undefined beacuse of cases such as empty field which mantine returns as ''
   const [value, setValue] = useState<CombatStatBuff['value'] | string>('')
   const [damageTags, setDamageTags] = useState<CombatStatBuff['damageTags']>([])
   const [targetTag, setTargetTag] = useState<CombatStatBuff['targetTag'] | null>(null)
 
-  const [opened, { close, open }] = useDisclosure(false)
-
   const suffix = getSuffix(stat)
-
-  const renderDamageTagPill = useCallback(({ value }: { value?: DamageTag }) => {
-    const key = value
-    if (!key) return null
-    const label = t(DamageTag[key])
-    const colour = DAMAGE_TAG_ENTRY_BY_TAG.get(key)?.color
-    if (!colour) return null
-    return renderPill(DamageTag[key], colour, label, { active: true })
-  }, [t])
-
-  const renderDamageTagOption = useCallback(({ option: { value }, checked }: { option: { value: DamageTag }, checked?: boolean }) => {
-    const key = value
-    if (!key) return null
-    const label = t(DamageTag[key])
-    const colour = DAMAGE_TAG_ENTRY_BY_TAG.get(key)?.color
-    if (!colour) return null
-    return renderPill(DamageTag[key], colour, label, { active: checked })
-  }, [t])
 
   const damageTagsDisabled = stat && isHitAKey(stat)
 
@@ -174,37 +144,8 @@ function StatBuffBuilder({
           hideControls
         />
       </Flex>
-      <Select
-        value={targetTag}
-        onChange={setTargetTag}
-        data={targetTagValues}
-        clearable
-        renderOption={({ option: { value, label, disabled }, checked }) => `foo${value}`}
-      />
-      <Popover width={200} position='left' withArrow shadow='md' opened={opened} disabled={!damageTagsDisabled}>
-        <Popover.Target>
-          {/* div required to capture mouse events, these events arent captured by multiselect if it is disabled */}
-          <div
-            onMouseEnter={open}
-            onMouseLeave={close}
-          >
-            <MultiSelect
-              value={damageTags}
-              onChange={setDamageTags}
-              data={damageTagValues}
-              clearable
-              renderPill={renderDamageTagPill}
-              renderOption={renderDamageTagOption}
-              classNames={{ dropdown: classes.dropdown, option: classes.option }}
-              label='Damage tags'
-              disabled={damageTagsDisabled}
-            />
-          </div>
-        </Popover.Target>
-        <Popover.Dropdown>
-          <Text size='sm'>selected stat cant be hit filtered, use flat equivalent instead</Text>
-        </Popover.Dropdown>
-      </Popover>
+      <TargetTagSelect value={targetTag} onChange={setTargetTag} />
+      <DamageTagSelect disabled={damageTagsDisabled} value={damageTags} onChange={setDamageTags} />
     </div>
   )
 }
@@ -213,34 +154,6 @@ function getSuffix(stat: CombatStatBuff['statKey'] | undefined): string | undefi
   if (!stat || isFlatStat(stat)) return
   return '%'
 }
-
-const damageTagValues = [
-  DamageTag.BASIC,
-  DamageTag.SKILL,
-  DamageTag.ULT,
-  DamageTag.FUA,
-  DamageTag.DOT,
-  DamageTag.BREAK,
-  DamageTag.SUPER_BREAK,
-  DamageTag.MEMO,
-  DamageTag.ADDITIONAL,
-  DamageTag.ELATION,
-  DamageTag.ASSIST,
-]
-
-const targetTagValues = [
-  // Atomic entity flags
-  TargetTag.Self,
-  TargetTag.Pet,
-  TargetTag.Memosprite,
-  TargetTag.Summon,
-  TargetTag.FullTeam,
-  TargetTag.SingleTarget,
-  // Composed
-  TargetTag.SelfAndPet,
-  TargetTag.SelfAndMemosprite,
-  TargetTag.SelfAndSummon,
-]
 
 function ActionModifierBuilder({
   addBuff,
