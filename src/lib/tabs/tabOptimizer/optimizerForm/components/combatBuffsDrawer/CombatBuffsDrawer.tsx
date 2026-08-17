@@ -4,7 +4,7 @@ import {
   Flex,
   NumberInput,
   SegmentedControl,
-  SegmentedControlItem,
+  type SegmentedControlItem,
   Select,
 } from '@mantine/core'
 import { defaultGap } from 'lib/constants/constantsUi'
@@ -20,7 +20,7 @@ import { TargetTag } from 'lib/optimization/engine/config/tag'
 import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerRequestStore'
 import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid/optimizerGridColumns'
 import {
-  JSX,
+  type JSX,
   useCallback,
   useState,
 } from 'react'
@@ -126,7 +126,7 @@ function StatBuffBuilder({
   // string used rather than undefined beacuse of cases such as empty field which mantine returns as ''
   const [value, setValue] = useState<CombatStatBuff['value'] | string>('')
   const [damageTags, setDamageTags] = useState<CombatStatBuff['damageTags']>([])
-  const [targetTag, setTargetTag] = useState<CombatStatBuff['targetTag'] | null>(null)
+  const [targetTag, setTargetTag] = useState<CombatStatBuff['targetTags']>([])
 
   const suffix = getSuffix(stat)
 

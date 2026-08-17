@@ -12,12 +12,12 @@ import type {
 } from 'types/character'
 
 import {
-  AKeyValue,
+  type AKeyValue,
   HitAKeyValue,
 } from 'lib/optimization/engine/config/keys'
 import {
-  DamageTag,
-  TargetTag,
+  type DamageTag,
+  type TargetTag,
 } from 'lib/optimization/engine/config/tag'
 import type {
   SetsOrnaments,
@@ -142,7 +142,7 @@ export type Form =
 export type CombatBuff = CombatStatBuff | CombatActionModifier
 
 export interface CombatStatBuff {
-  targetTag?: TargetTag
+  targetTags: TargetTag[]
   damageTags: DamageTag[]
   statKey: AKeyValue
   value: number

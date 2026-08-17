@@ -5,7 +5,7 @@ import {
   CombatBuffType,
   type Form,
 } from 'types/form'
-import {
+import type {
   OptimizerAction,
   OptimizerContext,
 } from 'types/optimizer'
@@ -15,16 +15,16 @@ export function precomputeExtraCombatBuffs(x: ComputedStatsContainer, request: F
   Object.values(request.combatBuffs).forEach((buff) => {
     if (buff.type !== CombatBuffType.StatBuff) return
 
-    const { statKey, value, targetTag, damageTags } = buff
+    const { statKey, value, targetTags, damageTags } = buff
     if (damageTags.length && isHitAKey(statKey)) {
       const config = x
         .damageType(damageTags.reduce((acc, cur) => acc |= cur))
-        .targets(targetTag ?? TargetTag.FullTeam)
+        .targets(targetTags.length ? targetTags.reduce((acc, cur) => acc |= cur) : TargetTag.FullTeam)
         .source(Source.EXTRA_COMBAT_BUFFS)
       x.buff(statKey, value, config)
     } else {
       const config = x
-        .targets(targetTag ?? TargetTag.FullTeam)
+        .targets(targetTags.length ? targetTags.reduce((acc, cur) => acc |= cur) : TargetTag.FullTeam)
         .source(Source.EXTRA_COMBAT_BUFFS)
       x.buff(statKey, value, config)
     }
