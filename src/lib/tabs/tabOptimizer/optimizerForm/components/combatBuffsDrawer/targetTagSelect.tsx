@@ -1,11 +1,9 @@
-import { MultiSelect } from '@mantine/core'
 import { TargetTag } from 'lib/optimization/engine/config/tag'
 import { type CombatStatBuff } from 'types/form'
-
-import classes from './CombatBuffsDrawer.module.css'
 import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
 import { renderPill } from 'lib/characterPreview/buffsAnalysis/buffUtils'
+import { PillMultiSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/PillMultiSelect'
 
 const targetTagValues = [
   TargetTag.Self,
@@ -47,14 +45,12 @@ export function TargetTagSelect({
     return renderPill(TargetTag[key], colour, label, { active: checked })
   }, [t])
   return (
-    <MultiSelect
+    <PillMultiSelect
       value={value}
       onChange={onChange}
-      data={targetTagValues}
-      clearable
-      renderPill={renderDamageTagPill}
-      renderOption={renderDamageTagOption}
-      classNames={{ dropdown: classes.dropdown, option: classes.option }}
+      options={targetTagValues}
+      renderPills={renderDamageTagPill}
+      renderOptions={renderDamageTagOption}
       label='Target tags'
     />
   )
