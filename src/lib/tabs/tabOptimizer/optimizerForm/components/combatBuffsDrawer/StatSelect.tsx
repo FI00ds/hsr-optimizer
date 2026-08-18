@@ -1,5 +1,5 @@
 import { Select } from "@mantine/core";
-import i18next from "i18next";
+import { labelToString } from "lib/characterPreview/buffsAnalysis/buffUtils";
 import { AKey, type AKeyValue, type AKeyType } from "lib/optimization/engine/config/keys";
 import { newStatsConfig } from "lib/optimization/engine/config/statsConfig";
 import React, { useMemo } from "react";
@@ -12,7 +12,7 @@ function generateStatOptions(): Array<{ value: AKeyValue, label: string }> {
     const { label } = newStatsConfig[statKey]
     return {
       value: AKey[statKey],
-      label: i18next.t(label.key, '', { ns: label.ns, ...label.args }) as string
+      label: labelToString(label)
     }
   })
 }

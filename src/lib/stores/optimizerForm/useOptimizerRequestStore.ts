@@ -39,7 +39,7 @@ import {
 } from 'types/character'
 import { type ConditionalValueMap } from 'types/conditionals'
 import {
-  CombatBuff,
+  type CombatBuff,
   type Form,
 } from 'types/form'
 import {
@@ -125,7 +125,7 @@ export const useOptimizerRequestStore = createTabAwareStore<OptimizerRequestStor
 
   removeCombatBuff: (id) =>
     set((state) => {
-      const { id: remove, ...keep } = state.combatBuffs
+      const { [id]: remove, ...keep } = state.combatBuffs
       return { combatBuffs: keep }
     }),
 

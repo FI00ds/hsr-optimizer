@@ -54,7 +54,7 @@ export function labelToString(label: StatConfigEntry['label'], isMemo = false) {
     return isMemo ? i18next.t('MemospriteLabel', { label }) as string : label
   }
 
-  const finalLabel = i18next.t(label.key, '', { ns: label.ns, ...label.args }) as string
+  const finalLabel = i18next.t(label.key, 'MISSING_KEY', { ns: label.ns, ...label.args }) as string
   return isMemo ? i18next.t('MemospriteLabel', { label: finalLabel }) : finalLabel
 }
 

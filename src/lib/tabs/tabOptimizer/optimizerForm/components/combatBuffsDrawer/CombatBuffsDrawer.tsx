@@ -4,6 +4,7 @@ import {
   Flex,
   NumberInput,
   SegmentedControl,
+  Text,
   type SegmentedControlItem,
 } from '@mantine/core'
 import { defaultGap } from 'lib/constants/constantsUi'
@@ -12,6 +13,7 @@ import {
   useOpenClose,
 } from 'lib/hooks/useOpenClose'
 import {
+  getAKeyConfig,
   isFlatStat,
   isHitAKey,
 } from 'lib/optimization/engine/config/keys'
@@ -19,7 +21,6 @@ import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerR
 import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid/optimizerGridColumns'
 import {
   type JSX,
-  useCallback,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -36,6 +37,9 @@ import { StatSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/comba
 import { Message } from 'lib/interactions/message'
 
 import classes from './CombatBuffsDrawer.module.css'
+import { IconTrashFilled } from '@tabler/icons-react'
+import { labelToString } from 'lib/characterPreview/buffsAnalysis/buffUtils'
+import { TargetTag } from 'lib/optimization/engine/config/tag'
 
 export function CombatBuffsDrawer() {
   const { close: closeBuffsDrawer, isOpen: isOpenBuffsDrawer } = useOpenClose(OpenCloseIDs.COMBAT_BUFFS_DRAWER)
@@ -81,7 +85,6 @@ function CombatBuffsDrawerContent() {
               key={id}
               id={id}
               buff={buff}
-              addBuff={addCombatBuff}
               removeBuff={removeCombatBuff}
             />
           ))}
@@ -130,7 +133,7 @@ function StatBuffBuilder({
     if (stat !== null && !isHitAKey(stat)) setDamageTags([])
   }
   // string used rather than undefined/null beacuse of cases such as empty field which mantine returns as ''
-  const [value, setValue] = useState<CombatStatBuff['value'] | string>('')
+  const [value, setValue] = useState<CombatStatBuff['value'] | string>(0)
   const [damageTags, setDamageTags] = useState<CombatStatBuff['damageTags']>([])
   const [targetTags, setTargetTags] = useState<CombatStatBuff['targetTags']>([])
 
@@ -190,7 +193,7 @@ function validateStatBuff(
     statKey,
     value,
     damageTags,
-    targetTags,
+    targetTags: targetTags.length ? targetTags : [TargetTag.FullTeam],
     type: CombatBuffType.StatBuff
   }
 }
@@ -211,15 +214,41 @@ function ActionModifierBuilder({
 function BuffPanel({
   id,
   buff,
-  addBuff,
   removeBuff,
 }: {
-  key: string,
   id: string
   buff: CombatBuff,
-  addBuff(buff: CombatBuff): void,
   removeBuff(key: string): void,
 }) {
-  const remove = useCallback(() => removeBuff(id), [removeBuff, id])
-  return <>{id}</>
+  return buff.type === CombatBuffType.StatBuff ? <StatBuffPanel id={id} buff={buff} removeBuff={removeBuff} /> : (
+    <></>
+  )
+}
+
+function StatBuffPanel({
+  id,
+  buff,
+  removeBuff,
+}: {
+  id: string,
+  buff: CombatStatBuff,
+  removeBuff(key: string): void
+}) {
+  const remove = () => removeBuff(id)
+  const { label } = getAKeyConfig(buff.statKey)
+  const statLabel = labelToString(label)
+  return (
+    <Flex direction='row' style={{ width: '100%' }} justify='space-between'>
+      <Flex direction='column'>
+        <Text>{statLabel}</Text>
+        <Text>{buff.value}</Text>
+      </Flex>
+      <Flex direction='column'>
+        {/* render target and damage tags */}
+      </Flex>
+      <Button onClick={remove}>
+        <IconTrashFilled />
+      </Button>
+    </Flex>
+  )
 }
