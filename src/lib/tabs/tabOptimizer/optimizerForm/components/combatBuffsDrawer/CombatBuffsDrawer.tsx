@@ -5,7 +5,6 @@ import {
   NumberInput,
   SegmentedControl,
   type SegmentedControlItem,
-  Select,
 } from '@mantine/core'
 import { defaultGap } from 'lib/constants/constantsUi'
 import {
@@ -16,7 +15,6 @@ import {
   isFlatStat,
   isHitAKey,
 } from 'lib/optimization/engine/config/keys'
-import { TargetTag } from 'lib/optimization/engine/config/tag'
 import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerRequestStore'
 import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid/optimizerGridColumns'
 import {
@@ -32,8 +30,9 @@ import {
 } from 'types/form'
 import { useShallow } from 'zustand/react/shallow'
 
-import { DamageTagSelect } from './damageTagSelect'
-import { TargetTagSelect } from './targetTagSelect'
+import { DamageTagSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/DamageTagSelect'
+import { TargetTagSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/TargetTagSelect'
+import { StatSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/StatSelect'
 
 export function CombatBuffsDrawer() {
   const { close: closeBuffsDrawer, isOpen: isOpenBuffsDrawer } = useOpenClose(OpenCloseIDs.COMBAT_BUFFS_DRAWER)
@@ -122,7 +121,7 @@ function StatBuffBuilder({
 }: {
   addBuff(buff: CombatBuff): void,
 }) {
-  const [stat, setStat] = useState<CombatStatBuff['statKey'] | undefined>()
+  const [stat, setStat] = useState<CombatStatBuff['statKey'] | null>(null)
   // string used rather than undefined beacuse of cases such as empty field which mantine returns as ''
   const [value, setValue] = useState<CombatStatBuff['value'] | string>('')
   const [damageTags, setDamageTags] = useState<CombatStatBuff['damageTags']>([])
@@ -130,13 +129,14 @@ function StatBuffBuilder({
 
   const suffix = getSuffix(stat)
 
-  const damageTagsDisabled = stat && isHitAKey(stat)
+  const damageTagsDisabled = stat !== null && isHitAKey(stat)
 
   return (
     <div>
-      <Flex direction='row'>
-        stat
+      <Flex direction='row' gap={8}>
+        <StatSelect value={stat} onChange={setStat} style={{ flex: 7 }} />
         <NumberInput
+          flex={2}
           suffix={suffix}
           value={value}
           onChange={setValue}
@@ -150,8 +150,8 @@ function StatBuffBuilder({
   )
 }
 
-function getSuffix(stat: CombatStatBuff['statKey'] | undefined): string | undefined {
-  if (!stat || isFlatStat(stat)) return
+function getSuffix(stat: CombatStatBuff['statKey'] | null): string | undefined {
+  if (stat === null || isFlatStat(stat)) return
   return '%'
 }
 

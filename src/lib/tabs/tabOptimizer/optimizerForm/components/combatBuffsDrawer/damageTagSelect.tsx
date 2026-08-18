@@ -53,6 +53,7 @@ export function DamageTagSelect({
       options={damageTagValues}
       value={value}
       onChange={onChange}
+      label='Damage tags'
       popoverText='selected stat can not be hit filtered, try using its flat equivalent instead'
       withPopover
       renderOptions={renderOptions}

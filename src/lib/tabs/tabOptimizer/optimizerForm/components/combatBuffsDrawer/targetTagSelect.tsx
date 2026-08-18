@@ -12,9 +12,10 @@ const targetTagValues = [
   TargetTag.Summon,
   TargetTag.FullTeam,
   TargetTag.SingleTarget,
-  TargetTag.SelfAndPet,
-  TargetTag.SelfAndMemosprite,
-  TargetTag.SelfAndSummon
+  // redundant tags just make it more messy?
+  // TargetTag.SelfAndPet,
+  // TargetTag.SelfAndMemosprite,
+  // TargetTag.SelfAndSummon
 ]
 
 export function TargetTagSelect({
