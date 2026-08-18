@@ -33,6 +33,9 @@ import { useShallow } from 'zustand/react/shallow'
 import { DamageTagSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/DamageTagSelect'
 import { TargetTagSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/TargetTagSelect'
 import { StatSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/StatSelect'
+import { Message } from 'lib/interactions/message'
+
+import classes from './CombatBuffsDrawer.module.css'
 
 export function CombatBuffsDrawer() {
   const { close: closeBuffsDrawer, isOpen: isOpenBuffsDrawer } = useOpenClose(OpenCloseIDs.COMBAT_BUFFS_DRAWER)
@@ -109,7 +112,7 @@ function BuffBuilder({
   })()
 
   return (
-    <div style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid' }}>
+    <div className={classes['buff-builder']} style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid' }}>
       <SegmentedControl fullWidth value={mode} onChange={setMode} data={options} />
       {activeBuilder}
     </div>
@@ -121,18 +124,23 @@ function StatBuffBuilder({
 }: {
   addBuff(buff: CombatBuff): void,
 }) {
-  const [stat, setStat] = useState<CombatStatBuff['statKey'] | null>(null)
-  // string used rather than undefined beacuse of cases such as empty field which mantine returns as ''
+  const [stat, setStatInternal] = useState<CombatStatBuff['statKey'] | null>(null)
+  const setStat = (stat: CombatStatBuff['statKey'] | null) => {
+    setStatInternal(stat)
+    if (stat !== null && !isHitAKey(stat)) setDamageTags([])
+  }
+  // string used rather than undefined/null beacuse of cases such as empty field which mantine returns as ''
   const [value, setValue] = useState<CombatStatBuff['value'] | string>('')
   const [damageTags, setDamageTags] = useState<CombatStatBuff['damageTags']>([])
-  const [targetTag, setTargetTag] = useState<CombatStatBuff['targetTags']>([])
+  const [targetTags, setTargetTags] = useState<CombatStatBuff['targetTags']>([])
 
   const suffix = getSuffix(stat)
 
-  const damageTagsDisabled = stat !== null && isHitAKey(stat)
+  const damageTagsDisabled = stat !== null && !isHitAKey(stat)
 
   return (
-    <div>
+    //TODO: add <Hint/> to the various selects
+    <Flex gap={4} direction='column'>
       <Flex direction='row' gap={8}>
         <StatSelect value={stat} onChange={setStat} style={{ flex: 7 }} />
         <NumberInput
@@ -144,10 +152,47 @@ function StatBuffBuilder({
           hideControls
         />
       </Flex>
-      <TargetTagSelect value={targetTag} onChange={setTargetTag} />
+      <TargetTagSelect value={targetTags} onChange={setTargetTags} />
       <DamageTagSelect disabled={damageTagsDisabled} value={damageTags} onChange={setDamageTags} />
-    </div>
+      <Button
+        onClick={() => {
+          const buff = validateStatBuff(stat, value, damageTags, targetTags)
+          if (!buff) return
+          addBuff(buff)
+        }}
+      >
+        Apply buff
+      </Button>
+    </Flex>
   )
+}
+
+function validateStatBuff(
+  statKey: CombatStatBuff['statKey'] | null,
+  value: CombatStatBuff['value'] | string,
+  damageTags: CombatStatBuff['damageTags'],
+  targetTags: CombatStatBuff['targetTags']
+): CombatStatBuff | null {
+  if (statKey === null) {
+    Message.error('stat is missing')
+    return null
+  }
+  if (typeof value === 'string') {
+    Message.error('invalid value')
+    return null
+  }
+  if (damageTags.length && !isHitAKey(statKey)) {
+    // this shouldn't fire due to the special handling setStat, but just to be safe
+    Message.error('stat not compatible with damage type filtering')
+    return null
+  }
+  return {
+    statKey,
+    value,
+    damageTags,
+    targetTags,
+    type: CombatBuffType.StatBuff
+  }
 }
 
 function getSuffix(stat: CombatStatBuff['statKey'] | null): string | undefined {
@@ -169,11 +214,12 @@ function BuffPanel({
   addBuff,
   removeBuff,
 }: {
-  id: string,
+  key: string,
+  id: string
   buff: CombatBuff,
   addBuff(buff: CombatBuff): void,
   removeBuff(key: string): void,
 }) {
   const remove = useCallback(() => removeBuff(id), [removeBuff, id])
-  return <></>
+  return <>{id}</>
 }

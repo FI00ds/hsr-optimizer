@@ -6,7 +6,8 @@ import { renderPill } from 'lib/characterPreview/buffsAnalysis/buffUtils'
 import { PillMultiSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/PillMultiSelect'
 
 const targetTagValues = [
-  TargetTag.Self,
+  // Self not meaningful?
+  // TargetTag.Self,
   TargetTag.Pet,
   TargetTag.Memosprite,
   TargetTag.Summon,
