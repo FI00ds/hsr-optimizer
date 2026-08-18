@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
 import { renderPill } from 'lib/characterPreview/buffsAnalysis/buffUtils'
 import { PillMultiSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/PillMultiSelect'
+import { type TFunction } from 'i18next'
 
 const targetTagValues = [
   // Self not meaningful?
@@ -28,23 +29,16 @@ export function TargetTagSelect({
 }) {
   const { t } = useTranslation('optimizerTab', { keyPrefix: 'ExpandedDataPanel.DamageTags' })
 
-  //TODO: colours per target tag, target tag labels
   const renderDamageTagPill = useCallback(({ value }: { value?: TargetTag }) => {
     const key = value
     if (!key) return null
-    const label = TargetTag[key]
-    const colour = '#fafa'
-    if (!colour) return null
-    return renderPill(TargetTag[key], colour, label, { active: true })
+    return renderTargetTagPill(key, t, true)
   }, [t])
 
   const renderDamageTagOption = useCallback(({ option: { value }, checked }: { option: { value: TargetTag }, checked?: boolean }) => {
     const key = value
     if (!key) return null
-    const label = TargetTag[key]
-    const colour = '#fafa'
-    if (!colour) return null
-    return renderPill(TargetTag[key], colour, label, { active: checked })
+    return renderTargetTagPill(key, t, checked)
   }, [t])
   return (
     <PillMultiSelect
@@ -56,4 +50,9 @@ export function TargetTagSelect({
       label='Target tags'
     />
   )
+}
+
+//TODO: colours per target tag, target tag labels
+export function renderTargetTagPill(tag: TargetTag, t: TFunction<"optimizerTab", "ExpandedDataPanel.DamageTags">, active?: boolean) {
+  return renderPill(TargetTag[tag], '#fafa', TargetTag[tag], { active })
 }

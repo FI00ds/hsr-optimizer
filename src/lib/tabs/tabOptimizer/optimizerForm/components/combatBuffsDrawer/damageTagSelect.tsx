@@ -5,6 +5,8 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PillMultiSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/PillMultiSelect'
+import { type TFunction } from 'i18next'
+import { TagsInput } from '@mantine/core'
 
 const damageTagValues = [
   DamageTag.BASIC,
@@ -32,21 +34,13 @@ export function DamageTagSelect({
   const { t } = useTranslation('optimizerTab', { keyPrefix: 'ExpandedDataPanel.DamageTags' })
 
   const renderPills = useCallback(({ value }: { value?: DamageTag }) => {
-    const key = value
-    if (!key) return null
-    const label = t(DamageTag[key])
-    const colour = DAMAGE_TAG_ENTRY_BY_TAG.get(key)?.color
-    if (!colour) return null
-    return renderPill(DamageTag[key], colour, label, { active: true })
+    if (!value) return null
+    return renderDamageTagPill(value, t, true)
   }, [t])
 
   const renderOptions = useCallback(({ option: { value }, checked }: { option: { value: DamageTag }, checked?: boolean }) => {
-    const key = value
-    if (!key) return null
-    const label = t(DamageTag[key])
-    const colour = DAMAGE_TAG_ENTRY_BY_TAG.get(key)?.color
-    if (!colour) return null
-    return renderPill(DamageTag[key], colour, label, { active: checked })
+    if (!value) return null
+    return renderDamageTagPill(value, t, checked)
   }, [t])
   return (
     <PillMultiSelect
@@ -61,4 +55,11 @@ export function DamageTagSelect({
       disabled={disabled}
     />
   )
+}
+
+export function renderDamageTagPill(tag: DamageTag, t: TFunction<"optimizerTab", "ExpandedDataPanel.DamageTags">, active?: boolean) {
+  const label = t(DamageTag[tag])
+  const colour = DAMAGE_TAG_ENTRY_BY_TAG.get(tag)?.color
+  if (!colour) return null
+  return renderPill(DamageTag[tag], colour, label, { active })
 }
