@@ -8,10 +8,11 @@ import {
 import type { HsrOptimizerSaveFormat } from 'types/store'
 
 const MIGRATION_KEY = 'COMBAT_BUFFS'
+const MIGRATION_VALUE = 1
 
 export function migrateCombatBuffs(saveData: HsrOptimizerSaveFormat) {
   saveData.characters.forEach((character) => {
-    if (saveData.completedMigrations?.[MIGRATION_KEY]) return
+    if (saveData.completedMigrations?.[MIGRATION_KEY] === MIGRATION_VALUE) return
 
     const newBuffs: Record<string, CombatBuff> = {}
     ;(Object.entries(character.form.combatBuffs as unknown as OldCombatBuffs) as Array<[keyof OldCombatBuffs, OldCombatBuffs[keyof OldCombatBuffs]]>)
@@ -25,9 +26,9 @@ export function migrateCombatBuffs(saveData: HsrOptimizerSaveFormat) {
       })
     character.form = { ...character.form, combatBuffs: newBuffs }
   })
-  saveData.completedMigrations
-    ? saveData.completedMigrations[MIGRATION_KEY] = 1
-    : saveData.completedMigrations = { [MIGRATION_KEY]: 1 }
+  if (saveData.completedMigrations) {
+    saveData.completedMigrations[MIGRATION_KEY] = MIGRATION_VALUE
+  } else saveData.completedMigrations = { [MIGRATION_KEY]: MIGRATION_VALUE }
 }
 
 function migrateBuffEntry<K extends keyof OldCombatBuffs>(key: K, value: OldCombatBuffs[K]): CombatStatBuff | undefined {
@@ -36,6 +37,9 @@ function migrateBuffEntry<K extends keyof OldCombatBuffs>(key: K, value: OldComb
       statKey: AKey[key],
       value,
       type: CombatBuffType.StatBuff,
+      name: '',
+      targetTags: [],
+      damageTags: [],
     }
   }
 }

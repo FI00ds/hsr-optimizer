@@ -7,6 +7,7 @@ import type {
   SetsRelics,
 } from 'lib/sets/setConfigRegistry'
 import { blankSimRequest } from 'lib/simulations/utils/requestUtils'
+import { SaveState } from 'lib/state/saveState'
 import { createTabAwareStore } from 'lib/stores/infrastructure/createTabAwareStore'
 import {
   createDefaultFormState,
@@ -59,6 +60,7 @@ type OptimizerRequestActions = {
   setStatFilter: (key: keyof StatFilterState, value: number | undefined) => void,
   setRatingFilter: (key: keyof RatingFilterState, value: number | undefined) => void,
   addCombatBuff: (buff: CombatBuff) => void,
+  nameCombatBuff: (id: string, name: string) => void,
   removeCombatBuff: (id: string) => void,
   clearCombatBuffs: () => void,
   setEnemyField: <K extends keyof EnemyConfigFields>(key: K, value: EnemyConfigFields[K]) => void,
@@ -118,10 +120,19 @@ export const useOptimizerRequestStore = createTabAwareStore<OptimizerRequestStor
       ratingFilters: { ...state.ratingFilters, [key]: value },
     })),
 
-  addCombatBuff: (buff) =>
+  addCombatBuff: (buff) => {
     set((state) => {
       return { combatBuffs: { ...state.combatBuffs, [uuid()]: buff } }
-    }),
+    })
+    SaveState.delayedSave()
+  },
+
+  nameCombatBuff: (id, name) => {
+    set((state) => {
+      return { combatBuffs: { ...state.combatBuffs, [id]: { ...state.combatBuffs[id], name } } }
+    })
+    SaveState.delayedSave()
+  },
 
   removeCombatBuff: (id) =>
     set((state) => {

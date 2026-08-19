@@ -24,6 +24,7 @@ import type {
   SetsRelics,
 } from 'lib/sets/setConfigRegistry'
 import type { SetFilters } from 'lib/stores/optimizerForm/setFilterTypes'
+import { type Prettify } from 'types/common'
 import type { ConditionalValueMap } from 'types/conditionals'
 import type {
   LightConeId,
@@ -139,9 +140,12 @@ export type Form =
   & StatFilters
   & RatingFilters
 
-export type CombatBuff = CombatStatBuff | CombatActionModifier
+export type CombatBuff = Prettify<CombatStatBuff | CombatActionModifier>
 
-export interface CombatStatBuff {
+interface CombatBuffCommon {
+  name: string
+}
+export interface CombatStatBuff extends CombatBuffCommon {
   targetTags: TargetTag[]
   damageTags: DamageTag[]
   statKey: AKeyValue
@@ -149,7 +153,7 @@ export interface CombatStatBuff {
   type: CombatBuffType.StatBuff
 }
 
-export interface CombatActionModifier {
+export interface CombatActionModifier extends CombatBuffCommon {
   // modify(action: OptimizerAction, context: OptimizerContext): void
   type: CombatBuffType.ActionModifier
 }
