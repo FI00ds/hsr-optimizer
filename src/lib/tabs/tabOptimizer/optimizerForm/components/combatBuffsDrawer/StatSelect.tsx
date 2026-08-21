@@ -23,7 +23,7 @@ export function StatSelect({
   style
 }: {
   value: AKeyValue | null
-  onChange(value: AKeyValue | null): void
+  onChange: (value: AKeyValue | null) => void
   style?: React.CSSProperties
 }) {
   const { i18n } = useTranslation()

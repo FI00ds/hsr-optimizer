@@ -7,9 +7,9 @@ import classes from './CombatBuffsDrawer.module.css'
 interface BaseProps<T> {
   options: Array<T>,
   value: Array<T>,
-  onChange(values: Array<T>): void,
-  renderPills(tag: { value?: T }): ReactNode
-  renderOptions(option: { option: { value: T }, checked?: boolean }): ReactNode
+  onChange: (values: Array<T>) => void,
+  renderPills: (tag: { value?: T }) => ReactNode
+  renderOptions: (option: { option: { value: T }, checked?: boolean }) => ReactNode
   disabled?: boolean
   label?: string
 }

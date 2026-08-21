@@ -6,7 +6,7 @@ import { renderPill } from 'lib/characterPreview/buffsAnalysis/buffUtils'
 import { PillMultiSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/PillMultiSelect'
 import { type TFunction } from 'i18next'
 
-const targetTagValues = [
+export const targetTagValues = [
   // Self not meaningful?
   // TargetTag.Self,
   TargetTag.Pet,

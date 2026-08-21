@@ -4,16 +4,16 @@ import {
   Button,
   Drawer,
   Flex,
-  type FloatingPosition,
   Group,
   HoverCard,
   NumberInput,
-  Popover,
   SegmentedControl,
-  Text,
-  type SegmentedControlItem,
   Stack,
   TextInput,
+  ActionIcon,
+  Checkbox,
+  type FloatingPosition,
+  type SegmentedControlItem,
 } from '@mantine/core'
 import { defaultGap } from 'lib/constants/constantsUi'
 import {
@@ -29,28 +29,26 @@ import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerR
 import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid/optimizerGridColumns'
 import {
   Children,
-  type JSX,
   type PropsWithChildren,
-  useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  type CombatBuff,
   CombatBuffType,
+  type CombatBuff,
   type CombatStatBuff,
 } from 'types/form'
 import { useShallow } from 'zustand/react/shallow'
-
 import { DamageTagSelect, renderDamageTagPill } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/DamageTagSelect'
 import { renderTargetTagPill, TargetTagSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/TargetTagSelect'
 import { StatSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/StatSelect'
 import { Message } from 'lib/interactions/message'
+import { IconClipboard, IconCopy, IconFolderPlus, IconTrashFilled } from '@tabler/icons-react'
+import { labelToString } from 'lib/characterPreview/buffsAnalysis/buffUtils'
+import { TargetTag } from 'lib/optimization/engine/config/tag'
+import { type TFunction } from 'i18next'
 
 import classes from './CombatBuffsDrawer.module.css'
-import { IconTrashFilled } from '@tabler/icons-react'
-import { labelToString } from 'lib/characterPreview/buffsAnalysis/buffUtils'
-import { type DamageTag, TargetTag } from 'lib/optimization/engine/config/tag'
-import { type TFunction } from 'i18next'
+import { useCombatBuffStore } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/useCombatBuffsStore'
 
 export function CombatBuffsDrawer() {
   const { close: closeBuffsDrawer, isOpen: isOpenBuffsDrawer } = useOpenClose(OpenCloseIDs.COMBAT_BUFFS_DRAWER)
@@ -81,8 +79,10 @@ function CombatBuffsDrawerContent() {
     combatBuffs: s.combatBuffs,
   })))
 
+  const loadBuffFromClipboard = useCombatBuffStore(s => s.loadBuffFromClipboard)
+
   return (
-    <Flex direction='column' gap={defaultGap}>
+    <Stack gap={defaultGap}>
       <Button
         fullWidth
         variant='default'
@@ -90,7 +90,12 @@ function CombatBuffsDrawerContent() {
       >
         {t('Clear')}
       </Button>
-      <Flex direction='column' gap={optimizerTabDefaultGap}>
+      <Group justify='space-between'>
+        {/* TODO: handler*/}
+        <Button leftSection={<IconFolderPlus />}>add to group</Button>
+        <Button onClick={loadBuffFromClipboard} leftSection={<IconClipboard />}>paste buff</Button>
+      </Group>
+      <Stack gap={optimizerTabDefaultGap}>
         <BuffBuilder addBuff={addCombatBuff} />
         {Object.entries(combatBuffs)
           .map(([id, buff]) => (
@@ -103,22 +108,25 @@ function CombatBuffsDrawerContent() {
               t={tBuffPanel}
             />
           ))}
-      </Flex>
-    </Flex>
+      </Stack>
+    </Stack>
   )
 }
 
 function BuffBuilder({
   addBuff,
 }: {
-  addBuff(buff: CombatBuff): void,
+  addBuff: (buff: CombatBuff) => void,
 }) {
-  const [mode, setMode] = useState<CombatBuffType>(CombatBuffType.StatBuff)
-
   const options: Array<SegmentedControlItem<CombatBuffType>> = [
     { value: CombatBuffType.StatBuff, label: 'Stat buff' },
     { value: CombatBuffType.ActionModifier, label: 'Action modifier', disabled: true },
   ]
+
+  const { mode, setMode } = useCombatBuffStore(useShallow((s) => ({
+    mode: s.buffBuilderMode,
+    setMode: s.setBuffBuilderMode
+  })))
 
   return (
     <div className={classes['buff-builder']} style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid' }}>
@@ -133,18 +141,28 @@ function StatBuffBuilder({
   addBuff,
   hidden
 }: {
-  addBuff(buff: CombatBuff): void,
+  addBuff: (buff: CombatBuff) => void,
   hidden: boolean
 }) {
-  const [stat, setStatInternal] = useState<CombatStatBuff['statKey'] | null>(null)
-  const setStat = (stat: CombatStatBuff['statKey'] | null) => {
-    setStatInternal(stat)
-    if (stat !== null && !isHitAKey(stat)) setDamageTags([])
-  }
-  // string used rather than undefined/null beacuse of cases such as empty field which mantine returns as ''
-  const [value, setValue] = useState<CombatStatBuff['value'] | string>(0)
-  const [damageTags, setDamageTags] = useState<CombatStatBuff['damageTags']>([])
-  const [targetTags, setTargetTags] = useState<CombatStatBuff['targetTags']>([])
+  const {
+    stat,
+    setStat,
+    value,
+    setValue,
+    targetTags,
+    setTargetTags,
+    damageTags,
+    setDamageTags
+  } = useCombatBuffStore(useShallow((s) => ({
+    stat: s.stat,
+    setStat: s.setStat,
+    value: s.value,
+    setValue: s.setValue,
+    targetTags: s.targetTags,
+    setTargetTags: s.setTargetTags,
+    damageTags: s.damageTags,
+    setDamageTags: s.setDamageTags
+  })))
 
   const suffix = getSuffix(stat)
 
@@ -217,7 +235,7 @@ function ActionModifierBuilder({
   addBuff,
   hidden
 }: {
-  addBuff(buff: CombatBuff): void,
+  addBuff: (buff: CombatBuff) => void,
   hidden: boolean
 }) {
   return <Flex style={{ display: hidden ? 'none' : undefined }}></Flex>
@@ -232,8 +250,8 @@ function BuffPanel({
 }: {
   id: string
   buff: CombatBuff,
-  removeBuff(key: string): void,
-  renameBuff(id: string, name: string): void
+  removeBuff: (key: string) => void,
+  renameBuff: (id: string, name: string) => void
   t: TFunction<"optimizerTab", "ExpandedDataPanel.DamageTags">
 }) {
   return buff.type === CombatBuffType.StatBuff
@@ -252,15 +270,16 @@ function StatBuffPanel({
 }: {
   id: string,
   buff: CombatStatBuff,
-  removeBuff(key: string): void
-  renameBuff(id: string, name: string): void
+  removeBuff: (key: string) => void
+  renameBuff: (id: string, name: string) => void
   t: TFunction<"optimizerTab", "ExpandedDataPanel.DamageTags">
 }) {
   const remove = () => removeBuff(id)
   const { label, flat } = getAKeyConfig(buff.statKey)
   const statLabel = labelToString(label)
   return (
-    <Group justify='space-between' style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid', padding: 4 }}>
+    <Group gap='xs' justify='space-between' style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid', padding: 4 }}>
+      <Checkbox />
       <Stack>
         <TextInput value={buff.name} onChange={(e) => renameBuff(id, e.currentTarget.value)} placeholder='name this buff?' />
         <Group>
@@ -274,9 +293,14 @@ function StatBuffPanel({
           </TagContainer>
         </Group>
       </Stack>
-      <Button onClick={remove}>
-        <IconTrashFilled />
-      </Button>
+      <Stack>
+        <ActionIcon aria-label='Copy buff'>
+          <IconCopy onClick={() => copyBuffToClipboard(buff)} />
+        </ActionIcon>
+        <ActionIcon aria-label='Delete buff' onClick={remove}>
+          <IconTrashFilled />
+        </ActionIcon>
+      </Stack>
     </Group>
   )
 }
@@ -329,4 +353,18 @@ function TagContainer({ children, popoverPosition }: TagContainerProps) {
       </HoverCard.Dropdown>
     </HoverCard>
   )
+}
+
+async function copyBuffToClipboard(buff: CombatBuff) {
+  await navigator.clipboard.writeText(JSON.stringify(buff))
+    .then(() => {
+      Message.success('Copied to clipboard successfully')
+    })
+    .catch((e: DOMException) => {
+      if (e.name === 'NotAllowedError') {
+        Message.error('browser denied clipboard access, please ensure the website has clipboard permissions.')
+      } else {
+        Message.error(`Copy to clipboard failed with error ${e.name} with message ${e.message}`)
+      }
+    })
 }

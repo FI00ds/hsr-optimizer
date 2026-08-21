@@ -6,9 +6,8 @@ import { useTranslation } from 'react-i18next'
 
 import { PillMultiSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/PillMultiSelect'
 import { type TFunction } from 'i18next'
-import { TagsInput } from '@mantine/core'
 
-const damageTagValues = [
+export const damageTagValues = [
   DamageTag.BASIC,
   DamageTag.SKILL,
   DamageTag.ULT,
@@ -29,7 +28,7 @@ export function DamageTagSelect({
 }: {
   disabled?: boolean,
   value: Array<DamageTag>,
-  onChange(val: Array<DamageTag>): void,
+  onChange: (val: Array<DamageTag>) => void,
 }) {
   const { t } = useTranslation('optimizerTab', { keyPrefix: 'ExpandedDataPanel.DamageTags' })
 

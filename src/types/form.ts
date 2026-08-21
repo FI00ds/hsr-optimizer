@@ -11,20 +11,17 @@ import type {
   Eidolon,
 } from 'types/character'
 
-import {
-  type AKeyValue,
-  HitAKeyValue,
-} from 'lib/optimization/engine/config/keys'
-import {
-  type DamageTag,
-  type TargetTag,
+import type { AKeyValue } from 'lib/optimization/engine/config/keys'
+import type {
+  DamageTag,
+  TargetTag,
 } from 'lib/optimization/engine/config/tag'
 import type {
   SetsOrnaments,
   SetsRelics,
 } from 'lib/sets/setConfigRegistry'
 import type { SetFilters } from 'lib/stores/optimizerForm/setFilterTypes'
-import { type Prettify } from 'types/common'
+import type { Prettify } from 'types/common'
 import type { ConditionalValueMap } from 'types/conditionals'
 import type {
   LightConeId,
@@ -39,10 +36,6 @@ import type {
   MemoDisplay,
   StatDisplay,
 } from 'types/store'
-import {
-  OptimizerAction,
-  OptimizerContext,
-} from './optimizer'
 
 export type Teammate = {
   characterId: CharacterId,

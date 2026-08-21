@@ -47,6 +47,10 @@ export function isHitAKey(key: AKeyValue): key is HitAKeyValue {
   return getAKeyConfig(key).hit === true
 }
 
+export function isAKeyValue(key: any): key is AKeyValue {
+  return typeof key === 'number' && key >= 0 && key < ACTION_STATS_LENGTH
+}
+
 // ============== HKey ==============
 
 const hitStatEntries = Object.entries(newStatsConfig)

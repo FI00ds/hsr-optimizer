@@ -8,6 +8,10 @@ import type {
 } from 'lib/sets/setConfigRegistry'
 import { blankSimRequest } from 'lib/simulations/utils/requestUtils'
 import { SaveState } from 'lib/state/saveState'
+import {
+  getCharacterById,
+  useCharacterStore,
+} from 'lib/stores/character/characterStore'
 import { createTabAwareStore } from 'lib/stores/infrastructure/createTabAwareStore'
 import {
   createDefaultFormState,
@@ -33,6 +37,8 @@ import {
   type TeammateState,
 } from 'lib/stores/optimizerForm/optimizerFormTypes'
 import { type SetFilters } from 'lib/stores/optimizerForm/setFilterTypes'
+import { syncFormToCharacterStore } from 'lib/tabs/tabOptimizer/combo/comboDrawerUtils'
+import { getForm } from 'lib/tabs/tabOptimizer/optimizerForm/optimizerFormActions'
 import { uuid } from 'lib/utils/miscUtils'
 import {
   type CharacterId,
