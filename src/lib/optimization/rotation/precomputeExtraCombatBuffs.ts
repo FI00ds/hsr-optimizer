@@ -17,17 +17,17 @@ export function precomputeExtraCombatBuffs(x: ComputedStatsContainer, request: F
   Object.values(request.combatBuffs).forEach((buff) => {
     if (buff.type !== CombatBuffType.StatBuff) return
 
-    const { statKey, value: preValue, targetTags, damageTags } = buff
+    const { statKey, value: preValue, targetTag, damageTags } = buff
     const value = getAKeyConfig(statKey).flat ? preValue : (preValue / 100)
     if (damageTags.length && isHitAKey(statKey)) {
       const config = x
         .damageType(damageTags.reduce((acc, cur) => acc |= cur))
-        .targets(targetTags.reduce((acc, cur) => acc |= cur))
+        .targets(targetTag)
         .source(Source.EXTRA_COMBAT_BUFFS)
       x.buff(statKey, value, config)
     } else {
       const config = x
-        .targets(targetTags.reduce((acc, cur) => acc |= cur))
+        .targets(targetTag)
         .source(Source.EXTRA_COMBAT_BUFFS)
       x.buff(statKey, value, config)
     }

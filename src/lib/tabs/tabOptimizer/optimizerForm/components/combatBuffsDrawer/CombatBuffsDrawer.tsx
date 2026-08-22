@@ -46,8 +46,6 @@ import { IconClipboard, IconCopy, IconFolderPlus, IconTrashFilled } from '@table
 import { labelToString } from 'lib/characterPreview/buffsAnalysis/buffUtils'
 import { TargetTag } from 'lib/optimization/engine/config/tag'
 import { type TFunction } from 'i18next'
-
-import classes from './CombatBuffsDrawer.module.css'
 import { useCombatBuffStore } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/useCombatBuffsStore'
 
 export function CombatBuffsDrawer() {
@@ -79,21 +77,23 @@ function CombatBuffsDrawerContent() {
     combatBuffs: s.combatBuffs,
   })))
 
-  const loadBuffFromClipboard = useCombatBuffStore(s => s.loadBuffFromClipboard)
+  const { loadBuffFromClipboard } = useCombatBuffStore(useShallow(s => ({
+    loadBuffFromClipboard: s.loadBuffFromClipboard
+  })))
 
   return (
     <Stack gap={defaultGap}>
-      <Button
-        fullWidth
-        variant='default'
-        onClick={clearCombatBuffs}
-      >
-        {t('Clear')}
-      </Button>
-      <Group justify='space-between'>
+      <Group >
+        <Button
+          flex={1}
+          variant='default'
+          onClick={clearCombatBuffs}
+        >
+          {t('Clear')}
+        </Button>
         {/* TODO: handler*/}
-        <Button leftSection={<IconFolderPlus />}>add to group</Button>
-        <Button onClick={loadBuffFromClipboard} leftSection={<IconClipboard />}>paste buff</Button>
+        <ActionIcon ><IconFolderPlus /></ActionIcon>
+        <ActionIcon onClick={loadBuffFromClipboard} ><IconClipboard /></ActionIcon>
       </Group>
       <Stack gap={optimizerTabDefaultGap}>
         <BuffBuilder addBuff={addCombatBuff} />
@@ -129,7 +129,7 @@ function BuffBuilder({
   })))
 
   return (
-    <div className={classes['buff-builder']} style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid' }}>
+    <div style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid', padding: 4 }}>
       <SegmentedControl fullWidth value={mode} onChange={setMode} data={options} data-autofocus />
       <StatBuffBuilder addBuff={addBuff} hidden={mode !== CombatBuffType.StatBuff} />
       <ActionModifierBuilder addBuff={addBuff} hidden={mode !== CombatBuffType.ActionModifier} />
@@ -149,8 +149,8 @@ function StatBuffBuilder({
     setStat,
     value,
     setValue,
-    targetTags,
-    setTargetTags,
+    targetTag,
+    setTargetTag,
     damageTags,
     setDamageTags
   } = useCombatBuffStore(useShallow((s) => ({
@@ -158,8 +158,8 @@ function StatBuffBuilder({
     setStat: s.setStat,
     value: s.value,
     setValue: s.setValue,
-    targetTags: s.targetTags,
-    setTargetTags: s.setTargetTags,
+    targetTag: s.targetTag,
+    setTargetTag: s.setTargetTag,
     damageTags: s.damageTags,
     setDamageTags: s.setDamageTags
   })))
@@ -170,8 +170,8 @@ function StatBuffBuilder({
 
   return (
     //TODO: add <Hint/> to the various selects
-    <Flex gap={4} direction='column' style={{ display: hidden ? 'none' : undefined }}>
-      <Flex direction='row' gap={8}>
+    <Stack gap={4} style={{ display: hidden ? 'none' : undefined }}>
+      <Group gap={8}>
         <StatSelect value={stat} onChange={setStat} style={{ flex: 7 }} />
         <NumberInput
           flex={2}
@@ -181,19 +181,19 @@ function StatBuffBuilder({
           label='value'
           hideControls
         />
-      </Flex>
-      <TargetTagSelect value={targetTags} onChange={setTargetTags} />
+      </Group>
+      <TargetTagSelect value={targetTag} onChange={setTargetTag} />
       <DamageTagSelect disabled={damageTagsDisabled} value={damageTags} onChange={setDamageTags} />
       <Button
         onClick={() => {
-          const buff = validateStatBuff(stat, value, damageTags, targetTags)
+          const buff = validateStatBuff(stat, value, damageTags, targetTag)
           if (!buff) return
           addBuff(buff)
         }}
       >
         Apply buff
       </Button>
-    </Flex>
+    </Stack>
   )
 }
 
@@ -201,7 +201,7 @@ function validateStatBuff(
   statKey: CombatStatBuff['statKey'] | null,
   value: CombatStatBuff['value'] | string,
   damageTags: CombatStatBuff['damageTags'],
-  targetTags: CombatStatBuff['targetTags']
+  targetTag: CombatStatBuff['targetTag'] | null
 ): CombatStatBuff | null {
   if (statKey === null) {
     Message.error('stat is missing')
@@ -220,7 +220,7 @@ function validateStatBuff(
     statKey,
     value,
     damageTags,
-    targetTags: targetTags.length ? targetTags : [TargetTag.FullTeam],
+    targetTag: targetTag ?? TargetTag.FullTeam,
     type: CombatBuffType.StatBuff,
     name: ''
   }
@@ -280,14 +280,12 @@ function StatBuffPanel({
   return (
     <Group gap='xs' justify='space-between' style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid', padding: 4 }}>
       <Checkbox />
-      <Stack>
+      <Stack flex={1}>
         <TextInput value={buff.name} onChange={(e) => renameBuff(id, e.currentTarget.value)} placeholder='name this buff?' />
         <Group>
           <span>{statLabel}</span>
           <span>{`${buff.value}${flat ? '' : '%'}`}</span>
-          <TagContainer >
-            {buff.targetTags.map((tag) => renderTargetTagPill(tag, t, true))}
-          </TagContainer>
+          {renderTargetTagPill(buff.targetTag, t, true)}
           <TagContainer>
             {buff.damageTags.map((tag) => renderDamageTagPill(tag, t, true))}
           </TagContainer>

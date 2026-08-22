@@ -2,29 +2,30 @@ import { MultiSelect, Popover, type Primitive, Text } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
 import type { ReactNode } from "react"
 
-import classes from './CombatBuffsDrawer.module.css'
+import classes from './PillMultiSelect.module.css'
 
-interface BaseProps<T> {
-  options: Array<T>,
-  value: Array<T>,
-  onChange: (values: Array<T>) => void,
-  renderPills: (tag: { value?: T }) => ReactNode
-  renderOptions: (option: { option: { value: T }, checked?: boolean }) => ReactNode
-  disabled?: boolean
-  label?: string
+namespace PillMultiSelect {
+  export interface CoreProps<T extends Primitive> {
+    options: Array<T>,
+    value: Array<T>,
+    onChange: (values: Array<T>) => void,
+    renderPills: (tag: { value?: T }) => ReactNode
+    renderOptions: (option: { option: { value: T }, checked?: boolean }) => ReactNode
+    disabled?: boolean
+    label?: string
+  }
+
+  export type PopoverProps = {
+    withPopover: true,
+    popoverText: string
+  } | {
+    withPopover?: false
+    popoverText?: string
+  }
+
+  export type Props<T extends Primitive> = CoreProps<T> & PopoverProps
 }
 
-interface WithPopoverProps<T> extends BaseProps<T> {
-  withPopover: true,
-  popoverText: string
-}
-
-interface WithoutPopoverProps<T> extends BaseProps<T> {
-  withPopover?: false
-  popoverText?: string
-}
-
-export type PillMultiSelectProps<T extends Primitive> = WithPopoverProps<T> | WithoutPopoverProps<T>
 export function PillMultiSelect<T extends Primitive>({
   options,
   value,
@@ -35,7 +36,7 @@ export function PillMultiSelect<T extends Primitive>({
   popoverText,
   disabled,
   label
-}: PillMultiSelectProps<T>) {
+}: PillMultiSelect.Props<T>) {
   const [opened, { close, open }] = useDisclosure(false)
   return withPopover ? (
     <Popover width={200} position='left' withArrow shadow='md' opened={opened} disabled={!disabled}>
@@ -81,7 +82,7 @@ function TagSelector<T extends Primitive>({
   renderOptions: renderOption,
   renderPills: renderPill,
   disabled
-}: BaseProps<T>) {
+}: PillMultiSelect.CoreProps<T>) {
   return <MultiSelect
     value={value}
     onChange={onChange}

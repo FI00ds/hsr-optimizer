@@ -18,7 +18,7 @@ interface CombatBuffStoreState {
   stat: CombatStatBuff['statKey'] | null
   value: CombatStatBuff['value'] | string
   damageTags: CombatStatBuff['damageTags']
-  targetTags: CombatStatBuff['targetTags']
+  targetTag: CombatStatBuff['targetTag'] | null
   // action modifier builder values
 }
 
@@ -30,7 +30,7 @@ interface CombatBuffStoreActions {
   setStat: (stat: CombatBuffStoreState['stat']) => void
   setValue: (value: CombatBuffStoreState['value']) => void
   setDamageTags: (damageTags: CombatBuffStoreState['damageTags']) => void
-  setTargetTags: (targetTags: CombatBuffStoreState['targetTags']) => void
+  setTargetTag: (targetTags: CombatBuffStoreState['targetTag']) => void
 }
 
 type CombatBuffStore = CombatBuffStoreActions & CombatBuffStoreState
@@ -41,7 +41,7 @@ function initialStoreState(): CombatBuffStoreState {
     stat: null,
     value: 0,
     damageTags: [],
-    targetTags: [],
+    targetTag: null,
   }
 }
 
@@ -58,7 +58,7 @@ export const useCombatBuffStore = create<CombatBuffStore>()((set) => ({
   },
   setValue: (value) => ({ value: value }),
   setDamageTags: (damageTags) => set({ damageTags }),
-  setTargetTags: (targetTags) => set({ targetTags }),
+  setTargetTag: (targetTag) => set({ targetTag }),
   // action modifier builder
 }))
 
@@ -73,11 +73,11 @@ function loadBuffFromClipboard(set: {
       if (buffType == undefined) return Message.error('Clipboard item is not a combat buff')
       switch (buffType as CombatBuffType) {
         case CombatBuffType.StatBuff:
-          const { statKey: stat, value, damageTags, targetTags } = maybeBuff
-          if (stat == undefined || value == undefined || !(damageTags instanceof Array) || !(targetTags instanceof Array)) {
+          const { statKey: stat, value, damageTags, targetTag } = maybeBuff
+          if (stat == undefined || value == undefined || !(damageTags instanceof Array) || (targetTag == undefined)) {
             return Message.error('Clipboard item is missing fields')
           }
-          if (!targetTags.reduce((acc, tag) => acc && targetTagValues.includes(tag), true)) {
+          if (!targetTagValues.includes(targetTag)) {
             return Message.error('Target tag field is invalid')
           }
           if (!damageTags.reduce((acc, tag) => acc && damageTagValues.includes(tag), true)) {
@@ -92,7 +92,7 @@ function loadBuffFromClipboard(set: {
           if (damageTags.length && !isHitAKey(stat)) {
             return Message.error('Buff includes damage type filtering but stat is incompatible')
           }
-          return set({ stat, value, damageTags, targetTags })
+          return set({ stat, value, damageTags, targetTag })
           // TODO: action modifier safe parsing
       }
       Message.error('Clipboard item is not a combat buff')

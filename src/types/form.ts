@@ -139,7 +139,7 @@ interface CombatBuffCommon {
   name: string
 }
 export interface CombatStatBuff extends CombatBuffCommon {
-  targetTags: TargetTag[]
+  targetTag: TargetTag
   damageTags: DamageTag[]
   statKey: AKeyValue
   value: number

@@ -1,4 +1,5 @@
 import { AKey } from 'lib/optimization/engine/config/keys'
+import { TargetTag } from 'lib/optimization/engine/config/tag'
 import { uuid } from 'lib/utils/miscUtils'
 import {
   type CombatBuff,
@@ -38,7 +39,7 @@ function migrateBuffEntry<K extends keyof OldCombatBuffs>(key: K, value: OldComb
       value,
       type: CombatBuffType.StatBuff,
       name: '',
-      targetTags: [],
+      targetTag: TargetTag.FullTeam,
       damageTags: [],
     }
   }
