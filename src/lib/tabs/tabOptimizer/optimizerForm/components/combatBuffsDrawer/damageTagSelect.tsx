@@ -4,8 +4,8 @@ import { DamageTag } from 'lib/optimization/engine/config/tag'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { PillMultiSelect } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/PillMultiSelect'
 import { type TFunction } from 'i18next'
+import { PillMultiSelect } from 'lib/ui/pillSelects/PillMultiSelect'
 
 export const damageTagValues = [
   DamageTag.BASIC,
@@ -56,7 +56,7 @@ export function DamageTagSelect({
   )
 }
 
-export function renderDamageTagPill(tag: DamageTag, t: TFunction<"optimizerTab", "ExpandedDataPanel.DamageTags">, active?: boolean) {
+export function renderDamageTagPill(tag: DamageTag, t: TFunction<'optimizerTab', 'ExpandedDataPanel.DamageTags'>, active?: boolean) {
   const label = t(DamageTag[tag])
   const colour = DAMAGE_TAG_ENTRY_BY_TAG.get(tag)?.color
   if (!colour) return null
