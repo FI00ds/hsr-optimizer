@@ -14,6 +14,7 @@ import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid
 import { HeaderText } from 'lib/ui/HeaderText'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CombatBuffType } from 'types/form'
 
 export function AdvancedOptionsPanel() {
   const { t } = useTranslation('optimizerTab', { keyPrefix: 'AdvancedOptions' })
@@ -22,9 +23,11 @@ export function AdvancedOptionsPanel() {
   // Count the # of active buffs to display
   const formCombatBuffs = useOptimizerRequestStore((s) => s.combatBuffs)
   const buffsActive = useMemo(() => {
-    if (!formCombatBuffs) return 0
-
-    return Object.values(formCombatBuffs).length
+    let activeCount = 0
+    Object.values(formCombatBuffs).forEach((buff) => {
+      if (buff.type !== CombatBuffType.Group) activeCount++
+    })
+    return activeCount
   }, [formCombatBuffs])
 
   return (

@@ -8,10 +8,6 @@ import type {
 } from 'lib/sets/setConfigRegistry'
 import { blankSimRequest } from 'lib/simulations/utils/requestUtils'
 import { SaveState } from 'lib/state/saveState'
-import {
-  getCharacterById,
-  useCharacterStore,
-} from 'lib/stores/character/characterStore'
 import { createTabAwareStore } from 'lib/stores/infrastructure/createTabAwareStore'
 import {
   createDefaultFormState,
@@ -37,8 +33,6 @@ import {
   type TeammateState,
 } from 'lib/stores/optimizerForm/optimizerFormTypes'
 import { type SetFilters } from 'lib/stores/optimizerForm/setFilterTypes'
-import { syncFormToCharacterStore } from 'lib/tabs/tabOptimizer/combo/comboDrawerUtils'
-import { getForm } from 'lib/tabs/tabOptimizer/optimizerForm/optimizerFormActions'
 import { uuid } from 'lib/utils/miscUtils'
 import {
   type CharacterId,
@@ -47,6 +41,8 @@ import {
 import { type ConditionalValueMap } from 'types/conditionals'
 import {
   type CombatBuff,
+  type CombatBuffGroup,
+  CombatBuffType,
   type Form,
 } from 'types/form'
 import {
@@ -65,7 +61,8 @@ type OptimizerRequestActions = {
   // Simple setters (Task 8)
   setStatFilter: (key: keyof StatFilterState, value: number | undefined) => void,
   setRatingFilter: (key: keyof RatingFilterState, value: number | undefined) => void,
-  addCombatBuff: (buff: CombatBuff) => void,
+  addCombatBuff: (buff: CombatBuff | CombatBuffGroup) => void,
+  updateCombatBuff: (id: string, buff: CombatBuff | CombatBuffGroup) => void,
   nameCombatBuff: (id: string, name: string) => void,
   removeCombatBuff: (id: string) => void,
   clearCombatBuffs: () => void,
@@ -133,6 +130,13 @@ export const useOptimizerRequestStore = createTabAwareStore<OptimizerRequestStor
     SaveState.delayedSave()
   },
 
+  updateCombatBuff: (id, buff) => {
+    set((state) => {
+      return { combatBuffs: { ...state.combatBuffs, [id]: buff } }
+    })
+    SaveState.delayedSave()
+  },
+
   nameCombatBuff: (id, name) => {
     set((state) => {
       return { combatBuffs: { ...state.combatBuffs, [id]: { ...state.combatBuffs[id], name } } }
@@ -142,7 +146,12 @@ export const useOptimizerRequestStore = createTabAwareStore<OptimizerRequestStor
 
   removeCombatBuff: (id) =>
     set((state) => {
-      const { [id]: remove, ...keep } = state.combatBuffs
+      let { [id]: remove, ...keep } = state.combatBuffs
+      for (const buffId in keep) {
+        if (keep[buffId].type === CombatBuffType.Group && keep[buffId].buffs.includes(id)) {
+          keep = { ...keep, [buffId]: { ...keep[buffId], buffs: keep[buffId].buffs.filter((buffId) => buffId !== id) } }
+        }
+      }
       return { combatBuffs: keep }
     }),
 

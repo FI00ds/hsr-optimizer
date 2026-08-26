@@ -99,7 +99,7 @@ export type Form =
 
     weights: ScoringMetadata['stats'],
 
-    combatBuffs: Record<string, CombatBuff>,
+    combatBuffs: Record<string, CombatBuff | CombatBuffGroup>,
 
     // Optimizer additional data
     statSim?: {
@@ -133,6 +133,12 @@ export type Form =
   & StatFilters
   & RatingFilters
 
+export interface CombatBuffGroup {
+  type: CombatBuffType.Group
+  name: string
+  buffs: Array<string>
+}
+
 export type CombatBuff = Prettify<CombatStatBuff | CombatActionModifier>
 
 interface CombatBuffCommon {
@@ -154,6 +160,7 @@ export interface CombatActionModifier extends CombatBuffCommon {
 export enum CombatBuffType {
   StatBuff,
   ActionModifier,
+  Group,
 }
 
 export type RelicSetFilters = Array<[pieces: string] | [pieces: string, set: SetsRelics] | [pieces: string, set1: SetsRelics, set2: SetsRelics]>

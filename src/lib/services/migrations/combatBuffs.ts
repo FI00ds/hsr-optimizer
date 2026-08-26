@@ -33,10 +33,34 @@ export function migrateCombatBuffs(saveData: HsrOptimizerSaveFormat) {
 }
 
 function migrateBuffEntry<K extends keyof OldCombatBuffs>(key: K, value: OldCombatBuffs[K]): CombatStatBuff | undefined {
+  const valueMultiplier = (() => {
+    switch (key) {
+      case 'HP':
+      case 'SPD':
+      case 'ATK':
+      case 'DEF':
+        return 1
+      case 'ATK_P':
+      case 'BE':
+      case 'BOOST':
+      case 'BREAK_EFFICIENCY':
+      case 'CD':
+      case 'CR':
+      case 'DEF_P':
+      case 'DEF_PEN':
+      case 'EFFECT_RES_PEN':
+      case 'EHR':
+      case 'HP_P':
+      case 'RES_PEN':
+      case 'SPD_P':
+      case 'VULNERABILITY':
+        return 100
+    }
+  })()
   if (value) {
     return {
       statKey: AKey[key],
-      value,
+      value: value * valueMultiplier,
       type: CombatBuffType.StatBuff,
       name: '',
       targetTag: TargetTag.FullTeam,

@@ -1,0 +1,246 @@
+import {
+  ActionIcon,
+  Box,
+  Card,
+  Checkbox,
+  Collapse,
+  Group,
+  Space,
+  Stack,
+  TextInput,
+  Transition,
+  UnstyledButton,
+  useMantineTheme,
+} from '@mantine/core'
+import {
+  useDisclosure,
+  useElementSize,
+  useResizeObserver,
+} from '@mantine/hooks'
+import {
+  IconCopy,
+  IconTrashFilled,
+} from '@tabler/icons-react'
+import { type TFunction } from 'i18next'
+import {
+  memo,
+  type ReactNode,
+  useCallback,
+  useState,
+} from 'react'
+import {
+  type CombatBuff,
+  type CombatBuffGroup,
+} from 'types/form'
+import { BuffPanel } from './BuffPanel'
+import { useCombatBuffStore } from './useCombatBuffsStore'
+
+interface BuffGroupPanelProps {
+  id: string
+  group: CombatBuffGroup
+  buffs: Map<string, CombatBuff>
+  removeBuff: (key: string) => void
+  renameBuff: (id: string, name: string) => void
+  t: TFunction<'optimizerTab', 'ExpandedDataPanel.DamageTags'>
+  checked: boolean
+  toggleSelection: (id: string) => void
+}
+// TODO: enhance to be expand/collapse, have buff preview in collapse, full buff card in expand
+export const BuffGroupPanel = memo(function BuffGroupPanel({
+  id,
+  group,
+  buffs,
+  removeBuff,
+  renameBuff,
+  t,
+  checked,
+  toggleSelection,
+}: BuffGroupPanelProps) {
+  const remove = useCallback(() => removeBuff(id), [removeBuff, id])
+  const copyClicked = useCallback(() => copyGroupToClipboard(group, buffs), [group])
+  const [isOpen, { toggle }] = useDisclosure(false)
+  return (
+    <Group
+      gap='xs'
+      justify='space-between'
+      style={{ borderColor: 'red', borderRadius: 4, borderWidth: 1, borderStyle: 'solid', padding: 4 }}
+    >
+      <Box
+        onClick={toggle}
+        style={{
+          alignSelf: 'stretch',
+          display: 'flex',
+          alignItems: 'flex-start',
+          cursor: 'pointer',
+        }}
+      >
+        <Checkbox
+          mt={7}
+          checked={checked}
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleSelection(id)
+          }}
+        />
+      </Box>
+      <Stack flex={1}>
+        <TextInput value={group.name} onChange={(e) => renameBuff(id, e.currentTarget.value)} placeholder='name this group?' />
+        <BuffGroupContent
+          group={group}
+          isOpen={isOpen}
+          buffs={buffs}
+          t={t}
+          renameBuff={renameBuff}
+          removeBuff={removeBuff}
+          toggleSelection={toggleSelection}
+        />
+      </Stack>
+      <Stack gap={2} style={{ alignSelf: 'flex-start' }}>
+        <ActionIcon aria-label='Copy group' size={30} onClick={copyClicked}>
+          <IconCopy />
+        </ActionIcon>
+        <ActionIcon aria-label='Delete group' onClick={remove} size={30}>
+          <IconTrashFilled />
+        </ActionIcon>
+      </Stack>
+    </Group>
+  )
+})
+
+const heightTransition = 'height 200ms cubic-bezier(0.4, 0, 0.2, 1)'
+const opacityTransition = 'opacity 100ms ease-out'
+
+interface BuffGroupContentProps {
+  isOpen: boolean
+  group: CombatBuffGroup
+  buffs: ReadonlyMap<string, CombatBuff>
+  removeBuff: (key: string) => void
+  renameBuff: (id: string, name: string) => void
+  t: TFunction<'optimizerTab', 'ExpandedDataPanel.DamageTags'>
+  toggleSelection: (id: string) => void
+}
+function BuffGroupContent({
+  isOpen,
+  group,
+  buffs,
+  removeBuff,
+  renameBuff,
+  t,
+  toggleSelection,
+}: BuffGroupContentProps) {
+  const theme = useMantineTheme()
+  const selectedBuffs = useCombatBuffStore((s) => s.selectedBuffs)
+
+  const [previewRef, previewRect] = useResizeObserver()
+  const [panelsRef, panelsRect] = useResizeObserver()
+
+  const preview = (
+    <BuffGroupPreview
+      buffs={buffs}
+      group={group}
+    />
+  )
+
+  const panels = group.buffs.map((id) => (
+    <BuffPanel
+      key={id}
+      id={id}
+      t={t}
+      renameBuff={renameBuff}
+      removeBuff={removeBuff}
+      buff={buffs.get(id)!}
+      toggleSelection={toggleSelection}
+      checked={selectedBuffs.has(id)}
+    />
+  ))
+
+  const height = isOpen ? panelsRect.height : previewRect.height
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* Invisible measurement layer */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          visibility: 'hidden',
+          pointerEvents: 'none',
+        }}
+      >
+        <div ref={previewRef}>{preview}</div>
+        <div ref={panelsRef}>{panels}</div>
+      </div>
+
+      {/* Visible animated layer */}
+      <div
+        style={{
+          height,
+          display: 'grid',
+          overflow: 'hidden',
+          transition: heightTransition,
+        }}
+      >
+        <div
+          style={{
+            gridArea: '1 / 1',
+            opacity: isOpen ? 0 : 1,
+            pointerEvents: isOpen ? 'none' : 'auto',
+            transition: opacityTransition,
+          }}
+        >
+          {preview}
+        </div>
+
+        <div
+          style={{
+            gridArea: '1 / 1',
+            opacity: isOpen ? 1 : 0,
+            pointerEvents: isOpen ? 'auto' : 'none',
+            transition: opacityTransition,
+          }}
+        >
+          {panels}
+        </div>
+      </div>
+    </div>
+  )
+  // return (
+  //  <>
+  //    <Collapse expanded={isOpen}>
+  //      {group.buffs.map((id) => (
+  //        <BuffPanel
+  //          key={id}
+  //          id={id}
+  //          t={t}
+  //          renameBuff={renameBuff}
+  //          removeBuff={removeBuff}
+  //          buff={buffs.get(id)!}
+  //          toggleSelection={toggleSelection}
+  //          checked={selectedBuffs.has(id)}
+  //        />
+  //      ))}
+  //    </Collapse>
+  //    <Transition mounted={!isOpen} transition='fade' duration={150} timingFunction='ease'>
+  //      {(styles) => (
+  //        <div style={styles}>
+  //          <BuffGroupPreview buffs={buffs} group={group} />
+  //        </div>
+  //      )}
+  //    </Transition>
+  //  </>
+  // )
+}
+
+interface PreviewProps {
+  group: CombatBuffGroup
+  buffs: ReadonlyMap<string, CombatBuff>
+}
+function BuffGroupPreview({
+  group,
+  buffs,
+}: PreviewProps) {
+  return <span>{group.buffs.length} buffs</span>
+}
+
+async function copyGroupToClipboard(group: CombatBuffGroup, buffs: Map<string, CombatBuff>) {}
