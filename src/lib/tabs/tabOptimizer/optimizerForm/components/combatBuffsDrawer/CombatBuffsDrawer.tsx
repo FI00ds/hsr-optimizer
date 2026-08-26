@@ -21,7 +21,9 @@ import {
   useCombatBuffStore,
 } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/useCombatBuffsStore'
 import { optimizerTabDefaultGap } from 'lib/tabs/tabOptimizer/optimizerForm/grid/optimizerGridColumns'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { type CombatBuff } from 'types/form'
 import { useShallow } from 'zustand/react/shallow'
 import { BuffGroupPanel } from './BuffGroupPanel'
 import { BuffPanel } from './BuffPanel'
@@ -81,6 +83,15 @@ function CombatBuffsDrawerContent() {
     })),
   )
 
+  const addBuff = useCallback((buff: CombatBuff) => {
+    if (selectedBuffs.size === 1) {
+      const [groupId] = selectedBuffs
+      if (groups.has(groupId)) return addCombatBuff(buff, groupId)
+    }
+    addCombatBuff(buff)
+  }, [addCombatBuff, selectedBuffs])
+
+  // TODO: implement
   const clearSelectedBuffs = () => {}
 
   return (
@@ -100,7 +111,7 @@ function CombatBuffsDrawerContent() {
         </ActionIcon>
       </Group>
       <Stack gap={optimizerTabDefaultGap}>
-        <BuffBuilder addBuff={addCombatBuff} />
+        <BuffBuilder addBuff={addBuff} />
         {groups.entries()
           .map(([id, group]) => (
             <BuffGroupPanel

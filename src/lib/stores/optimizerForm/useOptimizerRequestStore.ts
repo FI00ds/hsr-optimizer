@@ -57,11 +57,16 @@ import {
 export type MainConditionalType = 'characterConditionals' | 'lightConeConditionals'
 export type TeammateConditionalType = 'characterConditionals' | 'lightConeConditionals'
 
+type AddCombatBuff = {
+  (this: void, buff: CombatBuffGroup): void,
+  (this: void, buff: CombatBuff, groupId?: string): void,
+}
+
 type OptimizerRequestActions = {
   // Simple setters (Task 8)
   setStatFilter: (key: keyof StatFilterState, value: number | undefined) => void,
   setRatingFilter: (key: keyof RatingFilterState, value: number | undefined) => void,
-  addCombatBuff: (buff: CombatBuff | CombatBuffGroup) => void,
+  addCombatBuff: AddCombatBuff,
   updateCombatBuff: (id: string, buff: CombatBuff | CombatBuffGroup) => void,
   nameCombatBuff: (id: string, name: string) => void,
   removeCombatBuff: (id: string) => void,
@@ -123,9 +128,16 @@ export const useOptimizerRequestStore = createTabAwareStore<OptimizerRequestStor
       ratingFilters: { ...state.ratingFilters, [key]: value },
     })),
 
-  addCombatBuff: (buff) => {
+  addCombatBuff: (buff: CombatBuff | CombatBuffGroup, groupId?: string) => {
     set((state) => {
-      return { combatBuffs: { ...state.combatBuffs, [uuid()]: buff } }
+      const id = uuid()
+      let combatBuffs = { ...state.combatBuffs, [id]: buff }
+      if (groupId) {
+        const group = combatBuffs[groupId]
+        if (group.type !== CombatBuffType.Group) return { combatBuffs }
+        combatBuffs = { ...combatBuffs, [groupId]: { ...group, buffs: [...group.buffs, id] } }
+      }
+      return { combatBuffs }
     })
     SaveState.delayedSave()
   },
