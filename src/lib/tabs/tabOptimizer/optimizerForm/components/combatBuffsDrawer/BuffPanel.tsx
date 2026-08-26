@@ -29,6 +29,7 @@ import {
   CombatBuffType,
   type CombatStatBuff,
 } from 'types/form'
+import { writeBuffToClipboard } from './clipboard'
 import { renderDamageTagPill } from './DamageTagSelect'
 import { renderTargetTagPill } from './TargetTagSelect'
 
@@ -70,7 +71,7 @@ export const BuffPanel = memo(function BuffPanel({
       <Checkbox checked={checked} onClick={() => toggleSelection(id)} />
       {panelContent}
       <Stack gap={2}>
-        <ActionIcon aria-label='Copy buff' size={30} onClick={() => copyBuffToClipboard(buff)}>
+        <ActionIcon aria-label='Copy buff' size={30} onClick={() => writeBuffToClipboard(buff)}>
           <IconCopy />
         </ActionIcon>
         <ActionIcon aria-label='Delete buff' onClick={remove} size={30}>
@@ -156,18 +157,4 @@ function TagContainer({ children, popoverPosition }: TagContainerProps) {
       </HoverCard.Dropdown>
     </HoverCard>
   )
-}
-
-async function copyBuffToClipboard(buff: CombatBuff) {
-  await navigator.clipboard.writeText(JSON.stringify(buff))
-    .then(() => {
-      Message.success('Copied to clipboard successfully')
-    })
-    .catch((e: DOMException) => {
-      if (e.name === 'NotAllowedError') {
-        Message.error('browser denied clipboard access, please ensure the website has clipboard permissions.')
-      } else {
-        Message.error(`Copy to clipboard failed with error ${e.name} with message ${e.message}`)
-      }
-    })
 }

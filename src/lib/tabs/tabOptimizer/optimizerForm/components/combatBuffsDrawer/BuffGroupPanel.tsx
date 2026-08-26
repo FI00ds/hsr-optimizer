@@ -1,20 +1,13 @@
 import {
   ActionIcon,
   Box,
-  Card,
   Checkbox,
-  Collapse,
   Group,
-  Space,
   Stack,
   TextInput,
-  Transition,
-  UnstyledButton,
-  useMantineTheme,
 } from '@mantine/core'
 import {
   useDisclosure,
-  useElementSize,
   useResizeObserver,
 } from '@mantine/hooks'
 import {
@@ -24,9 +17,7 @@ import {
 import { type TFunction } from 'i18next'
 import {
   memo,
-  type ReactNode,
   useCallback,
-  useState,
 } from 'react'
 import {
   type CombatBuff,
@@ -45,7 +36,6 @@ interface BuffGroupPanelProps {
   checked: boolean
   toggleSelection: (id: string) => void
 }
-// TODO: enhance to be expand/collapse, have buff preview in collapse, full buff card in expand
 export const BuffGroupPanel = memo(function BuffGroupPanel({
   id,
   group,
@@ -128,7 +118,6 @@ function BuffGroupContent({
   t,
   toggleSelection,
 }: BuffGroupContentProps) {
-  const theme = useMantineTheme()
   const selectedBuffs = useCombatBuffStore((s) => s.selectedBuffs)
 
   const [previewRef, previewRect] = useResizeObserver()
@@ -205,33 +194,9 @@ function BuffGroupContent({
       </div>
     </div>
   )
-  // return (
-  //  <>
-  //    <Collapse expanded={isOpen}>
-  //      {group.buffs.map((id) => (
-  //        <BuffPanel
-  //          key={id}
-  //          id={id}
-  //          t={t}
-  //          renameBuff={renameBuff}
-  //          removeBuff={removeBuff}
-  //          buff={buffs.get(id)!}
-  //          toggleSelection={toggleSelection}
-  //          checked={selectedBuffs.has(id)}
-  //        />
-  //      ))}
-  //    </Collapse>
-  //    <Transition mounted={!isOpen} transition='fade' duration={150} timingFunction='ease'>
-  //      {(styles) => (
-  //        <div style={styles}>
-  //          <BuffGroupPreview buffs={buffs} group={group} />
-  //        </div>
-  //      )}
-  //    </Transition>
-  //  </>
-  // )
 }
 
+// TODO: implement
 interface PreviewProps {
   group: CombatBuffGroup
   buffs: ReadonlyMap<string, CombatBuff>
@@ -243,4 +208,5 @@ function BuffGroupPreview({
   return <span>{group.buffs.length} buffs</span>
 }
 
+// TODO: implement
 async function copyGroupToClipboard(group: CombatBuffGroup, buffs: Map<string, CombatBuff>) {}

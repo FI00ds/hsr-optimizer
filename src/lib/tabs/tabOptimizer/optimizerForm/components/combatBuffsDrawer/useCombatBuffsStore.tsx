@@ -15,14 +15,24 @@ import { type OptimizerRequestState } from 'lib/stores/optimizerForm/optimizerFo
 import { useOptimizerRequestStore } from 'lib/stores/optimizerForm/useOptimizerRequestStore'
 import { damageTagValues } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/DamageTagSelect'
 import { targetTagValues } from 'lib/tabs/tabOptimizer/optimizerForm/components/combatBuffsDrawer/TargetTagSelect'
+import { uuid } from 'lib/utils/miscUtils'
 import { memo } from 'react'
 import {
+  type CombatActionModifier,
   type CombatBuff,
   type CombatBuffGroup,
   CombatBuffType,
   type CombatStatBuff,
 } from 'types/form'
 import { create } from 'zustand'
+import {
+  ActionModifierParseError,
+  BuffGroupParseError,
+  ClipboardError,
+  GenericParseError,
+  readBuffFromClipboard,
+  StatBuffParseError,
+} from './clipboard'
 
 interface CombatBuffStoreState {
   // general purpose values
@@ -155,51 +165,44 @@ export const useCombatBuffStore = create<CombatBuffStore>()((set, get) => ({
   // action modifier builder
 }))
 
-function loadBuffFromClipboard(set: { (partial: Partial<CombatBuffStore>): void }) {
-  navigator.clipboard.readText()
-    .then(JSON.parse)
-    .then((maybeBuff) => {
-      switch (maybeBuff.type as CombatBuffType | undefined) {
-        case undefined:
-          break
-        case CombatBuffType.StatBuff:
-          const { statKey: stat, value, damageTags, targetTag } = maybeBuff
-          if (stat == undefined || value == undefined || !(damageTags instanceof Array) || (targetTag == undefined)) {
-            return Message.error('Clipboard item is missing fields')
-          }
-          if (!targetTagValues.includes(targetTag)) {
-            return Message.error('Target tag field is invalid')
-          }
-          if (!damageTags.reduce((acc, tag) => acc && damageTagValues.includes(tag), true)) {
-            return Message.error('Damage tag field is invalid')
-          }
-          if (typeof value !== 'number') {
-            return Message.error('Value field is invalid')
-          }
-          if (!isAKeyValue(stat)) {
-            return Message.error('Stat field is invalid')
-          }
-          if (damageTags.length && !isHitAKey(stat)) {
-            return Message.error('Buff includes damage type filtering but stat is incompatible')
-          }
+async function loadBuffFromClipboard(set: { (partial: Partial<CombatBuffStore>): void }) {
+  const buff = await readBuffFromClipboard()
+  switch (buff) {
+    // TODO: Error messages
+    case ClipboardError.NotAllowed:
+    case ClipboardError.NotFound:
+    case GenericParseError.InvalidItem:
+    case GenericParseError.SyntaxError:
+    case GenericParseError.Unknown:
+    case StatBuffParseError.FieldsMissing:
+    case StatBuffParseError.TargetTagInvalid:
+    case StatBuffParseError.DamageTagInvalid:
+    case StatBuffParseError.ValueInvalid:
+    case StatBuffParseError.StatInvalid:
+    case StatBuffParseError.ConfigInvalid:
+    case StatBuffParseError.NameInvalid:
+    case BuffGroupParseError.FieldsMissing:
+    case BuffGroupParseError.NameInvalid:
+    case BuffGroupParseError.BuffsInvalid:
+    case ActionModifierParseError.FieldsMissing:
+      break
+    default:
+      switch (buff.type) {
+        case CombatBuffType.StatBuff: {
+          const { statKey: stat, value, damageTags, targetTag } = buff
           return set({ stat, value, damageTags, targetTag })
-      }
-      Message.error('Clipboard item is not a combat buff')
-    })
-    .catch((e: DOMException | SyntaxError) => {
-      if (e instanceof SyntaxError) {
-        return Message.error('Item in clipboard is not valid JSON')
-      }
-      if (e instanceof DOMException) {
-        switch (e.name) {
-          case 'NotAllowedError':
-            return Message.error('Clipboard permissions denied, please ensure the website has clipboard permissions.')
-          case 'NotFoundError':
-            return Message.error('No suitable clipboard entry was detected.')
+        }
+        case CombatBuffType.Group: {
+          const { buffs, group } = buff
+          const combatBuffs = {
+            ...useOptimizerRequestStore.getState().combatBuffs,
+            ...Object.fromEntries(buffs.entries()),
+            [uuid()]: group,
+          }
+          useOptimizerRequestStore.setState({ combatBuffs })
         }
       }
-      return Message.error('Unknown error while attempting to parse buff from clipboard.')
-    })
+  }
 }
 
 useOptimizerRequestStore.subscribe((state, prev) => {
